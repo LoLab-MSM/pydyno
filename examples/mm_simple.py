@@ -5,7 +5,7 @@ from pysb.macros import catalyze_state
 import numpy as np
 import matplotlib.pyplot as plt
 
-run_ode = True
+run_ode = True 
 n_ssa_runs = 5
 colors = ['blue', 'green', 'red', 'orange']
 
