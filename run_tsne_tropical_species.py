@@ -1,19 +1,17 @@
-import sys
-sys.path.insert(0, '/home/oscar/tropical_project/pysb')
-sys.path.insert(0, '/home/oscar/tropical_project/earm-jpino')
-
-import matplotlib
-matplotlib.use('Agg')
-
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 from sklearn import cluster
-from earm.lopez_embedded import model
-from pysb.tools.max_monomials import run_tropical
-import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import os
+import scipy.cluster.hierarchy as sch
+import scipy.spatial.distance as metrics 
+import sys
+sys.setrecursionlimit(10000)
+
+def listdir_fullpath(d):
+    return [os.path.join(d, f) for f in os.listdir(d)]
 
 def scatter(x, name):
 
@@ -64,33 +62,29 @@ def dbscan_clus(x,name):
     for c in 'bgrcmyk':
         pars_colors[c] = [idx for idx,co in enumerate(colors[y_pred].tolist()) if co == c]
 
-    plt.savefig('/home/oscar/tropical_project/tropical_clustering2000_species_dbscan_drivers_hamming/'+ name, dpi=150)
+    plt.savefig(name, dpi=150)
     plt.close(f)
     return pars_colors
 
-species = pickle.load(open('/home/oscar/tropical_project/species_parameters_2000_drivers.p', 'rb'))
+for sp in listdir_fullpath('/home/carlos/Documents/tropical_project/species_pars_info'):
+    species = np.load(sp)
+    if len(np.unique(species)) == 1: print sp + ' ' + 'only has one driver monomial'
+    else:
+        dist_matrix = metrics.pdist(species, 'euclidean')
+        fig = plt.figure(1)
+        
+        Y = sch.linkage(dist_matrix, method='average')
+        print Y
+        Z = sch.dendrogram(Y)
+        fig.show()
 
-drivers=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76]
+#     ax = fig.add_subplot(111, projection='3d')
+#     
+#     x = TSNE(n_components=3,metric='minkowski',random_state=20150101).fit_transform(species)
+#     ax.scatter(x[:,0],x[:,1],x[:,2])
+#     dbscan_clus(x, sp.split('.')[0])    
 
 
-if drivers is not None:
-    species_ready = []
-    for i in drivers:
-        if i in species.keys(): species_ready.append(i)
-        else: print 'specie' + ' ' + str(i) + ' ' + 'is not a driver'
-elif driver_species is None:
-    raise Exception('list of driver species must be defined')
-
-if species_ready == []:
-    raise Exception('None of the input species is a driver')
-
-
-monomials_clusters = {}
-for spp in species_ready:
-    print spp
-    x = TSNE(metric='hamming',random_state=20150101).fit_transform(species[spp])
-    dbscan_clus(x, str(spp))
-    monomials_clusters[str(spp)] = dbscan_clus(x, str(spp))
-
-pickle.dump(monomials_clusters, open('/home/oscar/tropical_project/species_clusters_info_hamming.p', 'wb'))
+# monomials_clusters[str(spp)] = dbscan_clus(x, str(spp))
+# pickle.dump(monomials_clusters, open('/home/oscar/tropical_project/species_clusters_info_hamming.p', 'wb'))
 

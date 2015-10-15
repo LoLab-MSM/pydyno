@@ -15,7 +15,7 @@ V = 10.
 #######
 Parameter('kf',   1./V)
 Parameter('kr',   1000.)
-Parameter('kcat', 100.)
+Parameter('kcat', 10000.)
 
 Monomer('E', ['s'])
 Monomer('S', ['e'])

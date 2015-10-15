@@ -8,9 +8,7 @@ matplotlib.use('Agg')
 from earm.lopez_embedded import model
 from pysb.tools.max_monomials_signature import run_tropical
 from multiprocessing import Pool
-from sklearn.manifold import TSNE
 import numpy as np
-import matplotlib.pyplot as plt
 import csv
 import os, os.path
 import collections
@@ -47,7 +45,6 @@ species_signs = p.map(compare_parameters,listdir_fullpath('/home/oscar/tropical_
 
 for sp in drivers:
     for sign in species_signs:
-        print sp
         species[sp].append(sign[sp])
 
 #for sign in species_signs:

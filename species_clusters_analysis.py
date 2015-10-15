@@ -1,9 +1,4 @@
-import sys
-sys.path.insert(0, '/home/oscar/tropical_project/pysb')
-sys.path.insert(0, '/home/oscar/tropical_project/earm-jpino')
-
-import matplotlib
-matplotlib.use('Agg')
+#Cluster analysis of species
 
 import numpy as np
 import pickle
