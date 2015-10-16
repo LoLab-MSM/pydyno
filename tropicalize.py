@@ -78,26 +78,26 @@ class Tropical:
           
         if verbose: print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
-        if verbose: print "Constructing Graph"
-        self.construct_graph()
-#         networkx.draw(self.graph)
-#         plt.draw()
-#         plt.show()
-        if verbose: print "Computing Cycles"
-        self.cycles = list(networkx.strongly_connected_components(self.graph))
-        if verbose: print "Computing Conservation laws"
-        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.y[ignore:])
-        print self.conservation, self.conserve_var, self.value_conservation
-        print self.cycles
-        if verbose: print "Pruning Equations"
-        self.pruned = self.pruned_equations(self.y[ignore:], rho)
-        if verbose: print "Solving pruned equations"
-        self.sol_pruned = self.solve_pruned()
-        if verbose: print "equation to tropicalize"
-        self.eqs_for_tropicalization = self.equations_to_tropicalize()
-        if verbose: print "Getting tropicalized equations"
-        self.tropical_eqs = self.final_tropicalization()
-        self.data_drivers(self.y[ignore:])
+#         if verbose: print "Constructing Graph"
+#         self.construct_graph()
+# #         networkx.draw(self.graph)
+# #         plt.draw()
+# #         plt.show()
+#         if verbose: print "Computing Cycles"
+#         self.cycles = list(networkx.strongly_connected_components(self.graph))
+#         if verbose: print "Computing Conservation laws"
+#         (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.y[ignore:])
+#         print self.conservation, self.conserve_var, self.value_conservation
+#         print self.cycles
+#         if verbose: print "Pruning Equations"
+#         self.pruned = self.pruned_equations(self.y[ignore:], rho)
+#         if verbose: print "Solving pruned equations"
+#         self.sol_pruned = self.solve_pruned()
+#         if verbose: print "equation to tropicalize"
+#         self.eqs_for_tropicalization = self.equations_to_tropicalize()
+#         if verbose: print "Getting tropicalized equations"
+#         self.tropical_eqs = self.final_tropicalization()
+#         self.data_drivers(self.y[ignore:])
         
         return 
 
@@ -390,7 +390,7 @@ def run_tropical(model, tspan, parameters = None, sp_visualize = None):
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
         tr.visualization(driver_specie=sp_visualize)
-    return tr.get_trop_data()
+    return tr.get_passenger()
 
 
  
