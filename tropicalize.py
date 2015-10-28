@@ -7,9 +7,9 @@ import sympy.parsing.sympy_parser
 import itertools
 import matplotlib.pyplot as plt
 import pysb
+import stoichiometry_analysis as sto
 from pysb.integrate import odesolve
 from collections import OrderedDict
-
 
 def _Heaviside_num(x):
     return 0.5*(numpy.sign(x)+1)
@@ -33,11 +33,13 @@ class Tropical:
         self.param_values       = None
         self.passengers         = None
         self.graph              = None
-        self.cycles             = []
+        self.sto_conserved      = None
         self.conservation       = None
         self.conserve_var       = None
         self.value_conservation = {}
         self.tro_species        = {}
+        self.driver_signatures  = None
+        self.passenger_signatures = None
 
     def __repr__(self):
         return "<%s '%s' (passengers: %s, cycles: %d) at 0x%x>" % \
@@ -46,7 +48,7 @@ class Tropical:
              len(self.cycles),
              id(self))
 
-    def tropicalize(self,tspan=None, param_values=None, ignore=1, epsilon=1, rho=3, verbose=True):
+    def tropicalize(self,tspan=None, param_values=None, ignore=1, epsilon=1, rho=1, verbose=True):
         
         if verbose: print "Solving Simulation"
         
@@ -69,35 +71,23 @@ class Tropical:
         new_pars = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
         self.param_values = new_pars
               
-        self.y = odesolve(self.model, self.tspan, self.param_values)
-        
-        # Only concrete species are considered, and the names must be made to match
-#         names           = [n for n in filter(lambda n: n.startswith('__'), self.y.dtype.names)]
-#         self.y          = self.y[names]
-#         self.y.dtype    = [(n,'<f8') for n in names]    
+        self.y = odesolve(self.model, self.tspan, self.param_values) 
           
         if verbose: print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
-#         if verbose: print "Constructing Graph"
-#         self.construct_graph()
-# #         networkx.draw(self.graph)
-# #         plt.draw()
-# #         plt.show()
-#         if verbose: print "Computing Cycles"
-#         self.cycles = list(networkx.strongly_connected_components(self.graph))
-#         if verbose: print "Computing Conservation laws"
-#         (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.y[ignore:])
-#         print self.conservation, self.conserve_var, self.value_conservation
-#         print self.cycles
-#         if verbose: print "Pruning Equations"
-#         self.pruned = self.pruned_equations(self.y[ignore:], rho)
-#         if verbose: print "Solving pruned equations"
-#         self.sol_pruned = self.solve_pruned()
-#         if verbose: print "equation to tropicalize"
-#         self.eqs_for_tropicalization = self.equations_to_tropicalize()
-#         if verbose: print "Getting tropicalized equations"
-#         self.tropical_eqs = self.final_tropicalization()
-#         self.data_drivers(self.y[ignore:])
+        if verbose: print "Computing conservation relations"
+        self.sto_conserved = sto.conservation_relations(self.model)
+        if verbose: print "Computing Conservation laws"
+        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.y[ignore:])
+        if verbose: print "Pruning Equations"
+        self.pruned = self.pruned_equations(self.y[ignore:], rho)
+        if verbose: print "Solving pruned equations"
+        self.sol_pruned = self.solve_pruned()
+        if verbose: print "equation to tropicalize"
+        self.eqs_for_tropicalization = self.equations_to_tropicalize()
+        if verbose: print "Getting tropicalized equations"
+        self.tropical_eqs = self.final_tropicalization()
+        self.data_drivers(self.y[ignore:])
         
         return 
 
@@ -121,6 +111,8 @@ class Tropical:
             for l in variables:
                 args.append(y[:][str(l)])
                 
+            hey = abs(numpy.log10(f(*args)) - numpy.log10(y['__s%d'%diff_eqs[k]]))
+            
             if plot:
                 plt.figure()
                 plt.plot(self.tspan[1:],f(*args), 'r--', linewidth=5, label= 'imposed')
@@ -128,10 +120,10 @@ class Tropical:
                 plt.legend(loc=0)
                 plt.xlabel('time')
                 plt.ylabel('population')
-                plt.title(self.model.species[diff_eqs[k]], fontsize=20)                
+                if max(hey) < epsilon :
+                    plt.title(str(self.model.species[diff_eqs[k]])+'passenger', fontsize=20)    
+                else: plt.title(self.model.species[diff_eqs[k]], fontsize=20)   
                 
-
-            hey = abs(numpy.log10(f(*args)) - numpy.log10(y['__s%d'%diff_eqs[k]]))
             if max(hey) < epsilon : 
                 self.passengers.append(diff_eqs[k])
                 
@@ -141,36 +133,6 @@ class Tropical:
         plt.show()
         return self.passengers
 
-
-    # This is a function which builds the edges according to the nodes
-    def r_link(self, graph, s, r, **attrs):
-        nodes = (s, r)
-        if attrs.get('_flip'):
-            del attrs['_flip']
-            nodes = reversed(nodes)
-        attrs.setdefault('arrowhead', 'normal')
-        graph.add_edge(*nodes, **attrs)
-
-    def construct_graph(self):
-        if(self.model.odes == None or self.model.odes == []):
-            pysb.bng.generate_equations(model)
-
-        self.graph = networkx.MultiDiGraph(rankdir="LR")
-        for i, cp in enumerate(self.model.species):
-            species_node = i
-            self.graph.add_node(species_node, label=cp)
-        for i, reaction in enumerate(self.model.reactions): 
-#             reactants = set([str(self.model.species[j]) for j in reaction['reactants']])    
-#             products = set([str(self.model.species[j]) for j in reaction['products']])    
-
-            reactants = set(reaction['reactants'])
-            products = set(reaction['products']) 
-            attr_reversible = {}
-            for s in reactants:
-                for p in products:
-                    self.r_link(self.graph, s, p, **attr_reversible)
-        return self.graph
-
     #This function finds conservation laws from the conserved cycles
     def mass_conserved(self, y, verbose=False):
         if(self.model.odes == None or self.model.odes == []):
@@ -178,15 +140,15 @@ class Tropical:
         h = [] # Array to hold conservation equation
         g = [] # Array to hold corresponding lists of free variables in conservation equations
         value_constants = {} #Dictionary that storage the value of each constant
-        for i, item in enumerate(self.cycles):
+        for i, item in enumerate(self.sto_conserved):
             b = 0
             u = 0
             for j, specie in enumerate(item):
-                b += self.model.odes[self.cycles[i][j]]
+                b += self.model.odes[self.sto_conserved[i][j]]
             if b == 0:
                 g.append(item)
                 for l,k in enumerate(item):
-                    u += sympy.Symbol('__s%d' % self.cycles[i][l])    
+                    u += sympy.Symbol('__s%d' % self.sto_conserved[i][l])    
                 h.append(u-sympy.Symbol('C%d'%i))
                 if verbose: print '  cycle%d'%i, 'is conserved'
         
@@ -203,28 +165,29 @@ class Tropical:
     def passenger_equations(self):
         if(self.model.odes == None or self.model.odes == []):
             pysb.bng.generate_equations(self.model)
-            eq = self.model.odes
-        passenger_conserved_eqs = {}
+        passenger_eqs = {}
         for i, j in enumerate(self.passengers):
-            passenger_conserved_eqs[j] = self.model.odes[self.passengers[i]]
-        return passenger_conserved_eqs
+            passenger_eqs[j] = self.model.odes[self.passengers[i]]
+        return passenger_eqs
 
     def find_nearest_zero(self, array):
-        idx = (numpy.abs(array)).argmin()
+        idx = numpy.nanargmin(numpy.abs(array))
         return array[idx]
 
     # Make sure this is the "ignore:" y
     def pruned_equations(self, y, rho=1, ptge_similar=0.1):
         pruned_eqs = self.passenger_equations()
-        eqs        = copy.deepcopy(pruned_eqs)
+        equations  = copy.deepcopy(pruned_eqs)
 
-        for i, j in enumerate(eqs):
-            eq_monomials = eqs[j].as_coefficients_dict().keys() # Get monomials
-            for l, m in enumerate(eq_monomials): #Compares the monomials to find the pruned system
-                m_ready = m # Monomial to compute with
-                m_elim  = m # Monomial to save
+        for j in equations:
+            eq_monomials = equations[j].as_coefficients_dict().keys()   # Get monomials
+            eq_monomials_iter = iter(eq_monomials)
+            for l, m in enumerate(eq_monomials_iter):                        # Compares the monomials to find the pruned system
+                m_ready = m                                             # Monomial to compute with
+                m_elim  = m                                             # Monomial to save
                 for p in self.param_values: m_ready = m_ready.subs(p, self.param_values[p]) # Substitute parameters
-                for k in range(len(eq_monomials)):
+                second_mons_iter = iter(range(len(eq_monomials)))
+                for k in second_mons_iter:
                     if (k+l+1) <= (len(eq_monomials)-1):
                         ble_ready = eq_monomials[k+l+1] # Monomial to compute with
                         ble_elim  = eq_monomials[k+l+1] # Monomial to save
@@ -240,15 +203,16 @@ class Tropical:
                         for w,s in enumerate(variables_m_ready):
                             args1.append(y[:][str(s)])
                         hey_pruned = numpy.log10(f_m(*args1)) - numpy.log10(f_ble(*args2))
-#                         plt.figure()
-#                         plt.plot(self.tspan[1:], f_m(*args1))
-#                         plt.plot(self.tspan[1:], f_ble(*args2))           
-                        p_points = sum(w > rho for w in hey_pruned)
-                        n_points = sum(w < -rho for w in hey_pruned)
-                        if p_points > ptge_similar*len(hey_pruned) : 
+
+                        closest = self.find_nearest_zero(hey_pruned)
+                        if closest > 0 and closest > rho:
                             pruned_eqs[j] = pruned_eqs[j].subs(ble_elim, 0)
-                        if n_points > ptge_similar*len(hey_pruned) :
+                        elif closest < 0 and closest < -rho:
                             pruned_eqs[j] = pruned_eqs[j].subs(m_elim, 0) 
+                            break
+                        
+                        else:pass
+
         for i, l in enumerate(self.conservation): #Add the conservation laws to the pruned system
             pruned_eqs['cons%d'%i]=l
         self.pruned = pruned_eqs
@@ -257,9 +221,7 @@ class Tropical:
     def solve_pruned(self):
         solve_for = copy.deepcopy(self.passengers)
         eqs       = copy.deepcopy(self.pruned)
-        eqs_l = []
-        for i in eqs.keys():
-            eqs_l.append(eqs[i])            
+        eqs_l = eqs.values()       
         
         for var_l in self.conserve_var:
             if len(var_l) == 1:
@@ -267,6 +229,7 @@ class Tropical:
         variables =  tuple(sympy.Symbol('__s%d' %var) for var in solve_for )
 # Problem because there are more equations than variables
         sol = sympy.solve(eqs_l, variables, simplify=False, dict=False)
+        print sol
         if isinstance(sol,dict):
             #TODO, ask Alex about this
             sol = [tuple(sol[v] for v in variables)]
@@ -339,8 +302,8 @@ class Tropical:
             for col in range(len(self.tspan[1:])):
                 signature[col] = numpy.nonzero(mons_matrix[:,col])[0][0]
             signature_sp[i] = signature
-            print signature
             trop_data[_parse_name(self.model.species[i])] = mons_data
+        self.driver_signatures = signature_sp
         self.tro_species = trop_data
         return trop_data 
     
@@ -369,17 +332,20 @@ class Tropical:
                 if monomials_dic[mon][1]==-1 : plt.scatter(x_points[::int(len(self.tspan)/step)], prueba_y[::int(len(self.tspan)/step)], color = next(colors), marker=r'$\downarrow$', s=numpy.array([monomials_dic[mon][0][k] for k in x_concentration])[::int(len(self.tspan)/step)]*2)
             else: no_flux+=1
         y_pos = numpy.arange(2,2*si_flux+4,2)    
-        plt.yticks(y_pos, monomials, size = 'x-small') 
+        plt.yticks(y_pos, monomials, size = 'medium') 
         plt.xlabel('Time (s)')
         plt.ylabel('Monomials')
-        plt.title('Tropicalization' + '' + spec_ready)
+        plt.title('Tropicalization' + ' ' + spec_ready)
         plt.xlim(0, self.tspan[-1])
+        plt.savefig('/home/carlos/Desktop/'+str(spec_ready), format='jpg', bbox_inches='tight', dpi=400)
         plt.show()
+
+
 #         plt.ylim(0, len(monomials)+1) 
         return f  
 
     def get_trop_data(self):
-        return self.tro_species
+        return self.tro_species.keys()
     def get_passenger(self):
         return self.passengers
     def get_pruned_equations(self):
@@ -390,7 +356,7 @@ def run_tropical(model, tspan, parameters = None, sp_visualize = None):
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
         tr.visualization(driver_specie=sp_visualize)
-    return tr.get_passenger()
+    return tr.get_pruned_equations(),tr.get_passenger()
 
 
  
