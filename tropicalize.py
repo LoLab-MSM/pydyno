@@ -74,23 +74,25 @@ class Tropical:
           
         if verbose: print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
-        if verbose: print "Computing conservation relations"
-        self.sto_conserved = sto.conservation_relations(self.model)
-        if verbose: print "Computing Conservation laws"
-        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.sto_conserved, self.y[ignore:])
-        if verbose: print "Pruning Equations"
-        self.pruned = self.pruned_equations(self.y[ignore:], rho)
-        if verbose: print "Solving pruned equations"
-        self.sol_pruned = self.solve_pruned()
-        if verbose: print "equation to tropicalize"
-        self.eqs_for_tropicalization = self.equations_to_tropicalize()
-        if verbose: print "Getting tropicalized equations"
-        self.tropical_eqs = self.final_tropicalization()
-        self.data_drivers(self.y[ignore:])
-        
+        print self.passengers
+#         if verbose: print "Computing conservation relations"
+#         self.sto_conserved = sto.conservation_relations(self.model)
+#         if verbose: print "Computing Conservation laws"
+#         (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.sto_conserved, self.y[ignore:])
+#         if verbose: print "Pruning Equations"
+#         self.pruned = self.pruned_equations(self.y[ignore:], rho)
+#         if verbose: print "Solving pruned equations"
+#         self.sol_pruned = self.solve_pruned()
+#         if verbose: print "equation to tropicalize"
+#         self.eqs_for_tropicalization = self.equations_to_tropicalize()
+#         if verbose: print "Getting tropicalized equations"
+#         self.tropical_eqs = self.final_tropicalization()
+#         self.data_drivers(self.y[ignore:])
+#         
         return 
 
-    def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar=0.9, plot=True):
+    def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar=0.9, plot=False):
+        sp_imposed_trace = {}
         self.passengers = []
         solved_pol = []                #  list of solved polynomial equations
         diff_eqs = []                  #  list of differential equations   
@@ -99,33 +101,41 @@ class Tropical:
         for i, eq in enumerate(self.model.odes):
             eq        = eq.subs('__s%d' % i, '__s%dstar' % i)
             sol       = sympy.solve(eq, sympy.Symbol('__s%dstar' % i))        # Find equation of imposed trace
-            for j in range(len(sol)):                                         # j is solution j for equation i (mostly likely never greater than 2)
-                for p in self.param_values: sol[j] = sol[j].subs(p, self.param_values[p])    # Substitute parameters
-                solved_pol.append(sol[j])
-                diff_eqs.append(i)
+            sp_imposed_trace[i] = sol
+       
+        for k in sp_imposed_trace.keys():
+            distance_imposed = 999
+            for idx, solu in enumerate(sp_imposed_trace[k]):  
+                for p in self.param_values: solu = solu.subs(p, self.param_values[p])            
+                args = []                                                         #arguments to put in the lambdify function
+                variables = [atom for atom in solu.atoms(sympy.Symbol) if not re.match(r'\d',str(atom))]
+                f = sympy.lambdify(variables, solu, modules = dict(sqrt=numpy.lib.scimath.sqrt) )
+                for l in variables:
+                    args.append(y[:][str(l)])
+                if any(isinstance(n,complex) for n in f(*args)): 
+                    print 'solution'+ ' ' + '%d'%idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is complex'
+                    continue
+                elif any(n<0 for n in f(*args)):
+                    print 'solution'+ ' ' + '%d'%idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is negative'
+                    continue                  
+                hey = abs(numpy.log10(f(*args)) - numpy.log10(y['__s%d'%k]))
+                if max(hey) < distance_imposed: distance_imposed = max(hey)
+                if plot:
+                    plt.figure()
+                    plt.semilogy(self.tspan[1:],f(*args), 'r--', linewidth=5, label= 'imposed')
+                    plt.semilogy(self.tspan[1:],y['__s%d'%k], label='full')
+                    plt.legend(loc=0)
+                    plt.xlabel('time')
+                    plt.ylabel('population')
+                    if max(hey) < epsilon :
+                        plt.title(str(self.model.species[k])+'passenger', fontsize=20)    
+                    else: plt.title(self.model.species[k], fontsize=20)   
                 
-        for k in range(len(solved_pol)):                                              # a is the list of solution of polinomial equations, b is the list of differential equations
-            args = []                                                         #arguments to put in the lambdify function
-            variables = [atom for atom in solved_pol[k].atoms(sympy.Symbol) if not re.match(r'\d',str(atom))]
-            f = sympy.lambdify(variables, solved_pol[k], modules = dict(sqrt=numpy.lib.scimath.sqrt) )
-            for l in variables:
-                args.append(y[:][str(l)])
+            if distance_imposed < epsilon : 
+                self.passengers.append(k)
                 
-            hey = abs(numpy.log10(f(*args)) - numpy.log10(y['__s%d'%diff_eqs[k]]))
-            
-            if plot:
-                plt.figure()
-                plt.plot(self.tspan[1:],f(*args), 'r--', linewidth=5, label= 'imposed')
-                plt.plot(self.tspan[1:],y['__s%d'%diff_eqs[k]], label='full')
-                plt.legend(loc=0)
-                plt.xlabel('time')
-                plt.ylabel('population')
-                if max(hey) < epsilon :
-                    plt.title(str(self.model.species[diff_eqs[k]])+'passenger', fontsize=20)    
-                else: plt.title(self.model.species[diff_eqs[k]], fontsize=20)   
-                
-            if max(hey) < epsilon : 
-                self.passengers.append(diff_eqs[k])
+
+
                 
 #             s_points = sum(w < epsilon for w in hey)
 #             if s_points > ptge_similar*len(hey) : 
@@ -439,7 +449,7 @@ def run_tropical(model, tspan, parameters = None, sp_visualize = None):
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
         tr.visualization(driver_species=sp_visualize)
-    return tr.get_pruned_equations(),tr.get_passenger()
+    return tr.get_passenger()
 
 
  
