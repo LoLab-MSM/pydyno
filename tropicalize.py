@@ -1,29 +1,28 @@
-import networkx
 import sympy
 import re
 import copy
 import numpy
-import sympy.parsing.sympy_parser
 import itertools
-import matplotlib.pyplot as plt
+import matplotlib.pylab as plt
 import pysb
 import stoichiometry_analysis as sto
+import math
 from pysb.integrate import odesolve
 from collections import OrderedDict
 
+# def _parse_name(spec):
+#     m = spec.monomer_patterns
+#     lis_m = []
+#     for i in range(len(m)):
+#         tmp_1 = str(m[i]).partition('(')
+#         tmp_2 = re.findall(r"(?<=\').+(?=\')",str(m[i]))
+#         if tmp_2 == []: lis_m.append(tmp_1[0])
+#         else:
+#             lis_m.append(''.join([tmp_1[0],tmp_2[0]]))
+#     return '_'.join(lis_m)
+
 def _Heaviside_num(x):
     return 0.5*(numpy.sign(x)+1)
-
-def _parse_name(spec):
-    m = spec.monomer_patterns
-    lis_m = []
-    for i in range(len(m)):
-        tmp_1 = str(m[i]).partition('(')
-        tmp_2 = re.findall(r"(?<=\').+(?=\')",str(m[i]))
-        if tmp_2 == []: lis_m.append(tmp_1[0])
-        else:
-            lis_m.append(''.join([tmp_1[0],tmp_2[0]]))
-    return '_'.join(lis_m)
 
 class Tropical:
     def __init__(self, model):
@@ -32,7 +31,6 @@ class Tropical:
         self.y                  = None  # ode solution, numpy array
         self.param_values       = None
         self.passengers         = None
-        self.graph              = None
         self.sto_conserved      = None
         self.conservation       = None
         self.conserve_var       = None
@@ -40,6 +38,7 @@ class Tropical:
         self.tro_species        = {}
         self.driver_signatures  = None
         self.passenger_signatures = None
+        self.mon_names          = {}
 
     def __repr__(self):
         return "<%s '%s' (passengers: %s, cycles: %d) at 0x%x>" % \
@@ -78,7 +77,7 @@ class Tropical:
         if verbose: print "Computing conservation relations"
         self.sto_conserved = sto.conservation_relations(self.model)
         if verbose: print "Computing Conservation laws"
-        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.y[ignore:])
+        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.sto_conserved, self.y[ignore:])
         if verbose: print "Pruning Equations"
         self.pruned = self.pruned_equations(self.y[ignore:], rho)
         if verbose: print "Solving pruned equations"
@@ -91,10 +90,10 @@ class Tropical:
         
         return 
 
-    def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar=0.9, plot=False):
+    def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar=0.9, plot=True):
         self.passengers = []
-        solved_pol = []               # list of solved polynomial equations
-        diff_eqs = []               #  list of differential equations   
+        solved_pol = []                #  list of solved polynomial equations
+        diff_eqs = []                  #  list of differential equations   
 
         # Loop through all equations (i is equation number)
         for i, eq in enumerate(self.model.odes):
@@ -104,6 +103,7 @@ class Tropical:
                 for p in self.param_values: sol[j] = sol[j].subs(p, self.param_values[p])    # Substitute parameters
                 solved_pol.append(sol[j])
                 diff_eqs.append(i)
+                
         for k in range(len(solved_pol)):                                              # a is the list of solution of polinomial equations, b is the list of differential equations
             args = []                                                         #arguments to put in the lambdify function
             variables = [atom for atom in solved_pol[k].atoms(sympy.Symbol) if not re.match(r'\d',str(atom))]
@@ -134,21 +134,21 @@ class Tropical:
         return self.passengers
 
     #This function finds conservation laws from the conserved cycles
-    def mass_conserved(self, y, verbose=False):
+    def mass_conserved(self, conservation_laws, y, verbose=False):
         if(self.model.odes == None or self.model.odes == []):
             pysb.bng.generate_equations(self.model)
         h = [] # Array to hold conservation equation
         g = [] # Array to hold corresponding lists of free variables in conservation equations
         value_constants = {} #Dictionary that storage the value of each constant
-        for i, item in enumerate(self.sto_conserved):
+        for i, item in enumerate(conservation_laws):
             b = 0
             u = 0
             for j, specie in enumerate(item):
-                b += self.model.odes[self.sto_conserved[i][j]]
+                b += self.model.odes[conservation_laws[i][j]]
             if b == 0:
                 g.append(item)
                 for l,k in enumerate(item):
-                    u += sympy.Symbol('__s%d' % self.sto_conserved[i][l])    
+                    u += sympy.Symbol('__s%d' % conservation_laws[i][l])    
                 h.append(u-sympy.Symbol('C%d'%i))
                 if verbose: print '  cycle%d'%i, 'is conserved'
         
@@ -175,16 +175,16 @@ class Tropical:
         return array[idx]
 
     # Make sure this is the "ignore:" y
-    def pruned_equations(self, y, rho=1, ptge_similar=0.1):
+    def pruned_equations(self, y, rho=1, ptge_similar=0.1, plot_prune = False):
         pruned_eqs = self.passenger_equations()
         equations  = copy.deepcopy(pruned_eqs)
 
         for j in equations:
-            eq_monomials = equations[j].as_coefficients_dict().keys()   # Get monomials
+            eq_monomials = equations[j].as_coefficients_dict().keys()         # Get monomials
             eq_monomials_iter = iter(eq_monomials)
-            for l, m in enumerate(eq_monomials_iter):                        # Compares the monomials to find the pruned system
-                m_ready = m                                             # Monomial to compute with
-                m_elim  = m                                             # Monomial to save
+            for l, m in enumerate(eq_monomials_iter):                         # Compares the monomials to find the pruned system
+                m_ready = m                                                   # Monomial to compute with
+                m_elim  = m                                                   # Monomial to save
                 for p in self.param_values: m_ready = m_ready.subs(p, self.param_values[p]) # Substitute parameters
                 second_mons_iter = iter(range(len(eq_monomials)))
                 for k in second_mons_iter:
@@ -203,7 +203,16 @@ class Tropical:
                         for w,s in enumerate(variables_m_ready):
                             args1.append(y[:][str(s)])
                         hey_pruned = numpy.log10(f_m(*args1)) - numpy.log10(f_ble(*args2))
-
+                        
+                        if plot_prune:
+                            plt.figure()
+                            plot1, = plt.plot(self.tspan[1:], f_m(*args1), 'r--', linewidth=5, label = str(m_elim).split('__')[1])
+                            plot2, = plt.plot(self.tspan[1:], f_ble(*args2), label = str(ble_elim).split('__')[1])
+                            plt.legend(handles = [plot1, plot2], loc=0)
+                            plt.xlabel('time')
+                            plt.ylabel('Particles/s')
+                            plt.title(str(equations[j]))
+                            
                         closest = self.find_nearest_zero(hey_pruned)
                         if closest > 0 and closest > rho:
                             pruned_eqs[j] = pruned_eqs[j].subs(ble_elim, 0)
@@ -212,24 +221,36 @@ class Tropical:
                             break
                         
                         else:pass
-
-        for i, l in enumerate(self.conservation): #Add the conservation laws to the pruned system
-            pruned_eqs['cons%d'%i]=l
+        plt.show()
+#         for i in range(len(self.conservation)): #Add the conservation laws to the pruned system
+#             pruned_eqs['cons%d'%i]=self.conservation[i]
         self.pruned = pruned_eqs
+        
+#         repeated_eq = 0
+#         for idx in range (len(self.pruned.values())):
+#             for n in range(idx+1,len(self.pruned)):
+#                 comparing = sympy.simplify(self.pruned.values()[idx]-self.pruned.values()[n])
+#                 print self.pruned.values()[idx],'minus',self.pruned.values()[n]
+#                 if comparing ==0: repeated_eq +=1
+
         return pruned_eqs
 
-    def solve_pruned(self):
+    def solve_pruned(self):       
         solve_for = copy.deepcopy(self.passengers)
         eqs       = copy.deepcopy(self.pruned)
-        eqs_l = eqs.values()       
+        eqs_l = eqs.values() 
         
-        for var_l in self.conserve_var:
+        for idx, var_l in enumerate(self.conserve_var):
             if len(var_l) == 1:
                 solve_for.append(var_l[0])
+                eqs_l.append(self.conservation[idx])
         variables =  tuple(sympy.Symbol('__s%d' %var) for var in solve_for )
 # Problem because there are more equations than variables
-        sol = sympy.solve(eqs_l, variables, simplify=False, dict=False)
-        print sol
+        for con in range(len(self.conservation)): #Add the conservation laws to the pruned system
+            eqs_l.append(self.conservation[con])        
+            sol = sympy.solve(eqs_l, variables, simplify = True)  
+            if sol != []: break
+
         if isinstance(sol,dict):
             #TODO, ask Alex about this
             sol = [tuple(sol[v] for v in variables)]
@@ -238,7 +259,47 @@ class Tropical:
             self.sol_pruned = { j:sympy.Symbol('__s%d'%j) for i, j in enumerate(solve_for) }
         else:
             self.sol_pruned = { j:sol[0][i] for i, j in enumerate(solve_for) }
-                   
+ 
+#         solve_for = copy.deepcopy(self.passengers)
+#         eqs       = copy.deepcopy(self.pruned)
+#         eqs_l = eqs.values()   
+
+#         expr_in_pruned = []
+#         for p_eq in pruned_eqs.keys():
+#             print p_eq, pruned_eqs[p_eq]
+# #             eq_vars = [atom for atom in p_eq.atoms(sympy.Symbol) if not re.match(r'k', str(atom))]
+# #             expr_in_pruned.append(list(set(eq_vars) & set(drivers_symbols)))
+#         expr_flat = [item for sublist in expr_in_pruned for item in sublist] 
+
+
+   
+#         for idx, var_l in enumerate(self.conserve_var):
+#             pasnger_in_cons_eq = []
+#             pasnger_in_cons = list(set(var_l) & set(self.passengers))
+#             solve_for = tuple(sympy.Symbol('__s%d'%var) for var in pasnger_in_cons)
+#             pasnger_in_cons_eq = [eqs[pa] for pa in pasnger_in_cons]
+#             pasnger_in_cons_eq.append(self.conservation[idx])
+#             sol = sympy.solve(pasnger_in_cons_eq, solve_for, simplify=True, dict=True)
+#             print self.passengers, var_l
+#             print pasnger_in_cons_eq
+#             print solve_for
+#             print sol
+#             if len(var_l) == 1:
+#                 solve_for.append(var_l[0])
+#         variables =  tuple(sympy.Symbol('__s%d' %var) for var in solve_for )
+# # Problem because there are more equations than variables
+#         sol = sympy.solve(eqs_l, variables, simplify=False, dict=False)
+#         print eqs_l
+#         print sol
+#         if isinstance(sol,dict):
+#             #TODO, ask Alex about this
+#             sol = [tuple(sol[v] for v in variables)]
+# #         sol=[]
+# #         if len(sol) == 0:
+# #             self.sol_pruned = { j:sympy.Symbol('__s%d'%j) for i, j in enumerate(solve_for) }
+# #         else:
+#         self.sol_pruned = { j:sol[0][i] for i, j in enumerate(solve_for) }
+#         print self.sol_pruned          
         return self.sol_pruned
 
     def equations_to_tropicalize(self):
@@ -261,7 +322,7 @@ class Tropical:
             if type(self.eqs_for_tropicalization[j]) == sympy.Mul: tropicalized[j] = self.eqs_for_tropicalization[j] #If Mul=True there is only one monomial
             elif self.eqs_for_tropicalization[j] == 0: print 'there are no monomials'
             else:            
-                ar = self.eqs_for_tropicalization[j].args #List of the terms of each equation  
+                ar = sorted(self.eqs_for_tropicalization[j].as_coefficients_dict(), key=str) #List of the terms of each equation  
                 asd=0 
                 for l, k in enumerate(ar):
                     p = k
@@ -278,15 +339,19 @@ class Tropical:
         tropical_system = self.final_tropicalization()
         trop_data = OrderedDict()
         signature_sp = {}
+        driver_monomials = OrderedDict()
 
-        for i in tropical_system.keys():
+        for i in tropical_system.keys(): 
             signature = [0]*self.tspan[1:]
             mons_data = {}
             mons = sorted(tropical_system[i].as_coefficients_dict().items(),key=str)
             mons_matrix = numpy.zeros((len(mons),len(self.tspan[1:])), dtype=float)
             sign_monomial = tropical_system[i].as_coefficients_dict().values()
+            spe_monomials = OrderedDict(sorted(self.model.odes[i].as_coefficients_dict().items(),key=str))
+            driver_monomials[i] = spe_monomials
+            
             for q, m_s in enumerate(mons):
-                mon_inf = [None]*2
+#                 mon_inf = [None]*2
                 j = list(m_s)
                 jj = copy.deepcopy(j[0]) 
                 for par in self.param_values: j[0]=j[0].subs(par, self.param_values[par])
@@ -295,50 +360,68 @@ class Tropical:
                 f1 = sympy.lambdify(var_to_study, j[0], modules = dict(Heaviside=_Heaviside_num, log=numpy.log10, Abs=numpy.abs)) 
                 for va in var_to_study:
                    arg_f1.append(y[str(va)])    
-                mon_inf[0]=f1(*arg_f1)
-                mon_inf[1]=j[1]
-                mons_data[str(jj).partition('*Heaviside')[0]] = mon_inf
-                mons_matrix[q] = mon_inf[0]
+#                 mon_inf[0]=f1(*arg_f1)
+#                 mon_inf[1]=j[1]
+                mons_data[str(jj).partition('*Heaviside')[0]] = f1(*arg_f1)
+                mons_matrix[q] = f1(*arg_f1)
             for col in range(len(self.tspan[1:])):
                 signature[col] = numpy.nonzero(mons_matrix[:,col])[0][0]
             signature_sp[i] = signature
-            trop_data[_parse_name(self.model.species[i])] = mons_data
+            trop_data[i] = mons_data
         self.driver_signatures = signature_sp
+        self.mon_names = driver_monomials
         self.tro_species = trop_data
         return trop_data 
     
-    def visualization(self, driver_specie=None):
-        if driver_specie not in self.tro_species.keys():
-            raise Exception("driver_specie is not driver")
-        elif driver_specie in self.tro_species.keys():
-            spec_ready = driver_specie
+    def visualization(self, driver_species=None):
+        if driver_species is not None:
+            species_ready = []
+            for i in driver_species:
+                if i in self.tro_species.keys(): species_ready.append(i)
+                else: print 'specie' + ' ' + str(i) + ' ' + 'is not a driver'
+        elif driver_species is None:
+            raise Exception('list of driver species must be defined')
         
-        step = 100
-        monomials_dic = self.tro_species[spec_ready]
+        if species_ready == []:
+            raise Exception('None of the input species is a driver')
+                     
+        
         colors = itertools.cycle(["b", "g", "c", "m", "y", "k" ])
         
-        si_flux = 0
-        no_flux = 0
-        f = plt.figure(1)
-        monomials = []
-        for c, mon in enumerate(monomials_dic):
-            x_concentration = numpy.nonzero(monomials_dic[mon][0])[0]
-            if len(x_concentration) > 0:   
-                monomials.append(mon)            
+        sep = len(self.tspan)/2
+      
+        for sp in species_ready:
+            si_flux = 0
+            no_flux = 0
+            monomials_dic = self.tro_species[sp].values()
+            f = plt.figure()
+            plt.subplot(211)
+            monomials = []
+            monomials_inf = self.mon_names[sp]
+            for name in self.tro_species[sp].keys():
+                m_value = self.tro_species[sp][name]
+                x_concentration = numpy.nonzero(m_value)[0]
+                monomials.append(name)            
                 si_flux+=1
                 x_points = [self.tspan[x] for x in x_concentration] 
                 prueba_y = numpy.repeat(2*si_flux, len(x_concentration))
-                if monomials_dic[mon][1]==1 : plt.scatter(x_points[::int(len(self.tspan)/step)], prueba_y[::int(len(self.tspan)/step)], color = next(colors), marker=r'$\uparrow$', s=numpy.array([monomials_dic[mon][0][k] for k in x_concentration])[::int(len(self.tspan)/step)]*2)
-                if monomials_dic[mon][1]==-1 : plt.scatter(x_points[::int(len(self.tspan)/step)], prueba_y[::int(len(self.tspan)/step)], color = next(colors), marker=r'$\downarrow$', s=numpy.array([monomials_dic[mon][0][k] for k in x_concentration])[::int(len(self.tspan)/step)]*2)
-            else: no_flux+=1
-        y_pos = numpy.arange(2,2*si_flux+4,2)    
-        plt.yticks(y_pos, monomials, size = 'medium') 
-        plt.xlabel('Time (s)')
-        plt.ylabel('Monomials')
-        plt.title('Tropicalization' + ' ' + spec_ready)
-        plt.xlim(0, self.tspan[-1])
-        plt.savefig('/home/carlos/Desktop/'+str(spec_ready), format='jpg', bbox_inches='tight', dpi=400)
-        plt.show()
+                if monomials_inf[sympy.sympify(name)] > 0 : plt.scatter(x_points[::int(math.ceil(len(self.tspan)/sep))], prueba_y[::int(math.ceil(len(self.tspan)/sep))],\
+                                            color = next(colors), marker=r'$\uparrow$', s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan)/sep))])
+                if monomials_inf[sympy.sympify(name)] < 0 : plt.scatter(x_points[::int(math.ceil(len(self.tspan)/sep))], prueba_y[::int(math.ceil(len(self.tspan)/sep))], \
+                                            color = next(colors), marker=r'$\downarrow$', s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan)/sep))])
+ 
+            y_pos = numpy.arange(2,2*si_flux+4,2)    
+            plt.yticks(y_pos, monomials, size = 'x-small') 
+            plt.ylabel('Monomials')
+            plt.xlim(0, self.tspan[-1])
+            plt.ylim(0,max(y_pos))
+            plt.subplot(210)
+            plt.plot(self.tspan[1:],self.y['__s%d'%sp][1:])
+            plt.ylabel('Molecules')
+            plt.xlabel('Time (s)')
+            plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
+            plt.savefig('/home/carlos/Desktop/'+'s%d'%sp, format='jpg', bbox_inches='tight', dpi=400)
+            plt.show()
 
 
 #         plt.ylim(0, len(monomials)+1) 
@@ -355,7 +438,7 @@ def run_tropical(model, tspan, parameters = None, sp_visualize = None):
     tr = Tropical(model)
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
-        tr.visualization(driver_specie=sp_visualize)
+        tr.visualization(driver_species=sp_visualize)
     return tr.get_pruned_equations(),tr.get_passenger()
 
 

@@ -88,7 +88,7 @@ class Tropical:
         if verbose: print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
         if verbose: print "Getting maximum monomials data"
-#         self.drivers_max(self.y[ignore:], param_values, verbose)
+        self.drivers_max(self.y[ignore:], param_values, verbose)
         return 
 
     def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar = 0.9):
@@ -125,12 +125,14 @@ class Tropical:
         signature_sp = {}
         
         for i in drivers:
+            print i
             signature = [0]*self.tspan[1:]
             spe_monomials = OrderedDict(sorted(self.model.odes[i].as_coefficients_dict().items(),key=str))
             if spe_monomials.keys() == [1]: print "equation" + ' ' + str(i) + ' ' + 'does not have monomials, it is a constant'
             else:
                 monomials_eval = numpy.zeros((len(spe_monomials), len(self.tspan[1:])),dtype=float)
                 drivers_monomials[i] = spe_monomials
+                print 'aqui drivers', spe_monomials
                 tmp = numpy.zeros((len(spe_monomials), len(self.tspan[1:])), dtype=float)
                 for q,j in enumerate(spe_monomials.keys()):
                     for par in self.param_values: j=j.subs(par,self.param_values[par])
@@ -157,7 +159,7 @@ class Tropical:
             for i in drivers_v:
                 if i in self.tro_species.keys(): species_ready.append(i)
                 else: print 'specie' + ' ' + str(i) + ' ' + 'is not a driver'
-        elif driver_species is None:
+        elif drivers_v is None:
             raise Exception('list of driver species must be defined')
         
         if species_ready == []:
@@ -174,16 +176,16 @@ class Tropical:
             plt.subplot(211)
             monomials = []
             monomials_inf = self.mon_names[sp]
+            print 'monomials inf', self.mon_names[sp]
             for m_value, name in zip(monomials_dic,monomials_inf.keys()):
-                print m_value
                 x_concentration = numpy.nonzero(m_value)[0]
                 monomials.append(name)            
                 si_flux+=1
                 x_points = [self.tspan[x] for x in x_concentration] 
                 prueba_y = numpy.repeat(2*si_flux, len(x_concentration))
-                if monomials_inf[name]== 1 : plt.scatter(x_points[::int(math.ceil(len(self.tspan)/100))], prueba_y[::int(math.ceil(len(self.tspan)/100))],\
+                if monomials_inf[name] > 0 : plt.scatter(x_points[::int(math.ceil(len(self.tspan)/100))], prueba_y[::int(math.ceil(len(self.tspan)/100))],\
                                             color = next(colors), marker=r'$\uparrow$', s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan)/100))])
-                if monomials_inf[name]==-1 : plt.scatter(x_points[::int(math.ceil(len(self.tspan)/100))], prueba_y[::int(math.ceil(len(self.tspan)/100))], \
+                if monomials_inf[name] < 0 : plt.scatter(x_points[::int(math.ceil(len(self.tspan)/100))], prueba_y[::int(math.ceil(len(self.tspan)/100))], \
                                             color = next(colors), marker=r'$\downarrow$', s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan)/100))])
  
             y_pos = numpy.arange(2,2*si_flux+4,2)    
