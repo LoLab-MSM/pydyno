@@ -234,7 +234,7 @@ class Tropical:
 #                 if comparing ==0: repeated_eq +=1
 
         return pruned_eqs
-
+     
     def solve_pruned(self):       
         solve_for = copy.deepcopy(self.passengers)
         eqs       = copy.deepcopy(self.pruned)
