@@ -74,20 +74,19 @@ class Tropical:
           
         if verbose: print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
-        print self.passengers
-#         if verbose: print "Computing conservation relations"
-#         self.sto_conserved = sto.conservation_relations(self.model)
-#         if verbose: print "Computing Conservation laws"
-#         (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.sto_conserved, self.y[ignore:])
-#         if verbose: print "Pruning Equations"
-#         self.pruned = self.pruned_equations(self.y[ignore:], rho)
-#         if verbose: print "Solving pruned equations"
-#         self.sol_pruned = self.solve_pruned()
-#         if verbose: print "equation to tropicalize"
-#         self.eqs_for_tropicalization = self.equations_to_tropicalize()
-#         if verbose: print "Getting tropicalized equations"
-#         self.tropical_eqs = self.final_tropicalization()
-#         self.data_drivers(self.y[ignore:])
+        if verbose: print "Computing conservation relations"
+        self.sto_conserved = sto.conservation_relations(self.model)
+        if verbose: print "Computing Conservation laws"
+        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.sto_conserved, self.y[ignore:])
+        if verbose: print "Pruning Equations"
+        self.pruned = self.pruned_equations(self.y[ignore:], rho)
+        if verbose: print "Solving pruned equations"
+        self.sol_pruned = self.solve_pruned()
+        if verbose: print "equation to tropicalize"
+        self.eqs_for_tropicalization = self.equations_to_tropicalize()
+        if verbose: print "Getting tropicalized equations"
+        self.tropical_eqs = self.final_tropicalization()
+        self.data_drivers(self.y[ignore:])
 #         
         return 
 
