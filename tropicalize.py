@@ -40,7 +40,6 @@ class Tropical:
         self.passengers = None
         self.sto_conserved = None
         self.conservation = None
-        self.conserve_var = None
         self.value_conservation = {}
         self.tro_species = {}
         self.driver_signatures = None
@@ -88,18 +87,20 @@ class Tropical:
         if verbose: print "Computing conservation relations"
         self.sto_conserved = sto.conservation_relations(self.model)
         if verbose: print "Computing Conservation laws"
-        (self.conservation, self.conserve_var, self.value_conservation) = self.mass_conserved(self.sto_conserved,
-                                                                                              self.y[ignore:])
+        self.conservation, self.value_conservation = self.mass_conserved(self.sto_conserved, self.y[ignore:])
         if verbose: print "Pruning Equations"
-        self.pruned = self.pruned_equations(self.y[ignore:], rho)
-        if verbose: print "Solving pruned equations"
-        self.sol_pruned = self.solve_pruned()
+        self.pruned = self.pruned_equations(self.y[ignore:], rho) \
+ \
+            # TODO we havent found the way to solve the pruned system :( According to Pantea et al (The QSSA in chemical kinetics) it's not always possile to solve the system
+
+        # if verbose: print "Solving pruned equations"
+        # self.sol_pruned = self.solve_pruned()
+
         if verbose: print "equation to tropicalize"
         self.eqs_for_tropicalization = self.equations_to_tropicalize()
         if verbose: print "Getting tropicalized equations"
         self.tropical_eqs = self.final_tropicalization()
         self.data_drivers(self.y[ignore:])
-        #
         return
 
     def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar=0.9, plot=False):
@@ -111,31 +112,35 @@ class Tropical:
             eq = eq.subs('__s%d' % i, '__s%dstar' % i)
             sol = sympy.solve(eq, sympy.Symbol('__s%dstar' % i))  # Find equation of imposed trace
             sp_imposed_trace[i] = sol
-
         for k in sp_imposed_trace.keys():
             distance_imposed = 999
             for idx, solu in enumerate(sp_imposed_trace[k]):
-                for p in self.param_values: solu = solu.subs(p, self.param_values[p])
-                args = []  # arguments to put in the lambdify function
-                variables = [atom for atom in solu.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
-                f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-                for l in variables:
-                    args.append(y[:][str(l)])
-                if any(isinstance(n, complex) for n in f(*args)):
+                if solu.is_real:
+                    imp_trace_values = [float(solu) + 1e-10] * len(self.tspan[1:])
+                else:
+                    for p in self.param_values: solu = solu.subs(p, self.param_values[p])
+                    args = []  # arguments to put in the lambdify function
+                    variables = [atom for atom in solu.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
+                    f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
+                    for l in variables:
+                        args.append(y[:][str(l)])
+                    imp_trace_values = f(*args)
+
+                if any(isinstance(n, complex) for n in imp_trace_values):
                     print 'solution' + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is complex'
                     continue
-                elif any(n < 0 for n in f(*args)):
+                elif any(n < 0 for n in imp_trace_values):
                     print 'solution' + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is negative'
                     continue
-                hey = abs(numpy.log10(f(*args)) - numpy.log10(y['__s%d' % k]))
+                hey = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % k]))
                 if max(hey) < distance_imposed: distance_imposed = max(hey)
                 if plot:
                     plt.figure()
-                    plt.semilogy(self.tspan[1:], f(*args), 'r--', linewidth=5, label='imposed')
+                    plt.semilogy(self.tspan[1:], imp_trace_values, 'r--', linewidth=5, label='imposed')
                     plt.semilogy(self.tspan[1:], y['__s%d' % k], label='full')
                     plt.legend(loc=0)
-                    plt.xlabel('time')
-                    plt.ylabel('population')
+                    plt.xlabel('time', fontsize=20)
+                    plt.ylabel('population', fontsize=20)
                     if max(hey) < epsilon:
                         plt.title(str(self.model.species[k]) + 'passenger', fontsize=20)
                     else:
@@ -153,34 +158,39 @@ class Tropical:
         plt.show()
         return self.passengers
 
-    # This function finds conservation laws from the conserved cycles
+        # This function finds conservation laws from the conserved cycles
+
     def mass_conserved(self, conservation_laws, y, verbose=False):
         if self.model.odes is None or self.model.odes == []:
             pysb.bng.generate_equations(self.model)
-        h = []  # Array to hold conservation equation
         g = []  # Array to hold corresponding lists of free variables in conservation equations
         value_constants = {}  # Dictionary that storage the value of each constant
+
         for i, item in enumerate(conservation_laws):
             b = 0
-            u = 0
-            for j, specie in enumerate(item):
-                b += self.model.odes[conservation_laws[i][j]]
+            cons_inf = item.args
+            for j in cons_inf:
+                j_info = str.split(str(j), "*__s")
+                if len(j_info) == 1:
+                    repeats = 1
+                    sp = int(str.split(j_info[0], "__s")[1])
+                else:
+                    repeats = float(j_info[0])
+                    sp = int(j_info[1])
+                b += repeats * self.model.odes[sp]
             if b == 0:
-                g.append(item)
-                for l, k in enumerate(item):
-                    u += sympy.Symbol('__s%d' % conservation_laws[i][l])
-                h.append(u - sympy.Symbol('C%d' % i))
-                if verbose: print '  cycle%d' % i, 'is conserved'
+                g.append(item - sympy.symbols('a%d' % i, real=True))
+                if verbose:
+                    print '  cycle%d' % i, 'is conserved'
 
-        for i in h:
-            constant_to_solve = [atom for atom in i.atoms(sympy.Symbol) if re.match(r'[C]', str(atom))]
-            solution = sympy.solve(i, constant_to_solve, implicit=True)
+        for conser in g:
+            constant_to_solve = [atom for atom in conser.atoms(sympy.Symbol) if re.match(r'[a]', str(atom))]
+            solution = sympy.solve(conser, constant_to_solve, implicit=True)
             solution_ready = solution[0]
             for q in solution_ready.atoms(sympy.Symbol): solution_ready = solution_ready.subs(q, y[0][str(q)])
             value_constants[constant_to_solve[0]] = solution_ready
-
-        (self.conservation, self.conserve_var, self.value_conservation) = h, g, value_constants
-        return h, g, value_constants
+        self.conservation, self.value_conservation = g, value_constants
+        return g, value_constants
 
     def passenger_equations(self):
         if self.model.odes is None or self.model.odes == []:
@@ -225,13 +235,13 @@ class Tropical:
 
                         if plot_prune:
                             plt.figure()
-                            plot1, = plt.plot(self.tspan[1:], f_m(*args1), 'r--', linewidth=5,
-                                              label=str(m_elim).split('__')[1])
-                            plot2, = plt.plot(self.tspan[1:], f_ble(*args2), label=str(ble_elim).split('__')[1])
+                            plot1, = plt.semilogy(self.tspan[1:], f_m(*args1), 'r--', linewidth=5,
+                                                  label=str(m_elim).split('__')[1])
+                            plot2, = plt.semilogy(self.tspan[1:], f_ble(*args2), label=str(ble_elim).split('__')[1])
                             plt.legend(handles=[plot1, plot2], loc=0)
-                            plt.xlabel('time')
-                            plt.ylabel('Particles/s')
-                            plt.title(str(equations[j]))
+                            plt.xlabel('time', fontsize=20)
+                            plt.ylabel('Particles/s', fontsize=20)
+                            plt.title("Eq" + " " + str(j) + " " + str(equations[j]), fontsize=25)
 
                         closest = find_nearest_zero(hey_pruned)
                         if closest > 0 and closest > rho:
@@ -247,12 +257,14 @@ class Tropical:
         #             pruned_eqs['cons%d'%i]=self.conservation[i]
         self.pruned = pruned_eqs
 
-        #         repeated_eq = 0
-        #         for idx in range (len(self.pruned.values())):
-        #             for n in range(idx+1,len(self.pruned)):
-        #                 comparing = sympy.simplify(self.pruned.values()[idx]-self.pruned.values()[n])
-        #                 print self.pruned.values()[idx],'minus',self.pruned.values()[n]
-        #                 if comparing ==0: repeated_eq +=1
+        same_eq = []
+        for i, j in enumerate(self.pruned.keys()):
+            for k, l in enumerate(self.pruned.keys()):
+                difference = self.pruned[j] - self.pruned[l]
+                suma = self.pruned[j] + self.pruned[l]
+                if difference == 0 or suma == 0:
+                    same_eq.append((i, k))
+        # print 'same equations', same_eq
 
         return pruned_eqs
 
@@ -260,17 +272,25 @@ class Tropical:
         solve_for = copy.deepcopy(self.passengers)
         eqs = copy.deepcopy(self.pruned)
         eqs_l = eqs.values()
+        tmp = []
+        for idx, var_l in enumerate(self.conservation):
+            num_symb = list(sorted(var_l.free_symbols, key=str))
+            if len(num_symb) == 2:
+                tmp.append(num_symb[1])
+                eqs_l.append(var_l)
+        variables = [sympy.Symbol('__s%d' % var) for var in solve_for] + tmp
 
-        for idx, var_l in enumerate(self.conserve_var):
-            if len(var_l) == 1:
-                solve_for.append(var_l[0])
-                eqs_l.append(self.conservation[idx])
-        variables = tuple(sympy.Symbol('__s%d' % var) for var in solve_for)
+        total_eqs = eqs_l + [self.conservation[0]]
         # Problem because there are more equations than variables
+        count = 0
         for con in range(len(self.conservation)):  # Add the conservation laws to the pruned system
-            eqs_l.append(self.conservation[con])
-            sol = sympy.solve(eqs_l, variables, simplify=True)
-            if sol: break
+            sol = sympy.solve(total_eqs, variables, simplify=True)
+            print sol
+            total_eqs.pop()
+            count += 1
+            if sol:
+                break
+        print count
 
         if isinstance(sol, dict):
             # TODO, ask Alex about this
@@ -324,7 +344,7 @@ class Tropical:
         return self.sol_pruned
 
     def equations_to_tropicalize(self):
-        idx = list(set(range(len(self.model.odes))) - set(self.sol_pruned.keys()))
+        idx = list(set(range(len(self.model.odes))) - set(self.passengers))
         eqs = {i: self.model.odes[i] for i in idx}
 
         for l in eqs.keys():  # Substitutes the values of the algebraic system
@@ -430,15 +450,15 @@ class Tropical:
                 x_points = [self.tspan[x] for x in x_concentration]
                 prueba_y = numpy.repeat(2 * si_flux, len(x_concentration))
                 if monomials_inf[sympy.sympify(name)] > 0: plt.scatter(
-                    x_points[::int(math.ceil(len(self.tspan) / sep))],
-                    prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                    color=next(colors), marker=r'$\uparrow$',
-                    s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan) / sep))])
+                        x_points[::int(math.ceil(len(self.tspan) / sep))],
+                        prueba_y[::int(math.ceil(len(self.tspan) / sep))],
+                        color=next(colors), marker=r'$\uparrow$',
+                        s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan) / sep))])
                 if monomials_inf[sympy.sympify(name)] < 0: plt.scatter(
-                    x_points[::int(math.ceil(len(self.tspan) / sep))],
-                    prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                    color=next(colors), marker=r'$\downarrow$',
-                    s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan) / sep))])
+                        x_points[::int(math.ceil(len(self.tspan) / sep))],
+                        prueba_y[::int(math.ceil(len(self.tspan) / sep))],
+                        color=next(colors), marker=r'$\downarrow$',
+                        s=numpy.array([m_value[k] for k in x_concentration])[::int(math.ceil(len(self.tspan) / sep))])
 
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
             plt.yticks(y_pos, monomials, size='x-small')

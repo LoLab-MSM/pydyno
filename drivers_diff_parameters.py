@@ -20,4 +20,4 @@ def compare_drivers(par):
     return drivers
 
 p = Pool(6)
-all_drivers = p.map(compare_drivers,listdir_fullpath('/home/carlos/Documents/tropical_project/parameters_2000'))
+all_drivers = p.map(compare_drivers,listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_2000'))

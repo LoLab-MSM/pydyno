@@ -50,10 +50,14 @@ def conservation_relations(model, pruned_system=None):
     sto_augmented = sympy.Matrix(sto_augmented)
     sto_reduced = sto_augmented.rref()[0]
     conservation_matrix = sto_reduced[sto_rank:, stoichiometry.shape[1]:]
+    conservation_matrix = conservation_matrix.applyfunc(sympy.Integer)
     conservation_laws = conservation_matrix.dot(species_info.values())
     if not isinstance(conservation_laws, list):
         conservation_laws = [conservation_laws]
-    for i, j in enumerate(conservation_laws):
-        conservation_laws_sp[i] = [int(str(atom).split('__s')[1]) for atom in j.atoms(sympy.Symbol) if
-                                   not re.match(r'\d', str(atom))]
-    return conservation_laws_sp
+    # for i, j in enumerate(conservation_laws):
+    #     conservation_laws_sp[i] = [int(str(atom).split('__s')[1]) for atom in j.atoms(sympy.Symbol) if
+    #                                not re.match(r'\d', str(atom))]
+    return conservation_laws
+
+
+
