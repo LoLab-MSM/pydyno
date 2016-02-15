@@ -5,7 +5,7 @@ import numpy
 import itertools
 import matplotlib.pylab as plt
 import pysb
-import stoichiometry_analysis as sto
+from stoichiometry_conservation_laws import conservation_relations
 import math
 from pysb.integrate import odesolve
 from collections import OrderedDict
@@ -38,7 +38,6 @@ class Tropical:
         self.y = None  # ode solution, numpy array
         self.param_values = None
         self.passengers = None
-        self.sto_conserved = None
         self.conservation = None
         self.value_conservation = {}
         self.tro_species = {}
@@ -84,10 +83,8 @@ class Tropical:
 
         if verbose: print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
-        if verbose: print "Computing conservation relations"
-        self.sto_conserved = sto.conservation_relations(self.model)
         if verbose: print "Computing Conservation laws"
-        self.conservation, self.value_conservation = self.mass_conserved(self.sto_conserved, self.y[ignore:])
+        self.conservation, self.value_conservation = conservation_relations(self.model)
         if verbose: print "Pruning Equations"
         self.pruned = self.pruned_equations(self.y[ignore:], rho) \
  \
@@ -157,40 +154,6 @@ class Tropical:
                 #                 self.passengers.append(diff_eqs[k])
         plt.show()
         return self.passengers
-
-        # This function finds conservation laws from the conserved cycles
-
-    def mass_conserved(self, conservation_laws, y, verbose=False):
-        if self.model.odes is None or self.model.odes == []:
-            pysb.bng.generate_equations(self.model)
-        g = []  # Array to hold corresponding lists of free variables in conservation equations
-        value_constants = {}  # Dictionary that storage the value of each constant
-
-        for i, item in enumerate(conservation_laws):
-            b = 0
-            cons_inf = item.args
-            for j in cons_inf:
-                j_info = str.split(str(j), "*__s")
-                if len(j_info) == 1:
-                    repeats = 1
-                    sp = int(str.split(j_info[0], "__s")[1])
-                else:
-                    repeats = float(j_info[0])
-                    sp = int(j_info[1])
-                b += repeats * self.model.odes[sp]
-            if b == 0:
-                g.append(item - sympy.symbols('a%d' % i, real=True))
-                if verbose:
-                    print '  cycle%d' % i, 'is conserved'
-
-        for conser in g:
-            constant_to_solve = [atom for atom in conser.atoms(sympy.Symbol) if re.match(r'[a]', str(atom))]
-            solution = sympy.solve(conser, constant_to_solve, implicit=True)
-            solution_ready = solution[0]
-            for q in solution_ready.atoms(sympy.Symbol): solution_ready = solution_ready.subs(q, y[0][str(q)])
-            value_constants[constant_to_solve[0]] = solution_ready
-        self.conservation, self.value_conservation = g, value_constants
-        return g, value_constants
 
     def passenger_equations(self):
         if self.model.odes is None or self.model.odes == []:
