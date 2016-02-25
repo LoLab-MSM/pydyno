@@ -86,17 +86,17 @@ class Tropical:
         if verbose: print "Computing Conservation laws"
         self.conservation, self.value_conservation = conservation_relations(self.model)
         if verbose: print "Pruning Equations"
-        self.pruned = self.pruned_equations(self.y[ignore:], rho) \
- \
-            # TODO we havent found the way to solve the pruned system :( According to Pantea et al (The QSSA in chemical kinetics) it's not always possile to solve the system
+        # self.pruned_equations(self.y[ignore:], rho)
+
+        # TODO we havent found the way to solve the pruned system :( According to Pantea et al (The QSSA in chemical kinetics) it's not always possile to solve the system
 
         # if verbose: print "Solving pruned equations"
         # self.sol_pruned = self.solve_pruned()
 
         if verbose: print "equation to tropicalize"
-        self.eqs_for_tropicalization = self.equations_to_tropicalize()
+        self.equations_to_tropicalize()
         if verbose: print "Getting tropicalized equations"
-        self.tropical_eqs = self.final_tropicalization()
+        self.final_tropicalization()
         self.data_drivers(self.y[ignore:])
         return
 
@@ -322,20 +322,39 @@ class Tropical:
     def final_tropicalization(self):
         tropicalized = {}
 
+        species_vector = [sympy.Symbol('__s%d' % i) for i in range(len(self.model.species))]
+        species_vector_log = [sympy.log(sp, 10) for sp in species_vector]
+
         for j in sorted(self.eqs_for_tropicalization.keys()):
             if type(self.eqs_for_tropicalization[j]) == sympy.Mul:
                 tropicalized[j] = self.eqs_for_tropicalization[j]  # If Mul=True there is only one monomial
             elif self.eqs_for_tropicalization[j] == 0:
                 print 'there are no monomials'
             else:
-                ar = sorted(self.eqs_for_tropicalization[j].as_coefficients_dict(),
-                            key=str)  # List of the terms of each equation
+                ar = self.eqs_for_tropicalization[j].as_coefficients_dict()  # List of the terms of each equation
                 asd = 0
                 for l, k in enumerate(ar):
+                    alpha_mon = numpy.array([0] * len(self.model.species))
+                    for va in k.as_coeff_mul()[1]:
+                        sps = va.as_base_exp()[0]
+                        if sps in species_vector:
+                            mon_index = species_vector.index(sps)
+                            alpha_mon[mon_index] = va.as_base_exp()[1]
+                        else:
+                            alpha_par = sps
                     p = k
                     for f, h in enumerate(ar):
                         if k != h:
-                            p *= sympy.Heaviside(sympy.log(abs(k)) - sympy.log(abs(h)))
+                            alpha_prime_mon = numpy.array([0] * len(self.model.species))
+                            for vap in h.as_coeff_mul()[1]:
+                                spsp = vap.as_base_exp()[0]
+                                if spsp in species_vector:
+                                    mon_idx_prime = species_vector.index(spsp)
+                                    alpha_prime_mon[mon_idx_prime] = vap.as_base_exp()[1]
+                                else:
+                                    alpha_prime_par = spsp
+                            p *= sympy.Heaviside(numpy.dot(alpha_mon - alpha_prime_mon, species_vector_log) + sympy.log(
+                                    abs(ar[k] * alpha_par), 10) - sympy.log(abs(ar[h] * alpha_prime_par), 10))
                     asd += p
                 tropicalized[j] = asd
 
@@ -343,7 +362,7 @@ class Tropical:
         return tropicalized
 
     def data_drivers(self, y):
-        tropical_system = self.final_tropicalization()
+        tropical_system = self.tropical_eqs
         trop_data = OrderedDict()
         signature_sp = {}
         driver_monomials = OrderedDict()
@@ -360,14 +379,17 @@ class Tropical:
                 #                 mon_inf = [None]*2
                 j = list(m_s)
                 jj = copy.deepcopy(j[0])
+                print j[0]
                 for par in self.param_values: j[0] = j[0].subs(par, self.param_values[par])
+                print j[0]
                 arg_f1 = []
                 var_to_study = [atom for atom in j[0].atoms(sympy.Symbol) if
                                 not re.match(r'\d', str(atom))]  # Variables of monomial
-                f1 = sympy.lambdify(var_to_study, j[0],
-                                    modules=dict(Heaviside=_heaviside_num, log=numpy.log10, Abs=numpy.abs))
+
                 for va in var_to_study:
                     arg_f1.append(y[str(va)])
+                f1 = sympy.lambdify(var_to_study, j[0],
+                                    modules=dict(Heaviside=_heaviside_num, log=numpy.log, Abs=numpy.abs))
                 # mon_inf[0]=f1(*arg_f1)
                 #                 mon_inf[1]=j[1]
                 mons_data[str(jj).partition('*Heaviside')[0]] = f1(*arg_f1)
@@ -448,10 +470,16 @@ class Tropical:
     def get_pruned_equations(self):
         return self.pruned
 
+    def get_tropical_eqs(self):
+        return self.tropical_eqs
+
+    def get_driver_signatures(self):
+        return self.driver_signatures
+
 
 def run_tropical(model, tspan, parameters=None, sp_visualize=None):
     tr = Tropical(model)
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
         tr.visualization(driver_species=sp_visualize)
-    return tr.get_passenger()
+    return tr.get_tropical_eqs()
