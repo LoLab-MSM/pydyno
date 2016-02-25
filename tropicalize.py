@@ -482,4 +482,4 @@ def run_tropical(model, tspan, parameters=None, sp_visualize=None):
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
         tr.visualization(driver_species=sp_visualize)
-    return tr.get_tropical_eqs()
+    return tr.get_driver_signatures()
