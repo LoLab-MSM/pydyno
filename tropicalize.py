@@ -56,7 +56,7 @@ class Tropical:
     #             len(self.cycles),
     #             id(self))
 
-    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, rho=1, verbose=True):
+    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, rho=1, verbose=False):
 
         if verbose: print "Solving Simulation"
 
@@ -362,6 +362,7 @@ class Tropical:
         return tropicalized
 
     def data_drivers(self, y):
+        mach_eps = numpy.finfo(float).eps
         tropical_system = self.tropical_eqs
         trop_data = OrderedDict()
         signature_sp = {}
@@ -379,15 +380,13 @@ class Tropical:
                 #                 mon_inf = [None]*2
                 j = list(m_s)
                 jj = copy.deepcopy(j[0])
-                print j[0]
                 for par in self.param_values: j[0] = j[0].subs(par, self.param_values[par])
-                print j[0]
                 arg_f1 = []
                 var_to_study = [atom for atom in j[0].atoms(sympy.Symbol) if
                                 not re.match(r'\d', str(atom))]  # Variables of monomial
 
                 for va in var_to_study:
-                    arg_f1.append(y[str(va)])
+                    arg_f1.append(numpy.maximum(mach_eps, y[str(va)]))
                 f1 = sympy.lambdify(var_to_study, j[0],
                                     modules=dict(Heaviside=_heaviside_num, log=numpy.log, Abs=numpy.abs))
                 # mon_inf[0]=f1(*arg_f1)
@@ -482,4 +481,4 @@ def run_tropical(model, tspan, parameters=None, sp_visualize=None):
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
         tr.visualization(driver_species=sp_visualize)
-    return tr.get_driver_signatures()
+    return tr.get_trop_data()
