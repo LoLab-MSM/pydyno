@@ -1,6 +1,8 @@
 import mt1_mmp_model
 import pysb.bng
 import sympy
+import networkx
+import itertools
 from stoichiometry_conservation_laws import conservation_relations
 
 model = mt1_mmp_model.return_model('original')
@@ -12,15 +14,40 @@ cl, cl_values = conservation_relations(model)
 
 # this loops over the model reactions and storage in rcts_rules the reverse and no reverse reaction
 # for each rule
+
 rcts_rules = {}
 for rule in model.rules:
     rcts_no_reverse = 0
     rcts_reverse = 0
+    rule_reactants = []
     for reaction in model.reactions:
         if reaction['rule'][0] == rule.name and reaction['reverse'][0] == False:
-            rcts_no_reverse += reaction['rate']
-        if reaction['rule'][0] == rule.name and reaction['reverse'][0] == True:
-            rcts_reverse += reaction['rate']
+            rule_reactants.append(reaction['reactants'])
+
+    G = networkx.Graph()
+    G.add_edges_from(rule_reactants)
+    sp_interactions = [G[node].keys() for node in networkx.nodes(G)]
+    vars_set = set(map(tuple, sp_interactions))
+    final_vars = map(list, vars_set)
+    if len(final_vars) == 1:
+        final_vars.append(final_vars[0])
+    interactions = list(itertools.product(*final_vars))
+
+    for interaction in interactions:
+        for reaction in model.reactions:
+            if reaction['rule'][0] == rule.name and reaction['reverse'][0] == False and sorted(
+                    reaction['reactants']) == sorted(interaction):
+                if reaction['reactants'][0] == reaction['reactants'][1]:
+                    rcts_no_reverse += 2 * reaction['rate']
+                else:
+                    rcts_no_reverse += reaction['rate']
+            if reaction['rule'][0] == rule.name and reaction['reverse'][0] == True and sorted(
+                    reaction['products']) == sorted(interaction):
+                if reaction['products'][0] == reaction['products'][1]:
+                    rcts_reverse += 2 * reaction['rate']
+                else:
+                    rcts_reverse += reaction['rate']
+
     rcts_rules[rule.name] = {'no_reverse': sympy.factor(rcts_no_reverse), 'reverse': sympy.factor(rcts_reverse)}
 
 # this line loops over the reactions and factor the monomials and that way  we get the new units
@@ -36,9 +63,9 @@ for r in new_units:
     for eq in new_units[r]:
         if type(eq) == sympy.Pow:
             eq_name = eq.args[0]
-            new_units_odes[eq_name] = sympy.simplify(rcts_rules[r]['reverse'] + rcts_rules[r]['no_reverse'])
+            new_units_odes[eq_name] = sympy.simplify(rcts_rules[r]['reverse'] - rcts_rules[r]['no_reverse'])
         else:
-            new_units_odes[eq] = rcts_rules[r]['reverse'] + rcts_rules[r]['no_reverse']
+            new_units_odes[eq] = rcts_rules[r]['reverse'] - rcts_rules[r]['no_reverse']
 
 # this adds more conservation laws from the reactions
 for idx, nam in enumerate(new_units):
@@ -59,12 +86,12 @@ for r in rcts_rules:
     if not rcts_rules[r]['reverse'] == 0:
         for cc in cl:
             # print sympy.solve(sympy.collect_const(cc.rhs), rcts_rules[r]['reverse'].as_two_terms()[1])
-            if sympy.solve(cc, rcts_rules[r]['reverse'].as_two_terms()[1]):
-                equal_const[rcts_rules[r]['reverse'].as_two_terms()[1]] = sympy.collect_const(
-                        sympy.solve(cc, rcts_rules[r]['reverse'].as_two_terms()[1])[0])
-            if sympy.solve(sympy.collect_const(cc), rcts_rules[r]['reverse'].as_two_terms()[1]):
-                equal_const[rcts_rules[r]['reverse'].as_two_terms()[1]] = sympy.collect_const(
-                        sympy.solve(sympy.collect_const(cc), rcts_rules[r]['reverse'].as_two_terms()[1])[0].evalf())
+            if sympy.solve(cc, rcts_rules[r]['reverse'].as_coeff_mul()[1][1]):
+                equal_const[rcts_rules[r]['reverse'].as_coeff_mul()[1][1]] = sympy.collect_const(
+                        sympy.solve(cc, rcts_rules[r]['reverse'].as_coeff_mul()[1][1])[0])
+            if sympy.solve(sympy.collect_const(cc), rcts_rules[r]['reverse'].as_coeff_mul()[1][1]):
+                equal_const[rcts_rules[r]['reverse'].as_coeff_mul()[1][1]] = sympy.collect_const(
+                        sympy.solve(sympy.collect_const(cc), rcts_rules[r]['reverse'].as_coeff_mul()[1][1])[0].evalf())
 
 equal_const_units = equal_units.copy()
 equal_const_units.update(equal_const)
@@ -77,14 +104,14 @@ for unit in new_units:
         for idx in range(len(new_units[unit])):
             if rcts_rules[unit]['reverse'] != 0:
                 tmp_dict = {new_units[unit][idx]: equal_const_units[new_units[unit][idx]],
-                            rcts_rules[unit]['reverse'].as_two_terms()[1]: equal_const_units[
-                                rcts_rules[unit]['reverse'].as_two_terms()[1]]}
+                            rcts_rules[unit]['reverse'].as_coeff_mul()[1][1]: equal_const_units[
+                                rcts_rules[unit]['reverse'].as_coeff_mul()[1][1]]}
             else:
                 tmp_dict = {new_units[unit][idx]: equal_const_units[new_units[unit][idx]]}
             variables_to_change[new_units[unit][1 - idx]] = tmp_dict
     else:
-        tmp_dict = {rcts_rules[unit]['reverse'].as_two_terms()[1]: equal_const_units[
-            rcts_rules[unit]['reverse'].as_two_terms()[1]]}
+        tmp_dict = {rcts_rules[unit]['reverse'].as_coeff_mul()[1][1]: equal_const_units[
+            rcts_rules[unit]['reverse'].as_coeff_mul()[1][1]]}
         variables_to_change[new_units[unit][0].as_base_exp()[0]] = tmp_dict
 
 # this is a simple change of variable to allow sympy to solve the differential equations.
@@ -99,4 +126,5 @@ for num, ode in enumerate(new_units_odes):
 for nom in final_odes:
     t = sympy.symbols('t')
     equation = sympy.Eq(final_odes[nom].subs(nom, nom(t)), nom(t).diff(t))
-    print sympy.dsolve(equation, nom(t))
+    if nom == sympy.Symbol('U0'):
+        print sympy.dsolve(sympy.expand(equation), nom(t), hint='all')
