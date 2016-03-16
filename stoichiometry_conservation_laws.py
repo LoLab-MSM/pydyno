@@ -24,6 +24,31 @@ def stoichimetry_matrix_passengers(model, pruned_system):
     return sm
 
 
+def conservation_laws_values(model, conser_laws):
+    if not isinstance(conser_laws, list):
+        conser_laws = [conser_laws]
+
+    initial_conditions_expanded = {}
+    y0 = np.zeros(len(model.species))
+    for cp, value_obj in model.initial_conditions:
+        value = value_obj.value
+        si = model.get_species_index(cp)
+        y0[si] = value
+
+    for spp in range(len(model.species)):
+        initial_conditions_expanded['__s%d' % spp] = y0[spp]
+
+    value_constants = {}
+    for conser in conser_laws:
+        constant_to_solve = [atom for atom in conser.atoms(sympy.Symbol) if re.match(r'[a-d]', str(atom))]
+        solution = sympy.solve(conser, constant_to_solve)
+        solution_ready = solution[0]
+        solution_ready = solution_ready.subs(initial_conditions_expanded)
+        value_constants[constant_to_solve[0]] = solution_ready
+
+    return value_constants
+
+
 def conservation_relations(model, pruned_system=None):
     if pruned_system is not None:
         stoichiometry = stoichimetry_matrix_passengers(model, pruned_system)
@@ -46,52 +71,8 @@ def conservation_relations(model, pruned_system=None):
         conservation_laws = [conservation_laws]
 
     for ii, cl in enumerate(conservation_laws):
-        conservation_laws[ii] = cl - sympy.symbols('a%d' % ii, real=True)
+        conservation_laws[ii] = cl - sympy.Symbol('a%d' % ii)
 
-    initial_conditions_expanded = {}
-    y0 = np.zeros(len(model.species))
-    for cp, value_obj in model.initial_conditions:
-
-        value = value_obj.value
-        si = model.get_species_index(cp)
-        y0[si] = value
-
-    for spp in range(len(model.species)):
-        initial_conditions_expanded['__s%d' % spp] = y0[spp]
-
-    value_constants = {}
-    for conser in conservation_laws:
-        constant_to_solve = [atom for atom in conser.atoms(sympy.Symbol) if re.match(r'[a]', str(atom))]
-        solution = sympy.solve(conser, constant_to_solve)
-        solution_ready = solution[0]
-        solution_ready = solution_ready.subs(initial_conditions_expanded)
-        value_constants[constant_to_solve[0]] = solution_ready
+    value_constants = conservation_laws_values(model, conservation_laws)
 
     return conservation_laws, value_constants
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
