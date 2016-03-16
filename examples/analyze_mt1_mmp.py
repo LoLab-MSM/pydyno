@@ -4,6 +4,26 @@ import sympy
 import networkx
 import itertools
 from stoichiometry_conservation_laws import conservation_relations
+from sympy.core.relational import Equality
+
+def do(self, e, i=None):
+    """do `e` to both sides of self using function given or
+    model expression with a variable representing each side:
+    >> eq.do(i + 2)  # add 2 to both sides of Equality
+    >> eq.do(i + a, i)  # add `a` to both sides; 3rd parameter identifies `i`
+    >> eq.do(lambda i: i + a)  # modification given as a function
+    """
+    if isinstance(e, (sympy.FunctionClass, sympy.Lambda, type(lambda: 1))):
+        return self.applyfunc(e)
+    e = sympy.S(e)
+    i = (set([i]) if i else e.free_symbols) - self.free_symbols
+    if len(i) != 1:
+        raise ValueError('not sure what symbol is being used to represent a side')
+    i = i.pop()
+    f = lambda side: e.subs(i, side)
+    return self.func(*[f(side) for side in self.args])
+
+Equality.do = do
 
 model = mt1_mmp_model.return_model('original')
 
@@ -123,8 +143,17 @@ for num, ode in enumerate(new_units_odes):
             'U%d' % num))
 
 # solving the differential equations
+solutions = []
 for nom in final_odes:
+    s = sympy.var('s')
     t = sympy.symbols('t')
     equation = sympy.Eq(final_odes[nom].subs(nom, nom(t)), nom(t).diff(t))
-    if nom == sympy.Symbol('U0'):
-        print sympy.dsolve(sympy.expand(equation), nom(t), hint='all')
+    # solutions.append(sympy.dsolve(sympy.expand(equation), nom(t), simplify=False))
+    sol = sympy.dsolve(sympy.expand(equation), nom(t), simplify=False)
+    sol = sympy.simplify(sol)
+    sol_lhs = sol.lhs
+    sol_factor = sol_lhs.as_coeff_mul()[1][0]
+    sol_step1 = sol.do(s*(1/sol_factor))
+    sol_step2 = sol_step1.do(sympy.exp(s))
+    print sympy.solve(sol_step2, nom(t), dict=True)
+
