@@ -3,8 +3,9 @@ import pysb.bng
 import sympy
 import networkx
 import itertools
-from stoichiometry_conservation_laws import conservation_relations
+from stoichiometry_conservation_laws import conservation_relations, conservation_laws_values
 from sympy.core.relational import Equality
+
 
 def do(self, e, i=None):
     """do `e` to both sides of self using function given or
@@ -23,10 +24,10 @@ def do(self, e, i=None):
     f = lambda side: e.subs(i, side)
     return self.func(*[f(side) for side in self.args])
 
+
 Equality.do = do
 
 model = mt1_mmp_model.return_model('original')
-
 pysb.bng.generate_equations(model)
 
 # this gets the conservation laws (cl) and their constant values (cl_values)
@@ -90,7 +91,10 @@ for r in new_units:
 # this adds more conservation laws from the reactions
 for idx, nam in enumerate(new_units):
     if len(new_units[nam]) > 1:
-        cl.append(new_units[nam][0] - new_units[nam][1] - sympy.symbols('b%d' % idx, real=True))
+        new_cons = new_units[nam][0] - new_units[nam][1] - sympy.symbols('b%d' % idx, real=True)
+        new_cons_value = conservation_laws_values(model, new_cons)
+        cl.append(new_cons)
+        cl_values[new_cons_value.keys()[0]] = new_cons_value.values()[0]
 
 # this uses the conservation laws to define the new units in terms of the other variables
 equal_units = {}
@@ -142,18 +146,57 @@ for num, ode in enumerate(new_units_odes):
     final_odes[sympy.symbols('U%d' % num)] = new_units_odes[ode].subs(variables_to_change[ode]).subs(ode, sympy.symbols(
             'U%d' % num))
 
+new_ode_vars_ic = {}
+for idx, u in enumerate(new_ode_vars):
+    new_ode_vars_ic[new_ode_vars[u](0)] = conservation_laws_values(model, u - sympy.Symbol('d%d' % idx)).values()[0]
+
 # solving the differential equations
 solutions = []
+equations = []
+solutions_eq = []
 for nom in final_odes:
     s = sympy.var('s')
     t = sympy.symbols('t')
     equation = sympy.Eq(final_odes[nom].subs(nom, nom(t)), nom(t).diff(t))
-    # solutions.append(sympy.dsolve(sympy.expand(equation), nom(t), simplify=False))
+    equations.append(equation)
     sol = sympy.dsolve(sympy.expand(equation), nom(t), simplify=False)
     sol = sympy.simplify(sol)
     sol_lhs = sol.lhs
     sol_factor = sol_lhs.as_coeff_mul()[1][0]
-    sol_step1 = sol.do(s*(1/sol_factor))
+    sol_step1 = sol.do(s * (1 / sol_factor))
     sol_step2 = sol_step1.do(sympy.exp(s))
-    print sympy.solve(sol_step2, nom(t), dict=True)
+    ode_par = sol.subs(t, 0).subs(new_ode_vars_ic)
+    explicit_sol = sympy.solve(sol_step2, nom(t), dict=True)
+    for s in explicit_sol:
+        s[s.keys()[0]] = s.values()[0].subs({ode_par.rhs: ode_par.lhs})
+    solutions.append(explicit_sol)
 
+for s in solutions:
+    for q in s:
+        solutions_eq.append(sympy.Eq(q.keys()[0], q.values()[0]))
+
+eqs_to_evaluate = []
+for idx, solu in enumerate(solutions_eq):
+    sol_ic = solu.subs(cl_values)
+    for p in model.parameters: sol_ic = sol_ic.subs(p.name, p.value)
+    sol_ic_copy = sol_ic
+    print sol_ic
+    if sympy.simplify(sol_ic.subs(sympy.Symbol('t'), 0)).rhs > 0:
+        eqs_to_evaluate.append(sol_ic_copy)
+
+
+import matplotlib.pyplot as plt
+import numpy
+from pysb.integrate import odesolve
+
+
+t = numpy.linspace(0,30000,10000)
+t2=numpy.linspace(0,5,500)
+x = odesolve(model,t2, integrator='vode', with_jacobian=True, rtol=1e-20, atol=1e-20)
+
+f = sympy.lambdify(sympy.Symbol('t'), eqs_to_evaluate[2].rhs, 'numpy')
+
+plt.plot(t2,x['s1pluss3'], linewidth=3,label='numerical')
+plt.plot(t2, f(t2), 'r--', linewidth=5, label='theoretical')
+plt.legend(loc=0)
+plt.show()
