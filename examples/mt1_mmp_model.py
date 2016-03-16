@@ -83,6 +83,7 @@ def initial_condition_abc_model():
 
 def observe_abc_model():
     """From the rules we have, in total, 12 components"""
+    Observable('s1pluss3', b(b1=None, b2=None)+ a(a1=1) % b(b1=1, b2=None))
     Observable('ta', a(a1=None))
     Observable('tb', b(b1=None, b2=None))
     Observable('tc', c(c1=None, c2=None))
