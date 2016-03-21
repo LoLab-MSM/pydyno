@@ -78,12 +78,16 @@ def rule_abcremoved2_abc_model():
 def initial_condition_abc_model():
     #from the data
     Initial(a(a1=None), Parameter('ao', 1e-6))
-    Initial(b(b1=None, b2=None), Parameter('bo', 1.57e-7))
+    Initial(b(b1=None, b2=None), Parameter('bo', 1.57e-7)) #1.57e-7
     Initial(c(c1=None, c2=None), Parameter('co', 1e-6))
 
 def observe_abc_model():
     """From the rules we have, in total, 12 components"""
-    Observable('s1pluss3', b(b1=None, b2=None)+ a(a1=1) % b(b1=1, b2=None))
+    Observable('U0', c(c1=None, c2=None) + b(b1=None, b2=1) % c(c1=1, c2=None) + a(a1=1) % b(b1=1, b2=2) % c(c1=2, c2=None))
+    Observable('U1', b(b1=None, b2=None) + a(a1=1) % b(b1=1, b2=2) % b(b1=None, b2=3) % c(c1=2, c2=4) % c(c1=3, c2=4) + b(b1=None, b2=1) % c(c1=1, c2=None) + b(b1=None, b2=1) % c(c1=1, c2=2) % c(c1=None, c2=2) + b(b1=None, b2=1) % b(b1=None, b2=2) % c(c1=1, c2=3) % c(c1=2, c2=3))
+    Observable('U4', b(b1=None, b2=None) + a(a1=1) % b(b1=1, b2=None))
+    Observable('U2', c(c1=None, c2=None) + b(b1=None, b2=1) % c(c1=1, c2=2) % c(c1=None, c2=2) + a(a1=1) % b(b1=1, b2=2) % c(c1=2, c2=3) % c(c1=None, c2=3) + c(c1=None, c2=1) % c(c1=None, c2=1))
+    Observable('U3', a(a1=None))
     Observable('ta', a(a1=None))
     Observable('tb', b(b1=None, b2=None))
     Observable('tc', c(c1=None, c2=None))
