@@ -1,8 +1,6 @@
 from earm.lopez_embedded import model
-import pysb.bng
 import pygraphviz
 import re
-import csv
 import numpy
 from pysb.integrate import odesolve
 import matplotlib.cm as cm
@@ -50,7 +48,7 @@ class FluxVisualization:
         self.sp_graph = None
         self.colors_time_edges = None
 
-    def visualize(self, fig_path=None, tspan=None, parameters=None, verbose=False):
+    def visualize(self, fig_path='', tspan=None, parameters=None, verbose=False):
         if verbose:
             print "Solving Simulation"
 
@@ -72,9 +70,9 @@ class FluxVisualization:
         new_pars = dict((p.name, parameters[i]) for i, p in enumerate(self.model.parameters))
         self.parameters = new_pars
 
-        self.y = odesolve(self.model, self.tspan, self.param_values)
+        self.y = odesolve(self.model, self.tspan, self.parameters)
 
-        self.species_graph(self.model)
+        self.species_graph()
         self.sp_graph.layout(prog='dot',
                              args="-Gstart=50 -Gesep=1  -Gsplines=true -Gsize=30.75,10.75\! "
                                   "-Gratio=fill -Grankdir=LR -Gdpi=100! -Gordering=in")
@@ -87,7 +85,7 @@ class FluxVisualization:
                                pos="20,20!",
                                pin='true')
 
-        self.edges_colors(self.model, self.y)
+        self.edges_colors(self.y)
 
         if os.path.exists(fig_path):
             directory = fig_path
@@ -193,6 +191,6 @@ class FluxVisualization:
         return self.sp_graph
 
 
-def run_flux_visualization(model, tspan, fig_path=None, parameters=None, verbose=False):
+def run_flux_visualization(model, tspan, fig_path='', parameters=None, verbose=False):
     fv = FluxVisualization(model)
     fv.visualize(fig_path, tspan, parameters, verbose)
