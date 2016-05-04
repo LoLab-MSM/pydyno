@@ -1,18 +1,17 @@
-from earm.lopez_embedded import model 
-# from pysb.examples.earm_1_0 import model
-# from max_monomials_signature import run_tropical
+from earm.lopez_embedded import model
 from tropicalize import run_tropical
 import numpy as np
 import csv
 
-f = open('/home/oscar/Documents/tropical_project/parameters_3000/pars_embedded_3267.txt')
+# tipe 1 cluster: 5400
+# type 2 cluster: 4052
+
+f = open('/home/oscar/Documents/tropical_project/parameters_5000/pars_embedded_1795.txt')
 data = csv.reader(f)
 parames = []
-for i in data:parames.append(float(i[1]))
+for i in data: parames.append(float(i[1]))
 
 t = np.linspace(0, 20000,  100)
 
-print run_tropical(model, t, parames, sp_visualize=[47])
+run_tropical(model, t, parames, sp_visualize=[19, 20, 54, 47])
 
-#486 [1, 17, 18, 21, 22, 23, 24, 26, 27, 31, 32, 34, 35, 36, 37, 41, 42, 46, 48, 49, 50, 51, 52, 53, 59, 60, 61, 62, 63, 65, 66, 68, 69, 70, 71, 75]
-#911 [0, 1, 17, 21, 22, 25, 26, 27, 31, 34, 36, 41, 42, 43, 46, 48, 49, 50, 51, 54, 55, 56, 58, 59, 61, 62, 63, 65, 66, 68, 69, 70, 71, 75]
