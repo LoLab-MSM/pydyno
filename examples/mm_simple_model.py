@@ -10,8 +10,8 @@ Model()
 V = 10.
 #######
 Parameter('kf',   1./V)
-Parameter('kr',   1000.)
-Parameter('kcat', 100.)
+Parameter('kr',   100.)
+Parameter('kcat', 1000.)
 
 Monomer('E', ['s'])
 Monomer('S', ['e'])
@@ -34,3 +34,18 @@ Initial(E(s=None), Etot)
 
 Parameter('S0', 1000.*V)
 Initial(S(e=None), S0)
+
+
+tspan = np.linspace(0,20,100)
+y = odesolve(model, tspan)
+
+color = ['b', 'r', 'b', 'g']
+
+for i, j in enumerate(model.observables):
+    plt.figure()
+    plt.plot(tspan, y[j.name], label=j.name, linewidth=4, color=color[i])
+    plt.xlabel('time', fontsize=20)
+    plt.ylabel('Population', fontsize=20)
+    plt.legend(loc=0)
+    plt.savefig('/home/oscar/Desktop/mm%d' % i + '.eps')
+plt.show()
