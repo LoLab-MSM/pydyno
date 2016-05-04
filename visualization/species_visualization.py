@@ -19,6 +19,67 @@ for i in data: parames[i[0]] = float(i[1])
 tspan = numpy.linspace(0, 10000, 100)
 y = odesolve(model, tspan, parames)
 
+def f2hex_edges(fx):
+    norm = colors.Normalize(vmin=0, vmax=1)
+    f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('coolwarm'))
+    rgb = f2rgb.to_rgba(fx)[:3]
+    return '#%02x%02x%02x' % tuple([255 * fc for fc in rgb])
+
+
+class trop_visualization:
+    def __initi__(self, model):
+        self.model = model
+        self.tspan = None
+        self.y = None
+        self.parameters = None
+
+    def nodes_colors(self, y):
+        all_rate_colors = {}
+        for idx, rxn in enumerate(self.model.species):
+            conc_data = y['__s%d' % idx] / max(y['__s%d' % idx])
+            conc_colors = map(f2hex_colors, conc_data)
+            all_rate_colors['s%d' % idx] = conc_colors
+        all_colors = pandas.DataFrame(all_rate_colors).transpose()
+
+        return all_colors
+
+
+    def edges_colors(self):
+        all_rate_colors = {}
+        for idx, rxn in enumerate(self.model.reactions):
+            rate = rxn['rate']
+            for p in parames:
+                rate = rate.subs(p, self.parameters[p])
+            args = []  # arguments to put in the lambdify function
+            variables = [atom for atom in rate.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
+            func = sympy.lambdify(variables, rate, modules=dict(sqrt=numpy.lib.scimath.sqrt))
+            for l in variables:
+                args.append(y[str(l)])
+            react_rate = func(*args)
+            for rctan in rxn['reactants']:
+                rate_total = 0
+                for r_rxn in self.model.reactions:
+                    if rctan in r_rxn['reactants']:
+                        rate_total += r_rxn['rate']
+                for p in parames:
+                    rate_total = rate_total.subs(p, self.parameters[p])
+                args = []  # arguments to put in the lambdify function
+                variables = [atom for atom in rate_total.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
+                func = sympy.lambdify(variables, rate_total, modules=dict(sqrt=numpy.lib.scimath.sqrt))
+                for l in variables:
+                    args.append(y[str(l)])
+                total_react_rate = func(*args)
+
+                rate_data_min = 0
+                rate_data_max = 1
+
+                rate_data = react_rate / total_react_rate
+
+                rate_colors = map(functools.partial(f2hex_edges, vmin=rate_data_min, vmax=rate_data_max), rate_data) # map(f2hex_edges, rate_data)
+                for pro in rxn['products']:
+                    all_rate_colors[('s' + str(rctan), 's' + str(pro))] = rate_colors
+        all_colors = pandas.DataFrame(all_rate_colors).transpose()
+
 
 def f2hex_edges(fx, vmin, vmax):
     norm = colors.Normalize(vmin=vmin, vmax=vmax)
