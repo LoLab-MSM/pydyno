@@ -141,6 +141,7 @@ class Tropical:
 
         # plt.show()
 
+
         return self.passengers
 
     def passenger_equations(self):
