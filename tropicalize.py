@@ -108,11 +108,9 @@ class Tropical:
                 else:
                     for p in self.param_values:
                         solu = solu.subs(p, self.param_values[p])
-                    args = []  # arguments to put in the lambdify function
                     variables = [atom for atom in solu.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
                     f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-                    for l in variables:
-                        args.append(y[:][str(l)])
+                    args = [y[str(l)] for l in variables] # arguments to put in the lambdify function
                     imp_trace_values = f(*args)
 
                 if any(isinstance(n, complex) for n in imp_trace_values):
@@ -208,12 +206,9 @@ class Tropical:
                 jj = copy.deepcopy(j[0])
                 for par in self.param_values:
                     j[0] = j[0].subs(par, self.param_values[par])
-                arg_f1 = []
                 var_to_study = [atom for atom in j[0].atoms(sympy.Symbol) if
                                 not re.match(r'\d', str(atom))]  # Variables of monomial
-
-                for va in var_to_study:
-                    arg_f1.append(numpy.maximum(mach_eps, y[str(va)]))
+                arg_f1 = [numpy.maximum(mach_eps, y[str(va)]) for va in var_to_study]
                 f1 = sympy.lambdify(var_to_study, j[0],
                                     modules=dict(Heaviside=_heaviside_num, log=numpy.log, Abs=numpy.abs))
                 mon_values = f1(*arg_f1)
@@ -294,12 +289,10 @@ class Tropical:
                 j = sympy.sympify(name)
                 for par in self.param_values:
                     j = j.subs(par, self.param_values[par])
-                arg_f1 = []
                 var_to_study = [atom for atom in j.atoms(sympy.Symbol) if
                                 not re.match(r'\d', str(atom))]  # Variables of monomial
 
-                for va in var_to_study:
-                    arg_f1.append(numpy.maximum(mach_eps, self.y[str(va)][1:]))
+                arg_f1 = [numpy.maximum(mach_eps, self.y[str(va)][1:]) for va in var_to_study]
                 f1 = sympy.lambdify(var_to_study, j,
                                     modules=dict(Heaviside=_heaviside_num, log=numpy.log, Abs=numpy.abs))
                 mon_values = f1(*arg_f1)
