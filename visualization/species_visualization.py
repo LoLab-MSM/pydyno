@@ -72,6 +72,8 @@ class FluxVisualization:
 
         self.y = odesolve(self.model, self.tspan, self.parameters)
 
+        if verbose:
+            print "Creating graph"
         self.species_graph()
         self.sp_graph.layout(prog='dot',
                              args="-Gstart=50 -Gesep=1  -Gsplines=true -Gsize=30.75,10.75\! "
@@ -93,6 +95,8 @@ class FluxVisualization:
             directory = os.getcwd() + '/visualizations'
             os.makedirs(directory)
 
+        if verbose:
+            "Generating images"
         for kx, time in enumerate(self.tspan):
             self.sp_graph.get_node('t').attr['label'] = 'time:' + ' ' + '%d' % time + ' ' + 'sec'
             map(functools.partial(change_edge_colors, graph=self.sp_graph), list(self.colors_time_edges.index),
@@ -116,11 +120,9 @@ class FluxVisualization:
                         rate_total += r_rxn['rate']
                 for p in self.parameters:
                     rate_total = rate_total.subs(p, self.parameters[p])
-                args = []  # arguments to put in the lambdify function
                 variables = [atom for atom in rate_total.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
                 func = sympy.lambdify(variables, rate_total, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-                for l in variables:
-                    args.append(y[str(l)])
+                args = [y[str(l)] for l in variables]   # arguments to put in the lambdify function
                 total_react_rate = func(*args)
 
                 rate_data = react_rate / total_react_rate
