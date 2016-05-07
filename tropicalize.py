@@ -7,40 +7,24 @@ import matplotlib.pylab as plt
 import numpy
 import sympy
 from pysb.integrate import odesolve
-from stoichiometry_conservation_laws import conservation_relations
-
-
-def _parse_name(spec):
-    m = spec.monomer_patterns
-    lis_m = []
-    for i in range(len(m)):
-        tmp_1 = str(m[i]).partition('(')
-        tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
-        if not tmp_2:
-            lis_m.append(tmp_1[0])
-        else:
-            lis_m.append(''.join([tmp_1[0], tmp_2[0]]))
-    return '_'.join(lis_m)
 
 
 def _heaviside_num(x):
+    """Returns result of Heavisde function
+
+        Keyword arguments:
+        x -- argument to Heaviside function
+    """
     return 0.5 * (numpy.sign(x) + 1)
-
-
-def find_nearest_zero(array):
-    idx = numpy.nanargmin(numpy.abs(array))
-    return array[idx]
 
 
 class Tropical:
     def __init__(self, model):
         self.model = model
         self.tspan = None
-        self.y = None  # ode solution, numpy array
+        self.y = None
         self.param_values = None
         self.passengers = None
-        self.conservation = None
-        self.value_conservation = {}
         self.tro_species = {}
         self.driver_signatures = None
         self.passenger_signatures = None
@@ -78,20 +62,18 @@ class Tropical:
         if verbose:
             print "Getting Passenger species"
         self.find_passengers(self.y[ignore:], verbose, epsilon)
-        if verbose:
-            print "Computing Conservation laws"
-        self.conservation, self.value_conservation = conservation_relations(self.model)
 
         if verbose:
             print "equation to tropicalize"
         self.equations_to_tropicalize()
+
         if verbose:
             print "Getting tropicalized equations"
         self.final_tropicalization()
         self.data_drivers(self.y[ignore:])
         return
 
-    def find_passengers(self, y, verbose=False, epsilon=None, ptge_similar=0.9, plot=False):
+    def find_passengers(self, y, epsilon=None, ptge_similar=0.9, plot=False):
         sp_imposed_trace = {}
         self.passengers = []
 
@@ -110,7 +92,7 @@ class Tropical:
                         solu = solu.subs(p, self.param_values[p])
                     variables = [atom for atom in solu.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
                     f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-                    args = [y[str(l)] for l in variables] # arguments to put in the lambdify function
+                    args = [y[str(l)] for l in variables]  # arguments to put in the lambdify function
                     imp_trace_values = f(*args)
 
                 if any(isinstance(n, complex) for n in imp_trace_values):
@@ -119,9 +101,9 @@ class Tropical:
                 elif any(n < 0 for n in imp_trace_values):
                     print 'solution' + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is negative'
                     continue
-                hey = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % k]))
-                if max(hey) < distance_imposed:
-                    distance_imposed = max(hey)
+                diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % k]))
+                if max(diff_trace_ode) < distance_imposed:
+                    distance_imposed = max(diff_trace_ode)
                 if plot:
                     plt.figure()
                     plt.semilogy(self.tspan[1:], imp_trace_values, 'r--', linewidth=5, label='imposed')
@@ -129,7 +111,7 @@ class Tropical:
                     plt.legend(loc=0)
                     plt.xlabel('time', fontsize=20)
                     plt.ylabel('population', fontsize=20)
-                    if max(hey) < epsilon:
+                    if max(diff_trace_ode) < epsilon:
                         plt.title(str(self.model.species[k]) + 'passenger', fontsize=20)
                     else:
                         plt.title(self.model.species[k], fontsize=20)
@@ -152,15 +134,7 @@ class Tropical:
     def equations_to_tropicalize(self):
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
         eqs = {i: self.model.odes[i] for i in idx}
-
-        for l in eqs.keys():  # Substitutes the values of the algebraic system
-            #       for k in self.sol_pruned.keys(): eqs[l]=eqs[l].subs(sympy.Symbol('s%d' % k), self.sol_pruned[k])
-            for q in self.value_conservation.keys():
-                eqs[l] = eqs[l].subs(q, self.value_conservation[q])
-        # for i in eqs.keys():
-        #             for par in self.model.parameters: eqs[i] = sympy.simplify(eqs[i].subs(par.name, par.value))
         self.eqs_for_tropicalization = eqs
-
         return eqs
 
     def final_tropicalization(self):
@@ -174,14 +148,14 @@ class Tropical:
             else:
                 ar = sorted(self.eqs_for_tropicalization[j].as_coefficients_dict(),
                             key=str)  # List of the terms of each equation
-                asd = 0
+                trop_eq = 0
                 for l, k in enumerate(ar):
-                    p = k
+                    trop_monomial = k
                     for f, h in enumerate(ar):
                         if k != h:
-                            p *= sympy.Heaviside(sympy.log(abs(k)) - sympy.log(abs(h)))
-                    asd += p
-                tropicalized[j] = asd
+                            trop_monomial *= sympy.Heaviside(sympy.log(abs(k)) - sympy.log(abs(h)))
+                    trop_eq += trop_monomial
+                tropicalized[j] = trop_eq
 
         self.tropical_eqs = tropicalized
         return tropicalized
@@ -236,14 +210,11 @@ class Tropical:
         if not species_ready:
             raise Exception('None of the input species is a driver')
 
-        colors = itertools.cycle(['#000000','#00FF00','#0000FF','#FF0000','#01FFFE','#FFA6FE','#FFDB66','#006401',
+
+        colors = ['#000000','#00FF00','#0000FF','#FF0000','#01FFFE','#FFA6FE','#FFDB66','#006401',
                                   '#010067','#95003A','#007DB5','#FF00F6','#FFEEE8','#774D00','#90FB92','#0076FF',
                                   '#D5FF00','#FF937E','#6A826C','#FF029D','#FE8900','#7A4782','#7E2DD2','#85A900',
-                                  '#FF0056','#A42400','#00AE7E'])
-        colors2 = itertools.cycle(['#000000','#00FF00','#0000FF','#FF0000','#01FFFE','#FFA6FE','#FFDB66','#006401',
-                                  '#010067','#95003A','#007DB5','#FF00F6','#FFEEE8','#774D00','#90FB92','#0076FF',
-                                  '#D5FF00','#FF937E','#6A826C','#FF029D','#FE8900','#7A4782','#7E2DD2','#85A900',
-                                  '#FF0056','#A42400','#00AE7E'])
+                                  '#FF0056','#A42400','#00AE7E']
 
         sep = len(self.tspan) / 1
 
@@ -253,7 +224,7 @@ class Tropical:
             plt.subplot(311)
             monomials = []
             monomials_inf = self.mon_names[sp]
-            for name in self.tro_species[sp].keys():
+            for idx, name in enumerate(self.tro_species[sp].keys()):
                 m_value = self.tro_species[sp][name]
                 x_concentration = numpy.nonzero(m_value)[0]
                 monomials.append(name)
@@ -264,14 +235,14 @@ class Tropical:
                     plt.scatter(
                             x_points[::int(math.ceil(len(self.tspan) / sep))],
                             prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                            color=next(colors), marker=r'$\uparrow$',
+                            color=colors[idx], marker=r'$\uparrow$',
                             s=numpy.array([m_value[k] for k in x_concentration])[
                               ::int(math.ceil(len(self.tspan) / sep))])
                 if monomials_inf[sympy.sympify(name)] < 0:
                     plt.scatter(
                             x_points[::int(math.ceil(len(self.tspan) / sep))],
                             prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                            color=next(colors), marker=r'$\downarrow$',
+                            color=colors[idx], marker=r'$\downarrow$',
                             s=numpy.array([m_value[k] for k in x_concentration])[
                               ::int(math.ceil(len(self.tspan) / sep))])
 
@@ -297,7 +268,7 @@ class Tropical:
                                     modules=dict(Heaviside=_heaviside_num, log=numpy.log, Abs=numpy.abs))
                 mon_values = f1(*arg_f1)
                 mon_name = name.partition('__')[2]
-                plt.plot(self.tspan[1:], mon_values, label=mon_name, color=next(colors2))
+                plt.plot(self.tspan[1:], mon_values, label=mon_name, color=colors[q])
                 mons_matrix[q] = mon_values
             plt.legend(loc=0)
 
