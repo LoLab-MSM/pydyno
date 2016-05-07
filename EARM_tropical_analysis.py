@@ -1,31 +1,12 @@
 from earm.lopez_embedded import model
-from pysb.integrate import odesolve
 import numpy as np
 import csv
-import pandas
-import pysb.integrate
 import pysb.util
 import matplotlib.pyplot as plt
 import os
 import itertools
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.optimize import curve_fit
-
-# f = open('/home/carlos/Downloads/pars_embedded_911.txt')
-# data = csv.reader(f)
-# parames = []
-# for i in data:parames.append(float(i[1]))
-#
-# epsilons = np.linspace(0, 4, 80)
-# num_d = []
-# for i in epsilons:
-#     num_d.append(len(run_tropical(model,tspan,i,parames)[2]))
-#
-# plt.plot(epsilons, num_d)
-# plt.xlabel('epsilon')
-# plt.ylabel('passenger species')
-# plt.show()
-#
 
 # List of model observables and corresponding data file columns for
 # point-by-point fitting
@@ -64,31 +45,66 @@ solver = pysb.integrate.Solver(model, tspan, rtol=1e-5, atol=1e-5)
 
 
 def listdir_fullpath(d):
+    """Returns a list of path of files in directory
+
+       Keyword arguments:
+       d -- path to directory
+    """
     return [os.path.join(d, f) for f in os.listdir(d)]
 
 
-all_parameters_path = listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_5000')
+def read_pars(par_path):
+    """Returns a list of parameter values from csv file
 
-clusters_path = listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_in_cluster5000')
+       keyword arguments:
+       par_path -- path to parameter file
+    """
+    f = open(par_path)
+    data = csv.reader(f)
+    param = [float(d[1]) for d in data]
+    return param
+
+
+def sig_apop(t, f, td, ts):
+    """Return the amount of substrate cleaved at time t.
+
+    Keyword arguments:
+    t -- time
+    f -- is the fraction cleaved at the end of the reaction
+    td -- is the delay period between TRAIL addition and half-maximal substrate cleavage
+    ts -- is the switching time between initial and complete effector substrate  cleavage
+    """
+    return f - f / (1 + np.exp((t - td) / (4 * ts)))
+
+
+def column(matrix, i):
+    """Return the i column of a matrix
+
+    Keyword arguments:
+    matrix -- matrix to get the column from
+    i -- column to get fro the matrix
+    """
+    return [row[i] for row in matrix]
+
+
+all_parameters_path = listdir_fullpath('/home/oscar/tropical_project_new/parameters_5000')
+
+clusters_path = listdir_fullpath('/home/oscar/tropical_project_new/parameters_clusters')
 
 cluster_pars_path = {}
 for sc in clusters_path:
     ff = open(sc)
     data_paths = csv.reader(ff)
-    params_path = []
-    for dd in data_paths: params_path.append(dd[0])
-    cluster_pars_path[sc.split('0/')[1]] = params_path
-
-
-def read_pars(par_path):
-    f = open(par_path)
-    data = csv.reader(f)
-    param = []
-    for d in data: param.append(float(d[1]))
-    return param
+    params_path = [dd[0] for dd in data_paths]
+    cluster_pars_path[sc.split('clusters/')[1]] = params_path
 
 
 def display_observables(params_estimated):
+    """Save a figure of the observables with different parameter values and their distributions
+
+        keyword arguments:
+        params_estimated -- list of parameter sets
+    """
     fig, axApop = plt.subplots(figsize=(5.5, 5.5))
     # Construct matrix of experimental data and variance columns of interest
     exp_obs_norm = exp_data[data_names].view(float).reshape(len(exp_data), -1).T
@@ -156,63 +172,17 @@ def display_observables(params_estimated):
     axHisty.set_xticks([0, 0.5, 1])
     axApop.legend(loc=0)
     fig.savefig('/home/oscar/Documents/tropical_project/all_parameters_earm.jpg', format='jpg', dpi=400)
-    # return cparp_info
-    # axApop.show()
-
-
-# display(all_parameters_path)
-
-
-def sig_apop(t, f, td, ts):
-    return f - f / (1 + np.exp((t - td) / (4 * ts)))
-
-
-def column(matrix, i):
-    return [row[i] for row in matrix]
-
-
-species_clusters_mode1 = {'sp1': ['clus1_sp1',
-                               'clus2_sp1'],
-                       'sp2': ['clus1_sp2',
-                               'clus3_sp2'],
-                       'sp5': ['clus1_sp5',
-                               'clus2_sp5',
-                               'clus3_sp5'],
-                       'sp6': ['clus1_sp6',
-                               'clus2_sp6',
-                               'clus3_sp6']}
-
-species_clusters_mode2 = {'sp1': ['clus1_sp1',
-                               'clus2_sp1',
-                               'clus3_sp1'],
-                       'sp2': ['clus1_sp2',
-                               'clus2_sp2',
-                               'clus3_sp2'],
-                       'sp5': ['clus1_sp5',
-                               'clus2_sp5',
-                               'clus3_sp5'],
-                       'sp6': ['clus1_sp6',
-                               'clus2_sp6',
-                               'clus3_sp6']}
-
-
-all_intersections = list(itertools.product(*species_clusters_mode1.values()))
-
-# from tropicalize import run_tropical
-# params = read_pars('/home/oscar/Documents/tropical_project/parameters_5000/pars_embedded_4825.txt')
-# run_tropical(model,tspan,params)
+    return
 
 display_observables(all_parameters_path)
 
 
-# for i in all_intersections:
-#     c21 = set(cluster_pars_path[i[0]]).intersection(
-#             cluster_pars_path[i[1]]).intersection(
-#             cluster_pars_path[i[2]]).intersection(cluster_pars_path[i[3]])
-#     if c21:
-#         display(c21)
-
 def display_all_species(cluster_parameters):
+    """Saves figures of all species for each cluster of parameters
+
+        keyword arguments:
+        cluster_parameters -- list of files, where each file contains the clustered parameters
+    """
     for cl in cluster_parameters:
         directory = '/home/oscar/Documents/tropical_project/' + cl
         if not os.path.exists(directory):
@@ -227,5 +197,42 @@ def display_all_species(cluster_parameters):
             plt.title(str(model.species[sp]))
             plt.savefig(directory + '/' + str(model.species[sp]) + '.jpg', format='jpg', bbox_inches='tight', dpi=400)
             plt.close()
+    return
 
-# display_all_species(cluster_pars_path)
+display_all_species(cluster_pars_path)
+
+# species_clusters_mode1 = {'sp1': ['clus1_sp1',
+#                                'clus2_sp1'],
+#                        'sp2': ['clus1_sp2',
+#                                'clus3_sp2'],
+#                        'sp5': ['clus1_sp5',
+#                                'clus2_sp5',
+#                                'clus3_sp5'],
+#                        'sp6': ['clus1_sp6',
+#                                'clus2_sp6',
+#                                'clus3_sp6']}
+#
+# species_clusters_mode2 = {'sp1': ['clus1_sp1',
+#                                'clus2_sp1',
+#                                'clus3_sp1'],
+#                        'sp2': ['clus1_sp2',
+#                                'clus2_sp2',
+#                                'clus3_sp2'],
+#                        'sp5': ['clus1_sp5',
+#                                'clus2_sp5',
+#                                'clus3_sp5'],
+#                        'sp6': ['clus1_sp6',
+#                                'clus2_sp6',
+#                                'clus3_sp6']}
+#
+#
+# all_intersections = list(itertools.product(*species_clusters_mode1.values()))
+#
+#
+# for i in all_intersections:
+#     c21 = set(cluster_pars_path[i[0]]).intersection(
+#             cluster_pars_path[i[1]]).intersection(
+#             cluster_pars_path[i[2]]).intersection(cluster_pars_path[i[3]])
+#     if c21:
+#         display(c21)
+
