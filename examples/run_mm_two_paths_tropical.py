@@ -5,3 +5,4 @@ import numpy as np
 tspan = np.linspace(0, 5, 51)
 
 run_tropical(model, tspan, sp_visualize=[3, 5])
+
