@@ -70,7 +70,6 @@ tspan = np.linspace(0, 20000, 100)
 
 f = open('/home/oscar/Documents/tropical_project/parameters_3000/pars_embedded_906.txt')
 data = csv.reader(f)
-parames = []
-for i in data:parames.append(float(i[1]))
+parames = [float(i[1]) for i in data]
 
 display(parames)
