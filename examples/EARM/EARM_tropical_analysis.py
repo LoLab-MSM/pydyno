@@ -45,7 +45,7 @@ solver = pysb.integrate.Solver(model, tspan, rtol=1e-5, atol=1e-5)
 
 
 def listdir_fullpath(d):
-    """Returns a list of path of files in directory
+    """Return a list of path of files in directory
 
        Keyword arguments:
        d -- path to directory
@@ -54,7 +54,7 @@ def listdir_fullpath(d):
 
 
 def read_pars(par_path):
-    """Returns a list of parameter values from csv file
+    """Return a list of parameter values from csv file
 
        keyword arguments:
        par_path -- path to parameter file

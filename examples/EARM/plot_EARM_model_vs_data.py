@@ -1,6 +1,5 @@
 # Checking if parameters from clusters fit the experimental data
 
-import pysb.integrate
 import pysb.util
 import numpy as np
 import matplotlib.pyplot as plt
