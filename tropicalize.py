@@ -1,5 +1,5 @@
+from __future__ import print_function
 import copy
-import itertools
 import math
 import re
 from collections import OrderedDict
@@ -37,7 +37,7 @@ class Tropical:
     def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, rho=1, verbose=False):
 
         if verbose:
-            print "Solving Simulation"
+            print("Solving Simulation")
 
         if tspan is not None:
             self.tspan = tspan
@@ -60,15 +60,15 @@ class Tropical:
         self.y = odesolve(self.model, self.tspan, self.param_values)
 
         if verbose:
-            print "Getting Passenger species"
+            print("Getting Passenger species")
         self.find_passengers(self.y[ignore:], verbose, epsilon)
 
         if verbose:
-            print "equation to tropicalize"
+            print("equation to tropicalize")
         self.equations_to_tropicalize()
 
         if verbose:
-            print "Getting tropicalized equations"
+            print("Getting tropicalized equations")
         self.final_tropicalization()
         self.data_drivers(self.y[ignore:])
         return
@@ -85,7 +85,6 @@ class Tropical:
             distance_imposed = 999
             for idx, solu in enumerate(sp_imposed_trace[k]):
                 if solu.is_real:
-                    print solu
                     imp_trace_values = [float(solu) + 1e-10] * len(self.tspan[1:])
                 else:
                     for p in self.param_values:
@@ -96,10 +95,10 @@ class Tropical:
                     imp_trace_values = f(*args)
 
                 if any(isinstance(n, complex) for n in imp_trace_values):
-                    print 'solution' + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is complex'
+                    print("solution" + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is complex')
                     continue
                 elif any(n < 0 for n in imp_trace_values):
-                    print 'solution' + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is negative'
+                    print("solution" + ' ' + '%d' % idx + ' ' + 'from equation' + ' ' + str(k) + ' ' + 'is negative')
                     continue
                 diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % k]))
                 if max(diff_trace_ode) < distance_imposed:
@@ -144,7 +143,7 @@ class Tropical:
             if type(self.eqs_for_tropicalization[j]) == sympy.Mul:
                 tropicalized[j] = self.eqs_for_tropicalization[j]  # If Mul=True there is only one monomial
             elif self.eqs_for_tropicalization[j] == 0:
-                print 'there are no monomials'
+                print('there are no monomials')
             else:
                 ar = sorted(self.eqs_for_tropicalization[j].as_coefficients_dict(),
                             key=str)  # List of the terms of each equation
@@ -160,7 +159,7 @@ class Tropical:
         self.tropical_eqs = tropicalized
         return tropicalized
 
-    def data_drivers(self, y, plot_drivers=None):
+    def data_drivers(self, y):
         mach_eps = numpy.finfo(float).eps
         tropical_system = self.tropical_eqs
         trop_data = OrderedDict()
@@ -210,11 +209,10 @@ class Tropical:
         if not species_ready:
             raise Exception('None of the input species is a driver')
 
-
-        colors = ['#000000','#00FF00','#0000FF','#FF0000','#01FFFE','#FFA6FE','#FFDB66','#006401',
-                                  '#010067','#95003A','#007DB5','#FF00F6','#FFEEE8','#774D00','#90FB92','#0076FF',
-                                  '#D5FF00','#FF937E','#6A826C','#FF029D','#FE8900','#7A4782','#7E2DD2','#85A900',
-                                  '#FF0056','#A42400','#00AE7E']
+        colors = ['#000000', '#00FF00', '#0000FF', '#FF0000', '#01FFFE', '#FFA6FE', '#FFDB66', '#006401',
+                  '#010067', '#95003A', '#007DB5', '#FF00F6', '#FFEEE8', '#774D00', '#90FB92', '#0076FF',
+                  '#D5FF00', '#FF937E', '#6A826C', '#FF029D', '#FE8900', '#7A4782', '#7E2DD2', '#85A900',
+                  '#FF0056', '#A42400', '#00AE7E']
 
         sep = len(self.tspan) / 1
 
@@ -233,18 +231,18 @@ class Tropical:
                 prueba_y = numpy.repeat(2 * si_flux, len(x_concentration))
                 if monomials_inf[sympy.sympify(name)] > 0:
                     plt.scatter(
-                            x_points[::int(math.ceil(len(self.tspan) / sep))],
-                            prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                            color=colors[idx], marker=r'$\uparrow$',
-                            s=numpy.array([m_value[k] for k in x_concentration])[
-                              ::int(math.ceil(len(self.tspan) / sep))])
+                        x_points[::int(math.ceil(len(self.tspan) / sep))],
+                        prueba_y[::int(math.ceil(len(self.tspan) / sep))],
+                        color=colors[idx], marker=r'$\uparrow$',
+                        s=numpy.array([m_value[k] for k in x_concentration])[
+                          ::int(math.ceil(len(self.tspan) / sep))])
                 if monomials_inf[sympy.sympify(name)] < 0:
                     plt.scatter(
-                            x_points[::int(math.ceil(len(self.tspan) / sep))],
-                            prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                            color=colors[idx], marker=r'$\downarrow$',
-                            s=numpy.array([m_value[k] for k in x_concentration])[
-                              ::int(math.ceil(len(self.tspan) / sep))])
+                        x_points[::int(math.ceil(len(self.tspan) / sep))],
+                        prueba_y[::int(math.ceil(len(self.tspan) / sep))],
+                        color=colors[idx], marker=r'$\downarrow$',
+                        s=numpy.array([m_value[k] for k in x_concentration])[
+                          ::int(math.ceil(len(self.tspan) / sep))])
 
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
             plt.yticks(y_pos, monomials, fontsize=12)
