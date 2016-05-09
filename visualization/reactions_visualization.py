@@ -22,8 +22,7 @@ class OrderedGraph(nx.DiGraph):
 
 f = open('/home/oscar/Documents/tropical_project/parameters_5000/pars_embedded_4052.txt')
 data = csv.reader(f)
-parames = {}
-for i in data: parames[i[0]] = float(i[1])
+parames = {p[0]: float(p[1]) for p in data}
 
 tspan = numpy.linspace(0, 10000, 100)
 y = odesolve(model, tspan, parames)

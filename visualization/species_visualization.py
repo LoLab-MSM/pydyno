@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import print_function
 from earm.lopez_embedded import model
 import pygraphviz
 import re
@@ -50,7 +52,7 @@ class FluxVisualization:
 
     def visualize(self, fig_path='', tspan=None, parameters=None, verbose=False):
         if verbose:
-            print "Solving Simulation"
+            print("Solving Simulation")
 
         if tspan is not None:
             self.tspan = tspan
@@ -73,7 +75,7 @@ class FluxVisualization:
         self.y = odesolve(self.model, self.tspan, self.parameters)
 
         if verbose:
-            print "Creating graph"
+            print("Creating graph")
         self.species_graph()
         self.sp_graph.layout(prog='dot',
                              args="-Gstart=50 -Gesep=1  -Gsplines=true -Gsize=30.75,10.75\! "

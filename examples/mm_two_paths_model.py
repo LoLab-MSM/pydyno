@@ -1,7 +1,4 @@
 from pysb import *
-from pysb.integrate import odesolve
-from pysb.bng import run_ssa
-from pysb.macros import catalyze_state
 
 
 Model()
@@ -17,7 +14,7 @@ Parameter('kcat2', 100.)
 
 
 Monomer('E', ['s'])
-Monomer('S', ['e', 'type'], {'type': ['1','2']})
+Monomer('S', ['e', 'type'], {'type': ['1', '2']})
 Monomer('P')
 
 # Rules

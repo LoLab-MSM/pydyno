@@ -36,11 +36,11 @@ def construct_graph(model):
     return graph_start, labels
 
 
-graph, labels = construct_graph(model)
-pos = networkx.spring_layout(graph)
-central = networkx.degree_centrality(graph)
-networkx.draw(graph, pos, with_labels=False)
-networkx.draw_networkx_labels(graph, pos, labels, font_size=10)
+graph1, labels1 = construct_graph(model)
+pos = networkx.spring_layout(graph1)
+central = networkx.degree_centrality(graph1)
+networkx.draw(graph1, pos, with_labels=False)
+networkx.draw_networkx_labels(graph1, pos, labels1, font_size=10)
 plt.axis('off')
 plt.show()
 

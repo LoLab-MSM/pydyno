@@ -1,7 +1,5 @@
 from pysb import *
 from pysb.integrate import odesolve
-from pysb.bng import run_ssa
-from pysb.macros import catalyze_state
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -36,7 +34,7 @@ Parameter('S0', 1000.*V)
 Initial(S(e=None), S0)
 
 
-tspan = np.linspace(0,20,100)
+tspan = np.linspace(0, 20, 100)
 y = odesolve(model, tspan)
 
 color = ['b', 'r', 'b', 'g']
