@@ -3,34 +3,12 @@ from earm.lopez_embedded import model
 from tropicalize import run_tropical
 from multiprocessing import Pool
 from multiprocessing import cpu_count
-import csv
-import os
 import numpy as np
 import traceback
 import sys
 import functools
 import pandas
-
-
-def listdir_fullpath(d):
-    """Return a list of the files path in the directory
-
-        Keyword arguments:
-        d -- directory
-    """
-    return [os.path.join(d, f) for f in os.listdir(d)]
-
-
-def read_pars(par):
-    """Return parameter values from parameter file
-
-        Keyword arguments:
-        par -- parameter file path
-    """
-    f = open(par)
-    data = csv.reader(f)
-    params = [float(d[1]) for d in data]
-    return params
+import helper_functions as hf
 
 
 def all_parameters_signatures(par, model, tspan):
@@ -42,7 +20,7 @@ def all_parameters_signatures(par, model, tspan):
         tspan -- time span
     """
     try:
-        parames = read_pars(par)
+        parames = hf.read_pars(par)
         drivers = run_tropical(model, tspan, parameters=parames, sp_visualize=None)
         return drivers
     except:
@@ -75,7 +53,6 @@ def compare_all_drivers_signatures(model, tspan, parameters_path, to_data_frame=
             for idx, tro in enumerate(tropical_data):
                 tmp[idx] = tro[sp]
             drivers_to_df[sp] = tmp
-        print(drivers_to_df.keys())
 
         for sp in drivers_to_df.keys():
             pandas.DataFrame(np.array(drivers_to_df[sp]),
@@ -86,5 +63,5 @@ def compare_all_drivers_signatures(model, tspan, parameters_path, to_data_frame=
 
 
 t = np.linspace(0, 20000, 100)
-pars = listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_5')
+pars = hf.listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_5')
 compare_all_drivers_signatures(model, t, pars, to_data_frame=True)
