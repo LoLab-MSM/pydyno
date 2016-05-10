@@ -1,18 +1,11 @@
 # Clustering of parameter vectors
-
-import matplotlib
-matplotlib.use('Agg')
 from sklearn.manifold import TSNE
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
-import os
 import numpy as np
 from sklearn import cluster
-
-
-def listdir_fullpath(d):
-    return [os.path.join(d, f) for f in os.listdir(d)]
-
+import matplotlib
+matplotlib.use('Agg')
 
 colors = np.hstack([col for col in 'bgrcmykbgrcmykbgrcmykbgrcmyk'] * 20)
 
