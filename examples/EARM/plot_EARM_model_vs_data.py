@@ -1,11 +1,11 @@
 # Checking if parameters from clusters fit the experimental data
 
-import pysb.util
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import earm
 import csv
+import pysb.integrate
 from earm.lopez_embedded import model
 
 
