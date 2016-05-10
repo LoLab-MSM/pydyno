@@ -1,9 +1,10 @@
 from earm.lopez_embedded import model
 import numpy as np
 import csv
-import pysb.util
+import helper_functions as hf
 import matplotlib.pyplot as plt
 import os
+import pysb.integrate
 import itertools
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.optimize import curve_fit
@@ -44,27 +45,6 @@ tspan = np.linspace(exp_data['Time'][0], exp_data['Time'][-1],
 solver = pysb.integrate.Solver(model, tspan, rtol=1e-5, atol=1e-5)
 
 
-def listdir_fullpath(d):
-    """Return a list of path of files in directory
-
-       Keyword arguments:
-       d -- path to directory
-    """
-    return [os.path.join(d, f) for f in os.listdir(d)]
-
-
-def read_pars(par_path):
-    """Return a list of parameter values from csv file
-
-       keyword arguments:
-       par_path -- path to parameter file
-    """
-    f = open(par_path)
-    data = csv.reader(f)
-    param = [float(d[1]) for d in data]
-    return param
-
-
 def sig_apop(t, f, td, ts):
     """Return the amount of substrate cleaved at time t.
 
@@ -85,18 +65,6 @@ def column(matrix, i):
     i -- column to get fro the matrix
     """
     return [row[i] for row in matrix]
-
-
-all_parameters_path = listdir_fullpath('/home/oscar/tropical_project_new/parameters_5000')
-
-clusters_path = listdir_fullpath('/home/oscar/tropical_project_new/parameters_clusters')
-
-cluster_pars_path = {}
-for sc in clusters_path:
-    ff = open(sc)
-    data_paths = csv.reader(ff)
-    params_path = [dd[0] for dd in data_paths]
-    cluster_pars_path[sc.split('clusters/')[1]] = params_path
 
 
 def display_observables(params_estimated):
@@ -127,7 +95,7 @@ def display_observables(params_estimated):
                         elinewidth=0.5, capsize=0, fmt=None)
 
         for idx, par in enumerate(params_estimated):
-            params = read_pars(par)
+            params = hf.read_pars(par)
             # params[62] -= params[62] * 0.89
             solver.run(params)
             sim_obs = solver.yobs[obs_names_disp].view(float).reshape(len(solver.yobs), -1)
@@ -174,6 +142,17 @@ def display_observables(params_estimated):
     fig.savefig('/home/oscar/Documents/tropical_project/all_parameters_earm.jpg', format='jpg', dpi=400)
     return
 
+all_parameters_path = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_5000')
+
+clusters_path = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_clusters')
+
+cluster_pars_path = {}
+for sc in clusters_path:
+    ff = open(sc)
+    data_paths = csv.reader(ff)
+    params_path = [dd[0] for dd in data_paths]
+    cluster_pars_path[sc.split('clusters/')[1]] = params_path
+
 display_observables(all_parameters_path)
 
 
@@ -190,7 +169,7 @@ def display_all_species(cluster_parameters):
         for sp in range(len(model.species)):
             plt.figure()
             for idx, par in enumerate(cluster_parameters[cl]):
-                params = read_pars(par)
+                params = hf.read_pars(par)
                 solver.run(params)
                 y = solver.y.T
                 plt.plot(solver.tspan, y[sp])
