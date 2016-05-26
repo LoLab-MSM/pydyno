@@ -8,7 +8,6 @@ import seaborn as sns
 from pysb.integrate import odesolve
 
 
-
 class Tropical:
     mach_eps = numpy.finfo(float).eps
 
@@ -48,7 +47,7 @@ class Tropical:
         else:
             raise Exception("'tspan' must be defined.")
 
-        if param_values:
+        if param_values is not None:
             # accept vector of parameter values as an argument
             if len(param_values) != len(self.model.parameters):
                 raise Exception("param_values must be the same length as model.parameters")
