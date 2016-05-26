@@ -225,14 +225,14 @@ class Tropical:
                         x_points[::int(math.ceil(len(self.tspan) / sep))],
                         prueba_y[::int(math.ceil(len(self.tspan) / sep))],
                         color=colors[idx], marker=r'$\uparrow$',
-                        s=numpy.array([m_value[k] for k in x_concentration])[
+                        s=numpy.array([30]*len(x_concentration))[
                           ::int(math.ceil(len(self.tspan) / sep))])
                 if monomials_inf[sympy.sympify(name)] < 0:
                     plt.scatter(
                         x_points[::int(math.ceil(len(self.tspan) / sep))],
                         prueba_y[::int(math.ceil(len(self.tspan) / sep))],
                         color=colors[idx], marker=r'$\downarrow$',
-                        s=numpy.array([m_value[k] for k in x_concentration])[
+                        s=numpy.array([30]*len(x_concentration))[
                           ::int(math.ceil(len(self.tspan) / sep))])
 
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
