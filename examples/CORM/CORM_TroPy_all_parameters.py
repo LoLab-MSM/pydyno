@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from corm import model
 from drivers_diff_parameters import compare_all_drivers_signatures
 
@@ -7,6 +8,9 @@ sets_of_pars = 2
 pars_to_use = np.zeros((sets_of_pars, len(model.parameters)))
 
 all_dream_log_parames = np.load("/home/oscar/PycharmProjects/CORM/results/2015_02_02_COX2_all_traces.npy")
+unique_dream_log_pars = pd.DataFrame(all_dream_log_parames).drop_duplicates()
+
+sets_of_pars = len(unique_dream_log_pars.index)
 
 pysb_sampled_parameter_names = ['kr_AA_cat2', 'kcat_AA2', 'kr_AA_cat3', 'kcat_AA3', 'kr_AG_cat2', 'kr_AG_cat3',
                                 'kcat_AG3', 'kr_AA_allo1', 'kr_AA_allo2', 'kr_AA_allo3', 'kr_AG_allo1', 'kr_AG_allo2']
@@ -14,7 +18,7 @@ pysb_sampled_parameter_names = ['kr_AA_cat2', 'kcat_AA2', 'kr_AA_cat3', 'kcat_AA
 generic_kf = np.log10(1.5e4)
 
 for pa in range(sets_of_pars):
-    param_dict = {pname: pvalue for pname, pvalue in zip(pysb_sampled_parameter_names, all_dream_log_parames[pa])}
+    param_dict = {pname: pvalue for pname, pvalue in zip(pysb_sampled_parameter_names, unique_dream_log_pars.iloc[[pa]])}
     for pname, pvalue in param_dict.items():
 
         # Sub in parameter values at current location in parameter space
