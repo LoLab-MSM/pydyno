@@ -1,5 +1,4 @@
 from __future__ import print_function
-from earm.lopez_embedded import model
 import pygraphviz
 import re
 import numpy
@@ -12,6 +11,7 @@ import functools
 import os
 from helper_functions import parse_name
 from scipy.optimize import curve_fit
+import seaborn as sns
 
 
 class MidpointNormalize(colors.Normalize):
@@ -28,14 +28,14 @@ class MidpointNormalize(colors.Normalize):
 
 def f2hex_edges(fx, vmin, vmax):
     norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=0)
-    f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('coolwarm'))
+    f2rgb = cm.ScalarMappable(norm=norm, cmap=sns.diverging_palette(240, 10, as_cmap=True))
     rgb = f2rgb.to_rgba(fx)[:3]
     return '#%02x%02x%02x' % tuple([255 * fc for fc in rgb])
 
 
 def f2hex_nodes(fx, vmin, vmax, midpoint):
     norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=midpoint)
-    f2rgb = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('PiYG'))
+    f2rgb = cm.ScalarMappable(norm=norm, cmap=sns.diverging_palette(150, 275, s=80, l=55, as_cmap=True))
     rgb = f2rgb.to_rgba(fx)[:3]
     return '#%02x%02x%02x' % tuple([255 * fc for fc in rgb])
 
@@ -104,9 +104,8 @@ class FluxVisualization:
 
         new_pars = dict((p.name, parameters[i]) for i, p in enumerate(self.model.parameters))
         self.parameters = new_pars
-        self.parameters['BclxL_0'] = 0
+
         self.y = odesolve(self.model, self.tspan, self.parameters)
-        print(self.parameters)
 
         if verbose:
             print("Creating graph")
@@ -176,12 +175,12 @@ class FluxVisualization:
     def nodes_colors(self, y):
         all_rate_colors = {}
         initial_conditions_values = [ic[1].value for ic in self.model.initial_conditions]
-        cparp_info = curve_fit(sig_apop, self.tspan, y['cPARP'], p0=[100, 100, 100])[0]
-        midpoint = sig_apop(cparp_info[1], cparp_info[0], cparp_info[1], cparp_info[2])
+        # cparp_info = curve_fit(sig_apop, self.tspan, y['cPARP'], p0=[100, 100, 100])[0]
+        # midpoint = sig_apop(cparp_info[1], cparp_info[0], cparp_info[1], cparp_info[2])
         max_ic = max(initial_conditions_values)
 
         for idx in range(len(self.model.species)):
-            node_colors = map(functools.partial(f2hex_nodes, vmin=0, vmax=max_ic, midpoint=midpoint), y['__s%d' % idx])
+            node_colors = map(functools.partial(f2hex_nodes, vmin=0, vmax=max_ic, midpoint=max_ic/2), y['__s%d' % idx])
             all_rate_colors['s%d' % idx] = node_colors
         all_nodes_colors = pandas.DataFrame(all_rate_colors).transpose()
         self.colors_time_nodes = all_nodes_colors
@@ -200,16 +199,16 @@ class FluxVisualization:
                            fontsize="35",
                            margin="0.06,0")
 
-        for reaction in model.reactions_bidirectional:
+        for reaction in self.model.reactions_bidirectional:
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
-            # attr_reversible = {'arrowsize': 2, 'penwidth': 5}
             attr_reversible = {'dir': 'both', 'arrowtail': 'empty', 'arrowsize': 2, 'penwidth': 5} if reaction[
                 'reversible'] else {'arrowsize': 2, 'penwidth': 5}
             for s in reactants:
                 for p in products:
                     r_link(graph, s, p, **attr_reversible)
         self.sp_graph = graph
+        print(graph.edges())
         return self.sp_graph
 
 
