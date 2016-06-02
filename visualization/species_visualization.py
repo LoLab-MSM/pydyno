@@ -1,6 +1,4 @@
 from __future__ import print_function
-from __future__ import print_function
-from earm.lopez_embedded import model
 import pygraphviz
 import re
 import numpy
@@ -11,6 +9,7 @@ import sympy
 import pandas
 import functools
 import os
+from helper_functions import parse_name
 
 
 def f2hex_edges(fx):
@@ -78,16 +77,15 @@ class FluxVisualization:
             print("Creating graph")
         self.species_graph()
         self.sp_graph.layout(prog='dot',
-                             args="-Gstart=50 -Gesep=1  -Gsplines=true -Gsize=30.75,10.75\! "
-                                  "-Gratio=fill -Grankdir=LR -Gdpi=100! -Gordering=in")
+                             args="-Gstart=50 -Gesep=1.5 -Gnodesep=0.8 -Gsep=0.5  -Gsplines=true -Gsize=30.75,10.75\! "
+                                  "-Gratio=fill -Grankdir=LR -Gdpi=200! -Gordering=in")
         self.sp_graph.add_node('t',
                                label='time',
                                shape='oval',
                                fillcolor='white', style="filled", color="transparent",
                                fontsize="50",
-                               margin="0.06,0",
-                               pos="20,20!",
-                               pin='true')
+                               margin="0,0",
+                               pos="20,20!")
 
         self.edges_colors(self.y)
 
@@ -173,18 +171,18 @@ class FluxVisualization:
             elif rtn:
                 color = "#FF00F6"
             elif prdt:
-                color = "DarkGreen"
+                color = "#90EE90"
             else:
                 pass
 
             graph.add_node(species_node,
-                           label=species_node,
+                           label=parse_name(self.model.species[idx]),
                            shape="Mrecord",
                            fillcolor=color, style="filled", color="transparent",
-                           fontsize="50",
+                           fontsize="35",
                            margin="0.06,0")
 
-        for reaction in model.reactions:
+        for reaction in self.model.reactions:
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
             attr_reversible = {'arrowsize': 2, 'penwidth': 5}
