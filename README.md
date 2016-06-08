@@ -33,8 +33,8 @@ Zooming in
 
 ### Mode2: Mitochondrial Outer Membrane Permeabilization through Bax pores
 
-![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bax.png)
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file439_bax.png)
 
 Zooming in
 
-![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bax_zoom.png)
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file439_bax_zoom.png)
