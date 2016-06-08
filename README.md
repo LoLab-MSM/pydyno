@@ -22,3 +22,5 @@ tr.get_drivers()
 #To visualize the dominant interactions at each time point por each species run:
 tr.visualization(tspan, parameters)
 ```
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bak.png)
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bak_zoom.png)
