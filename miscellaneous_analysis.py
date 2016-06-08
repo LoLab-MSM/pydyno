@@ -43,3 +43,5 @@ def parameter_distribution(parameters_path, par_name):
     all_parameters[par_name].plot.hist()
     plt.show()
 
+
+
