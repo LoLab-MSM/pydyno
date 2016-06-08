@@ -21,7 +21,4 @@ tr.get_drivers()
 
 #To visualize the dominant interactions at each time point por each species run:
 tr.visualization(tspan, parameters)
-
-
-run_tropical(model, tspan, sp_to_visualize=[3, 5])
 ```
