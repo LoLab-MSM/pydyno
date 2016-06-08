@@ -6,6 +6,7 @@ import numpy
 import sympy
 import seaborn as sns
 from pysb.integrate import odesolve
+from helper_functions import parse_name
 
 
 class Tropical:
@@ -193,6 +194,7 @@ class Tropical:
         return
 
     def visualization(self, driver_species=None):
+        #TODO increase figure size when there are too many monomials
         tropical_system = self.tropical_eqs
         if driver_species:
             species_ready = list(set(driver_species).intersection(self.tro_species.keys()))
@@ -225,14 +227,14 @@ class Tropical:
                         x_points[::int(math.ceil(len(self.tspan) / sep))],
                         prueba_y[::int(math.ceil(len(self.tspan) / sep))],
                         color=colors[idx], marker=r'$\uparrow$',
-                        s=numpy.array([30]*len(x_concentration))[
+                        s=numpy.array([200]*len(x_concentration))[
                           ::int(math.ceil(len(self.tspan) / sep))])
                 if monomials_inf[sympy.sympify(name)] < 0:
                     plt.scatter(
                         x_points[::int(math.ceil(len(self.tspan) / sep))],
                         prueba_y[::int(math.ceil(len(self.tspan) / sep))],
                         color=colors[idx], marker=r'$\downarrow$',
-                        s=numpy.array([30]*len(x_concentration))[
+                        s=numpy.array([200]*len(x_concentration))[
                           ::int(math.ceil(len(self.tspan) / sep))])
 
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
@@ -258,16 +260,17 @@ class Tropical:
                 mon_name = name.partition('__')[2]
                 plt.plot(self.tspan[1:], mon_values, label=mon_name, color=colors[q])
                 mons_matrix[q] = mon_values
-            plt.legend(loc=0)
+            plt.ylabel('Rate(m/sec)', fontsize=16)
+            plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=1)
 
             plt.subplot(313)
-            plt.plot(self.tspan[1:], self.y['__s%d' % sp][1:])
+            plt.plot(self.tspan[1:], self.y['__s%d' % sp][1:], label=parse_name(self.model.species[sp]))
             plt.ylabel('Molecules', fontsize=16)
             plt.xlabel('Time (s)', fontsize=16)
+            plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
-            plt.savefig('/home/oscar/Desktop/' + 's%d' % sp, format='png', bbox_inches='tight', dpi=400)
-            plt.show()
+            plt.savefig('/home/oscar/Desktop/' + 's%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
         # plt.ylim(0, len(monomials)+1)
         return
