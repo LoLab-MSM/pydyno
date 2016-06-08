@@ -1,7 +1,7 @@
 import numpy as np
-from pysb.examples.tyson_oscillator import model
 import matplotlib.pyplot as plt
 import pysb.integrate
+import helper_functions as hf
 
 
 # CHANGES IN PARAMETER VALUE AT CERTAIN TIME POINT
@@ -23,20 +23,23 @@ def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_ch
         solver = pysb.integrate.Solver(model, tspan, integrator='vode')
         solver.run(new_pars)
         nummol = np.copy(solver.y[time_change:time_change+1].T.reshape(6))
-        plt.plot(tspan, solver.y[:, specie], 'o-', label='before')
+        sp_before = solver.y[:, specie]
+        plt.plot(tspan, sp_before, 'o-', label='before')
         for i in np.linspace(0.1, fold_change, 6):
             params = new_pars
             params[par] *= i
-            print params
             solver.run(params, y0=nummol)
-            plt.plot(tspan[time_change:], solver.y[:-time_change, specie], 'x-', label=str(i))
+            sp_after = solver.y[:-time_change, specie]
+            plt.plot(tspan[time_change:], sp_after, 'x-', label=str(i))
             plt.legend(loc=0)
             plt.tight_layout()
-            plt.title(par + 'time' + str(time_change))
+            plt.title(par + ' ' + 'time' + str(time_change))
     plt.show()
 
 
-tspan = np.linspace(0, 200, 200)
-
-change_parameter_in_time(model, tspan, 51, 5, ['kp4'], 2)
+def parameter_distribution(parameters_path, par_name):
+    all_parameters = hf.read_all_pars(parameters_path)
+    plt.figure()
+    all_parameters[par_name].plot.hist()
+    plt.show()
 
