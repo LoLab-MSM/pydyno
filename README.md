@@ -22,3 +22,19 @@ tr.get_drivers()
 #To visualize the dominant interactions at each time point por each species run:
 tr.visualization(tspan, parameters)
 ```
+## Modes of execution in the Extrinsic Apoptosis Reaction Model.
+### Mode1: Mitochondrial Outer Membrane Permeabilization through Bak pores
+
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bak.png)
+
+Zooming in
+
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bak_zoom.png)
+
+### Mode2: Mitochondrial Outer Membrane Permeabilization through Bax pores
+
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file439_bax.png)
+
+Zooming in
+
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file439_bax_zoom.png)
