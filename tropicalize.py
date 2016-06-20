@@ -15,7 +15,7 @@ class Tropical:
     def __init__(self, model):
         """
         Constructor of tropical function
-        :param model:
+        :param model: PySB model
         """
         self.model = model
         self.tspan = None
@@ -31,14 +31,25 @@ class Tropical:
 
     @classmethod
     def _heaviside_num(cls, x):
-        """Returns result of Heavisde function
+        """
 
-            Keyword arguments:
-            x -- argument to Heaviside function
+        :param x: argument to Heaviside function
+        :return: Returns result of Heavisde function
         """
         return 0.5 * (numpy.sign(x) + 1)
 
     def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, rho=1, verbose=False):
+        """
+
+        :param tspan: Time span
+        :param param_values: PySB model parameter values
+        :param ignore: Initial time points to ignore
+        :param epsilon: Order of magnitude difference between solution of ODE and imposed trace to consider species as
+        passenger
+        :param rho:
+        :param verbose: Verbose
+        :return: Returns the tropicalization of driver species
+        """
 
         if verbose:
             print("Solving Simulation")
@@ -77,24 +88,36 @@ class Tropical:
         self.data_drivers(self.y[ignore:])
         return
 
-    def find_passengers(self, y, epsilon=None, ptge_similar=0.9, plot=False):
+    def find_passengers(self, y, epsilon=None, plot=True):
+        """
+
+        :param y: Solution of the differential equations
+        :param epsilon: Minimum difference between the imposed trace and the dynamic solution to be considered passenger
+        :param plot: Boolean, True to plot the dynamic solution and the imposed trace.
+        :return: The passenger species
+        """
         sp_imposed_trace = []
         assert not self.passengers
 
         # Loop through all equations (i is equation number)
         for i, eq in enumerate(self.model.odes):
-            sol = sympy.solve(eq, sympy.Symbol('__s%d' % i))  # Find equation of imposed trace
+            # Solve equation of imposed trace. It can have more than one solution (Quadratic solutions)
+            sol = sympy.solve(eq, sympy.Symbol('__s%d' % i))
             sp_imposed_trace.append(sol)
         for sp_idx, trace_soln in enumerate(sp_imposed_trace):
             distance_imposed = 999
             for idx, solu in enumerate(trace_soln):
+                # Check is solution is time independent
                 if solu.is_real:
-                    imp_trace_values = [float(solu) + self.mach_eps] * (len(self.tspan)-1)
+                    imp_trace_values = [float(solu) + self.mach_eps] * (len(self.tspan) - 1)
                 else:
+                    # If the imposed trace depends on the value of other species, then we replace species and parameter
+                    # values to get the imposed trace
                     for p in self.param_values:
                         solu = solu.subs(p, self.param_values[p])
-                    # @TODO CHECK THAT THIS WORKS FOR VARIOUS CASES
-                    # @TODO EXPLAIN THIS
+
+                    # After replacing parameter for its values, then we get the species in the equation and pass
+                    # their dynamic solution
                     variables = [atom for atom in solu.atoms(sympy.Symbol)]
                     f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
                     args = [y[str(l)] for l in variables]  # arguments to put in the lambdify function
@@ -110,29 +133,45 @@ class Tropical:
                 if max(diff_trace_ode) < distance_imposed:
                     distance_imposed = max(diff_trace_ode)
 
-                # @TODO move to its own function
                 if plot:
-                    plt.figure()
-                    plt.semilogy(self.tspan[1:], imp_trace_values, 'r--', linewidth=5, label='imposed')
-                    plt.semilogy(self.tspan[1:], y['__s%d' % trace_soln], label='full')
-                    plt.legend(loc=0)
-                    plt.xlabel('time', fontsize=20)
-                    plt.ylabel('population', fontsize=20)
-                    if max(diff_trace_ode) < epsilon:
-                        plt.title(str(self.model.species[trace_soln]) + 'passenger', fontsize=20)
-                    else:
-                        plt.title(self.model.species[trace_soln], fontsize=20)
-                    plt.savefig(
-                        '/home/oscar/Documents/tropical_project/' + str(self.model.species[trace_soln]) + '.jpg',
-                        format='jpg', dpi=400)
+                    self.plot_imposed_trace(y=y, tspan=self.tspan[1:], imp_trace_values=imp_trace_values,
+                                            sp_idx=sp_idx, diff_trace_ode=diff_trace_ode, epsilon=epsilon)
 
             if distance_imposed < epsilon:
                 self.passengers.append(sp_idx)
 
         return self.passengers
 
+    def plot_imposed_trace(self, y, tspan, imp_trace_values, sp_idx, diff_trace_ode, epsilon):
+        """
+
+        :param y: Solution of the differential equations
+        :param tspan: time span of the solution of the differential equations
+        :param imp_trace_values: Imposed trace values
+        :param sp_idx: Index of the molecular species to be plotted
+        :param diff_trace_ode: Maxmimum difference between the dynamic and the imposed trace
+        :param epsilon: Order of magnitude difference between solution of ODE and imposed trace to consider species as
+        passenger
+        :return: Plot of the imposed trace and the dnamic solution
+        """
+        plt.figure()
+        plt.semilogy(tspan, imp_trace_values, 'r--', linewidth=5, label='imposed')
+        plt.semilogy(tspan, y['__s{0}'.format(sp_idx)], label='full')
+        plt.legend(loc=0)
+        plt.xlabel('time', fontsize=20)
+        plt.ylabel('population', fontsize=20)
+        if max(diff_trace_ode) < epsilon:
+            plt.title(str(self.model.species[sp_idx]) + 'passenger', fontsize=20)
+        else:
+            plt.title(self.model.species[sp_idx], fontsize=20)
+        plt.show()
+
     @property
     def equations_to_tropicalize(self):
+        """
+
+        :return: Dict, keys are the index of the driver species, values are the differential equations
+        """
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
         eqs = {i: self.model.odes[i] for i in idx}
         self.eqs_for_tropicalization = eqs
@@ -140,6 +179,10 @@ class Tropical:
 
     # @TODO document this really well
     def final_tropicalization(self):
+        """
+
+        :return:
+        """
         tropicalized = {}
 
         for j in sorted(self.eqs_for_tropicalization.keys()):
@@ -160,6 +203,11 @@ class Tropical:
         return
 
     def data_drivers(self, y):
+        """
+
+        :param y: Solution of the differential equations
+        :return: Populates the driver signatures
+        """
         trop_data = OrderedDict()
         signature_sp = {}
         driver_monomials = OrderedDict()
@@ -168,7 +216,7 @@ class Tropical:
             signature = numpy.zeros(len(self.tspan) - 1, dtype=int)
             mons_data = {}
             mons = sorted(eqn_item.as_coefficients_dict().items(), key=str)
-            mons_matrix = numpy.zeros((len(mons), len(self.tspan)-1), dtype=float)
+            mons_matrix = numpy.zeros((len(mons), len(self.tspan) - 1), dtype=float)
             spe_monomials = OrderedDict(sorted(self.model.odes[i].as_coefficients_dict().items(), key=str))
             driver_monomials[i] = spe_monomials
 
@@ -184,7 +232,7 @@ class Tropical:
                 mon_values = f1(*arg_f1)
                 mons_data[mdkey] = mon_values
                 mons_matrix[q] = mon_values
-            for col in range(len(self.tspan)-1):
+            for col in range(len(self.tspan) - 1):
                 signature[col] = numpy.nonzero(mons_matrix[:, col])[0][0]
             signature_sp[i] = signature
             trop_data[i] = mons_data
@@ -194,7 +242,7 @@ class Tropical:
         return
 
     def visualization(self, driver_species=None):
-        #TODO increase figure size when there are too many monomials
+        # TODO increase figure size when there are too many monomials
         tropical_system = self.tropical_eqs
         if driver_species:
             species_ready = list(set(driver_species).intersection(self.tro_species.keys()))
@@ -227,14 +275,14 @@ class Tropical:
                         x_points[::int(math.ceil(len(self.tspan) / sep))],
                         prueba_y[::int(math.ceil(len(self.tspan) / sep))],
                         color=colors[idx], marker=r'$\uparrow$',
-                        s=numpy.array([200]*len(x_concentration))[
+                        s=numpy.array([200] * len(x_concentration))[
                           ::int(math.ceil(len(self.tspan) / sep))])
                 if monomials_inf[sympy.sympify(name)] < 0:
                     plt.scatter(
                         x_points[::int(math.ceil(len(self.tspan) / sep))],
                         prueba_y[::int(math.ceil(len(self.tspan) / sep))],
                         color=colors[idx], marker=r'$\downarrow$',
-                        s=numpy.array([200]*len(x_concentration))[
+                        s=numpy.array([200] * len(x_concentration))[
                           ::int(math.ceil(len(self.tspan) / sep))])
 
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
