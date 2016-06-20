@@ -73,7 +73,7 @@ def display_observables(params_estimated):
         keyword arguments:
         params_estimated -- list of parameter sets
     """
-    fig, axApop = plt.subplots(figsize=(5.5, 5.5))
+    fig, axApop = plt.subplots(figsize=(7, 7))
     # Construct matrix of experimental data and variance columns of interest
     exp_obs_norm = exp_data[data_names].view(float).reshape(len(exp_data), -1).T
     var_norm = exp_data[var_names].view(float).reshape(len(exp_data), -1).T
@@ -87,12 +87,9 @@ def display_observables(params_estimated):
     # Plot experimental data and simulation on the same axes
     colors = ('r', 'b')
     obs_range = [0, 1]
-    axApop.vlines(momp_data[0], -0.05, 1.05, color='g', linestyle=':', label='aSmac')
-    for exp, exp_err, obs, c in zip(exp_obs_norm, std_norm, obs_range, colors):
+    for exp, exp_err, obs, c in zip([exp_obs_norm[1]], [std_norm[1]], [obs_range[1]], [colors[1]]):
 
-        axApop.plot(exp_data['Time'], exp, color=c, marker='.', linestyle=':', label=obs_names[obs])
-        axApop.errorbar(exp_data['Time'], exp, yerr=exp_err, ecolor=c,
-                        elinewidth=0.5, capsize=0, fmt=None)
+
 
         for idx, par in enumerate(params_estimated):
             params = hf.read_pars(par)
@@ -102,8 +99,20 @@ def display_observables(params_estimated):
             sim_obs_norm = (sim_obs / totals).T
             cparp_info[idx] = curve_fit(sig_apop, solver.tspan, sim_obs_norm[1], p0=[100, 100, 100])[0]
             cparp_info_fraction[idx] = sim_obs_norm[1][-1]
-            axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.4)
+            # axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.5)
             axApop.plot(solver.tspan, sim_obs_norm[2], color='g', alpha=0.4)
+
+        # axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.5, label=obs_names[obs] + ' sim')
+
+        # axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.5, label=obs_names[obs] + ' sim')
+
+        axApop.plot(solver.tspan, sim_obs_norm[2], color='g',  alpha=0.4, label='aSmac' + ' sim')
+        axApop.vlines(momp_data[0], -0.05, 1.05, color='k', linestyle=':', label='aSmac' + ' data')
+
+
+        # axApop.plot(exp_data['Time'], exp, color='k', marker='.', linestyle=':', label=obs_names[obs]+' data')
+        # axApop.errorbar(exp_data['Time'], exp, yerr=exp_err, ecolor='k',
+        #                 elinewidth=0.5, capsize=0, fmt=None)
 
     plt.xticks(rotation=-30)
     plt.xlabel('Time')
@@ -139,7 +148,7 @@ def display_observables(params_estimated):
         tl.set_visible(False)
     axHisty.set_xticks([0, 0.5, 1])
     axApop.legend(loc=0)
-    fig.savefig('/home/oscar/Documents/tropical_project/all_parameters_earm.jpg', format='jpg', dpi=400)
+    fig.savefig('/home/oscar/Documents/tropical_project/all_parameters_earm.png', format='png', dpi=400)
     return
 
 all_parameters_path = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_5000')
@@ -178,7 +187,7 @@ def display_all_species(cluster_parameters):
             plt.close()
     return
 
-display_all_species(cluster_pars_path)
+# display_all_species(cluster_pars_path)
 
 # species_clusters_mode1 = {'sp1': ['clus1_sp1',
 #                                'clus2_sp1'],
