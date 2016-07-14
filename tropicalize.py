@@ -7,6 +7,7 @@ import sympy
 import seaborn as sns
 from pysb.integrate import odesolve
 from helper_functions import parse_name
+from pysb.simulator.base import SimulatorException
 
 
 class Tropical:
@@ -57,7 +58,7 @@ class Tropical:
         if tspan is not None:
             self.tspan = tspan
         else:
-            raise Exception("'tspan' must be defined.")
+            raise SimulatorException("'tspan' must be defined.")
 
         if param_values is not None:
             # accept vector of parameter values as an argument
@@ -80,7 +81,7 @@ class Tropical:
 
         if verbose:
             print("equation to tropicalize")
-        self.equations_to_tropicalize
+        self.equations_to_tropicalize()
 
         if verbose:
             print("Getting tropicalized equations")
@@ -88,7 +89,7 @@ class Tropical:
         self.data_drivers(self.y[ignore:])
         return
 
-    def find_passengers(self, y, epsilon=None, plot=True):
+    def find_passengers(self, y, epsilon=None, plot=False):
         """
 
         :param y: Solution of the differential equations
@@ -166,7 +167,6 @@ class Tropical:
             plt.title(self.model.species[sp_idx], fontsize=20)
         plt.show()
 
-    @property
     def equations_to_tropicalize(self):
         """
 
@@ -318,7 +318,7 @@ class Tropical:
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
-            plt.savefig('/home/oscar/Desktop/' + 's%d' % sp + '.png', bbox_inches='tight', dpi=400)
+            plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
         # plt.ylim(0, len(monomials)+1)
         return
