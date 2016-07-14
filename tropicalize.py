@@ -39,17 +39,17 @@ class Tropical:
         """
         return 0.5 * (numpy.sign(x) + 1)
 
-    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, rho=1, verbose=False):
+    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, plot_imposed_trace=False, verbose=False):
         """
-
+        tropicalization of driver species
+        :param plot_imposed_trace: Option to plot imposed trace
         :param tspan: Time span
         :param param_values: PySB model parameter values
         :param ignore: Initial time points to ignore
         :param epsilon: Order of magnitude difference between solution of ODE and imposed trace to consider species as
         passenger
-        :param rho:
         :param verbose: Verbose
-        :return: Returns the tropicalization of driver species
+        :return:
         """
 
         if verbose:
@@ -77,7 +77,10 @@ class Tropical:
 
         if verbose:
             print("Getting Passenger species")
-        self.find_passengers(self.y[ignore:], epsilon)
+        if plot_imposed_trace:
+            self.find_passengers(self.y[ignore:], epsilon, plot=plot_imposed_trace)
+        else:
+            self.find_passengers(self.y[ignore:], epsilon)
 
         if verbose:
             print("equation to tropicalize")
@@ -89,9 +92,10 @@ class Tropical:
         self.data_drivers(self.y[ignore:])
         return
 
-    def find_passengers(self, y, epsilon=None, plot=False):
+    def find_passengers(self, y, epsilon=None, plot=False, verbose=False):
         """
-
+        Finds passenger species in the model
+        :param verbose: Verbose
         :param y: Solution of the differential equations
         :param epsilon: Minimum difference between the imposed trace and the dynamic solution to be considered passenger
         :param plot: Boolean, True to plot the dynamic solution and the imposed trace.
@@ -100,7 +104,7 @@ class Tropical:
         sp_imposed_trace = []
         assert not self.passengers
 
-        # Loop through all equations (i is equation number)
+        # Loop through all equations
         for i, eq in enumerate(self.model.odes):
             # Solve equation of imposed trace. It can have more than one solution (Quadratic solutions)
             sol = sympy.solve(eq, sympy.Symbol('__s%d' % i))
@@ -125,10 +129,12 @@ class Tropical:
                     imp_trace_values = f(*args)
 
                 if any(isinstance(n, complex) for n in imp_trace_values):
-                    print("solution {0} from equation {1} is complex".format(idx, sp_idx))
+                    if verbose:
+                        print("solution {0} from equation {1} is complex".format(idx, sp_idx))
                     continue
                 elif any(n < 0 for n in imp_trace_values):
-                    print("solution {0} from equation {1} is negative".format(idx, sp_idx))
+                    if verbose:
+                        print("solution {0} from equation {1} is negative".format(idx, sp_idx))
                     continue
                 diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % sp_idx]))
                 if max(diff_trace_ode) < distance_imposed:
@@ -165,7 +171,7 @@ class Tropical:
             plt.title(str(self.model.species[sp_idx]) + 'passenger', fontsize=20)
         else:
             plt.title(self.model.species[sp_idx], fontsize=20)
-        plt.show()
+        plt.savefig('s%d' % sp_idx + '_imposed_trace' + '.png', bbox_inches='tight', dpi=400)
 
     def equations_to_tropicalize(self):
         """
@@ -180,7 +186,7 @@ class Tropical:
     # @TODO document this really well
     def final_tropicalization(self):
         """
-
+        Gets tropicalization of the driver species
         :return:
         """
         tropicalized = {}
