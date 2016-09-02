@@ -266,7 +266,7 @@ class Tropical:
         for sp in species_ready:
             si_flux = 0
             plt.figure()
-            plt.subplot(311)
+            plt.subplot(313)
             monomials = []
             monomials_inf = self.mon_names[sp]
             for idx, name in enumerate(self.tro_species[sp].keys()):
@@ -294,6 +294,7 @@ class Tropical:
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
             plt.yticks(y_pos, monomials, fontsize=12)
             plt.ylabel('Monomials', fontsize=16)
+            plt.xlabel('Time (s)', fontsize=16)
             plt.xlim(0, self.tspan[-1])
             plt.ylim(0, max(y_pos))
 
@@ -317,10 +318,9 @@ class Tropical:
             plt.ylabel('Rate(m/sec)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=1)
 
-            plt.subplot(313)
+            plt.subplot(311)
             plt.plot(self.tspan[1:], self.y['__s%d' % sp][1:], label=parse_name(self.model.species[sp]))
             plt.ylabel('Molecules', fontsize=16)
-            plt.xlabel('Time (s)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
