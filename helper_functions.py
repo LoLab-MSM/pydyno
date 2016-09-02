@@ -5,20 +5,21 @@ import re
 import numpy as np
 from collections import OrderedDict
 
-def listdir_fullpath(d):
-    """Return a list of path of files in directory
 
-       Keyword arguments:
-       d -- path to directory
+def listdir_fullpath(d):
+    """
+    Gets a list of path files in directory
+    :param d: path to directory
+    :return: a list of path of files in directory
     """
     return [os.path.join(d, f) for f in os.listdir(d)]
 
 
 def read_pars(par_path):
-    """Return a list of parameter values from csv file
-
-       keyword arguments:
-       par_path -- path to parameter file
+    """
+    Reads parameter file
+    :param par_path: path to parameter file
+    :return: Return a list of parameter values from csv file
     """
     f = open(par_path)
     data = csv.reader(f)
@@ -27,6 +28,11 @@ def read_pars(par_path):
 
 
 def read_all_pars(pars_path):
+    """
+    Reads all pars in file or directory
+    :param pars_path: Parameter file or directory path
+    :return: DataFrame with all the parameters
+    """
     if os.path.isfile(pars_path):
         par_sets = pd.read_csv(pars_path, names=['parameters'])['parameters'].tolist()
     elif os.path.isdir(pars_path):
@@ -44,10 +50,10 @@ def read_all_pars(pars_path):
 
 
 def parse_name(spec):
-    """Returns parsed name of species
-
-        keyword arguments:
-        spec -- species name to parse
+    """
+    Parses name of species
+    :param spec: species name to parse
+    :return: parsed name of species
     """
     m = spec.monomer_patterns
     lis_m = []
@@ -74,5 +80,10 @@ def parse_name(spec):
 
 
 def _find_nearest_zero(array):
+    """
+    Finds array value closer to zero
+    :param array: Array
+    :return: Value of array closer to zero
+    """
     idx = np.nanargmin(np.abs(array))
     return array[idx]
