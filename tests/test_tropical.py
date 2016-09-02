@@ -54,6 +54,10 @@ class TestFluxVisualization(object):
     def test_run_tropical(self):
         run_tropical(self.model, self.time)
 
+    def test_plot_imposed_trace(self):
+        tropical_trace = Tropical(self.model)
+        tropical_trace.tropicalize(tspan=self.time, plot_imposed_trace=True)
+
     def test_list_parameters(self):
         tropical_paramaters = Tropical(self.model)
         tropical_paramaters.tropicalize(tspan=self.time, param_values=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
