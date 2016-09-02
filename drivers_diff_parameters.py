@@ -46,7 +46,7 @@ def compare_all_drivers_signatures(model, tspan, parameters, to_data_frame=False
 
     p = Pool(cpu_count() - 1)
     all_drivers = p.map(functools.partial(parameter_signatures, model=model, tspan=tspan), parameters)
-    np.save("/home/oscar/Desktop/drivers_CORM", np.array(all_drivers))
+    np.save("drivers_CORM", np.array(all_drivers))
 
     if to_data_frame:
         array_to_dataframe(all_drivers, dir_path, tspan[1:], parameters)
@@ -101,3 +101,12 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
 # t = np.linspace(0, 20000, 100)
 # pars = hf.listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_5')
 # compare_all_drivers_signatures(model, t, pars, to_data_frame=True)
+
+# all_drivers = np.load('/home/oscar/Documents/tropical_projetct/drivers_all_parameters5000.npy')
+# drivers_all = {idx: dr.keys() for idx, dr in enumerate(all_drivers)}
+#
+# for i in drivers_all:
+#     for j in drivers_all:
+#         if set(drivers_all[i]) == set(drivers_all[j]):
+#             if i != j:
+#                 print (i, j)
