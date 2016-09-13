@@ -39,9 +39,10 @@ class Tropical:
         """
         return 0.5 * (numpy.sign(x) + 1)
 
-    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, plot_imposed_trace=False, verbose=False):
+    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, sp_to_trop='imp_nodes',plot_imposed_trace=False, verbose=False):
         """
         tropicalization of driver species
+        :param sp_to_trop:
         :param plot_imposed_trace: Option to plot imposed trace
         :param tspan: Time span
         :param param_values: PySB model parameter values
@@ -77,10 +78,15 @@ class Tropical:
 
         if verbose:
             print("Getting Passenger species")
-        if plot_imposed_trace:
-            self.find_passengers(self.y[ignore:], epsilon, plot=plot_imposed_trace)
+        if sp_to_trop == 'qssa':
+            if plot_imposed_trace:
+                self.find_passengers(self.y[ignore:], epsilon, plot=plot_imposed_trace)
+            else:
+                self.find_passengers(self.y[ignore:], epsilon)
+        elif sp_to_trop == 'imp_nodes':
+            self.find_important_nodes()
         else:
-            self.find_passengers(self.y[ignore:], epsilon)
+            raise Exception("equations to tropicalize must be chosen")
 
         if verbose:
             print("equation to tropicalize")
@@ -91,6 +97,16 @@ class Tropical:
         self.final_tropicalization()
         self.data_drivers(self.y[ignore:])
         return
+
+    def find_important_nodes(self):
+        rcts_sp = list(sum([i['reactants'] for i in self.model.reactions_bidirectional], ()))
+        pdts_sp = list(sum([i['products'] for i in self.model.reactions_bidirectional], ()))
+        imp_rcts = set([x for x in rcts_sp if rcts_sp.count(x) > 1])
+        imp_pdts = set([x for x in pdts_sp if pdts_sp.count(x) > 1])
+        imp_nodes = set.union(imp_pdts, imp_rcts)
+        idx = list(set(range(len(self.model.odes))) - set(imp_nodes))
+        self.passengers = idx
+        return self.passengers
 
     def find_passengers(self, y, epsilon=None, plot=False, verbose=False):
         """
@@ -178,7 +194,9 @@ class Tropical:
 
         :return: Dict, keys are the index of the driver species, values are the differential equations
         """
+
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
+        print (idx)
         eqs = {i: self.model.odes[i] for i in idx}
         self.eqs_for_tropicalization = eqs
         return
@@ -207,6 +225,10 @@ class Tropical:
                 tropicalized[j] = trop_eq
         self.tropical_eqs = tropicalized
         return
+
+    # def signal_signature(self):
+    #     for sp in self.eqs_for_tropicalization
+
 
     def data_drivers(self, y):
         """
@@ -248,7 +270,6 @@ class Tropical:
                 f1 = sympy.lambdify(var_to_study, mons_list[0],
                                     modules=dict(Heaviside=self._heaviside_num, log=numpy.log, Abs=numpy.abs))
                 mon_values = f1(*arg_f1)
-                print(mon_values)
                 mons_data[mdkey] = mon_values
                 mons_matrix[q] = mon_values
             for col in range(len(self.tspan) - 1):
@@ -279,7 +300,7 @@ class Tropical:
         for sp in species_ready:
             si_flux = 0
             plt.figure()
-            plt.subplot(311)
+            plt.subplot(313)
             monomials = []
             monomials_inf = self.mon_names[sp]
             for idx, name in enumerate(self.tro_species[sp].keys()):
@@ -307,6 +328,7 @@ class Tropical:
             y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
             plt.yticks(y_pos, monomials, fontsize=12)
             plt.ylabel('Monomials', fontsize=16)
+            plt.xlabel('Time (s)', fontsize=16)
             plt.xlim(0, self.tspan[-1])
             plt.ylim(0, max(y_pos))
 
@@ -330,10 +352,9 @@ class Tropical:
             plt.ylabel('Rate(m/sec)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=1)
 
-            plt.subplot(313)
+            plt.subplot(311)
             plt.plot(self.tspan[1:], self.y['__s%d' % sp][1:], label=parse_name(self.model.species[sp]))
             plt.ylabel('Molecules', fontsize=16)
-            plt.xlabel('Time (s)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
