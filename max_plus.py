@@ -26,12 +26,13 @@ def merge_dicts(*dict_args):
 def choose_max(s, diff_par, prod_comb, cons_comb):
     """
 
-    :param cons_comb:
-    :param prod_comb:
-    :param s: Pandas series
+    :param cons_comb: combinations of monomials that consume certain species
+    :param prod_comb: combinations of monomials thtat produce certain species
+    :param s: Pandas series whose axis labels are the monomials and the data is their values at a specific time point
     :param diff_par: Parameter to define when a monomial is larger
     :return: monomial or combination of monomials that dominate at certain time point
     """
+    # Choosing the reactions (monomials) that consume and produce certain species
     cons = s[s < 0]
     prod = s[s > 0]
 
@@ -39,6 +40,7 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
     cons_total = 0
 
     largest = 'ND'
+    # Gets the values of the sum of the consuming and producing monomials.
     if cons_comb and prod_comb:
         for p in prod_comb.values()[-1].values()[0]:
             prod_total += prod.loc[p]
@@ -46,11 +48,12 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
             cons_total += cons.loc[c]
     cons_total = abs(cons_total)
 
+    # Checks if the value of the producing monomials is larger than the value of the consuming monomials. If so, it
+    # chooses the larger monomial or combination of monomials that satisfy diff_par
     if not cons_comb or prod_total > cons_total:
         for comb in prod_comb.keys():
             foo1 = {}
             for idx in prod_comb[comb].keys():
-                # print (set(prod_comb.values()[-1].values()[0]) - set(idx))
                 value = 0
                 for j in prod_comb[comb][idx]:
                     value += prod.loc[j]
@@ -59,7 +62,6 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
                 largest = foo1.keys()[0]
                 break
             foo2 = pd.Series(foo1).sort_values(ascending=False)
-            # print (foo2)
             comb_largest = prod_comb[comb][list(foo2.index)[0]]
             for cm in list(foo2.index):
                 if len(set(comb_largest) - set(prod_comb[comb][cm])) == len(comb_largest):
@@ -71,6 +73,8 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
             if largest != 'ND':
                 break
 
+    # Checks if the value of the consuming monomials is larger than the value of the producing monomials. If so, it
+    # chooses the larger monomial or combination of monomials that satisfy diff_par
     elif not prod_comb or prod_total < cons_total:
         for comb in cons_comb.keys():
             foo1 = {}
@@ -84,7 +88,6 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
                 break
 
             foo2 = pd.Series(foo1).sort_values(ascending=True)
-            # print (foo2)
             comb_largest = cons_comb[comb][list(foo2.index)[0]]
             for cm in list(foo2.index):
                 if len(set(comb_largest) - set(cons_comb[comb][cm])) == len(comb_largest):
@@ -114,23 +117,9 @@ class Tropical:
         self.y = None
         self.param_values = None
         self.passengers = []
-        self.tro_species = {}
-        self.driver_signatures = None
-        self.passenger_signatures = None
-        self.mon_names = {}
         self.eqs_for_tropicalization = None
-        self.tropical_eqs = None
         self.all_sp_signatures = {}
         self.all_comb = {}
-
-    @classmethod
-    def _heaviside_num(cls, x):
-        """
-
-        :param x: argument to Heaviside function
-        :return: Returns result of Heavisde function
-        """
-        return 0.5 * (numpy.sign(x) + 1)
 
     def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, sp_to_trop='imp_nodes',
                     plot_imposed_trace=False, verbose=False):
@@ -187,13 +176,15 @@ class Tropical:
         self.equations_to_tropicalize()
 
         if verbose:
-            print("Getting tropicalized equations")
-        self.final_tropicalization()
+            print("Getting signatures")
         self.signal_signature(self.y[ignore:])
-        # self.data_drivers(self.y[ignore:])
         return
 
     def find_important_nodes(self):
+        """
+
+        :return:
+        """
         rcts_sp = list(sum([i['reactants'] for i in self.model.reactions_bidirectional], ()))
         pdts_sp = list(sum([i['products'] for i in self.model.reactions_bidirectional], ()))
         imp_rcts = set([x for x in rcts_sp if rcts_sp.count(x) > 1])
@@ -295,40 +286,21 @@ class Tropical:
         self.eqs_for_tropicalization = eqs
         return
 
-    # @TODO document this really well
-    def final_tropicalization(self):
-        """
-        Gets tropicalization of the driver species
-        :return:
-        """
-        tropicalized = {}
-
-        for j in sorted(self.eqs_for_tropicalization.keys()):
-            coeffs = self.eqs_for_tropicalization[j].as_coefficients_dict()
-            if len(coeffs.keys()) == 1:
-                print('there is one or no monomials in species {0}'.format(j))
-            else:
-                monomials = sorted(coeffs, key=str)  # List of the terms of each equation
-                trop_eq = 0
-                for mon1 in monomials:
-                    trop_monomial = mon1
-                    for mon2 in monomials:
-                        if mon1 != mon2:
-                            trop_monomial *= sympy.Heaviside(sympy.log(abs(mon1)) - sympy.log(abs(mon2)))
-                    trop_eq += trop_monomial
-                tropicalized[j] = trop_eq
-        self.tropical_eqs = tropicalized
-        return
-
     def signal_signature(self, y):
         # Dictionary whose keys are species and values are the monomial signatures
         all_signatures = {}
         for sp in self.eqs_for_tropicalization:
             signature_species = numpy.repeat('ND', len(y)).astype('S10')
             # Production terms
-            prod = self.model.odes[sp].coeff(1).as_coeff_add()[1]
+            prod = []
+            for term in self.model.odes[sp].args:
+                if not term.could_extract_minus_sign():
+                    prod.append(term)
             # Consumption terms
-            cons = self.model.odes[sp].coeff(-1).as_coeff_add()[1]
+            cons = []
+            for term in self.model.odes[sp].args:
+                if term.could_extract_minus_sign():
+                    cons.append(term*(-1))
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in prod:
@@ -367,65 +339,13 @@ class Tropical:
                     cons_idx += 1
                 cons_comb[L] = cons_comb_names
             self.all_comb[sp].update(merge_dicts(*cons_comb.values()))
-            # print (self.all_comb[sp])
 
             for t in mons_df.columns.values.tolist():
-                signature_species[t] = choose_max(mons_df.iloc[:, t], diff_par=0.1, prod_comb=prod_comb,
+                signature_species[t] = choose_max(mons_df.iloc[:, t], diff_par=2, prod_comb=prod_comb,
                                                   cons_comb=cons_comb)
             all_signatures[sp] = signature_species
         self.all_sp_signatures = all_signatures
         return
-
-    # def data_drivers(self, y):
-    #     """
-    #
-    #     :param y: Solution of the differential equations
-    #     :return: Populates the driver signatures
-    #     """
-    #     trop_data = OrderedDict()
-    #     signature_sp = {}
-    #     driver_monomials = OrderedDict()
-    #
-    #     # for i in self.eqs_for_tropicalization:
-    #     #     number_of_monomials = self.model.odes[i].as_coefficients_dict().keys()
-    #     #     if number_of_monomials == 1:
-    #     #         print('there is one or no monomials in species {0}'.format(i))
-    #     #     else:
-    #     #         signature = numpy.zeros(len(self.tspan) - 1, dtype=int)
-    #     #         mons_data = {}
-    #     #         mons = sorted(self.model[i].as_coefficients_dict().items(), key=str)
-    #     #         mons_matrix = numpy.zeros((len(mons) + 2, len(self.tspan) - 1), dtype=float)
-    #     #         spe_monomials = OrderedDict(sorted(self.model.odes[i].as_coefficients_dict().items(), key=str))
-    #     #         driver_monomials[i] = spe_monomials
-    #
-    #     for i, eqn_item in self.tropical_eqs.items():
-    #         signature = numpy.zeros(len(self.tspan) - 1, dtype=int)
-    #         mons_data = {}
-    #         mons = sorted(eqn_item.as_coefficients_dict().items(), key=str)
-    #         mons_matrix = numpy.zeros((len(mons), len(self.tspan) - 1), dtype=float)
-    #         spe_monomials = OrderedDict(sorted(self.model.odes[i].as_coefficients_dict().items(), key=str))
-    #         driver_monomials[i] = spe_monomials
-    #
-    #         for q, m_s in enumerate(mons):
-    #             mons_list = list(m_s)
-    #             mdkey = str(mons_list[0]).partition('*Heaviside')[0]
-    #             for par in self.param_values:
-    #                 mons_list[0] = mons_list[0].subs(par, self.param_values[par])
-    #             var_to_study = [atom for atom in mons_list[0].atoms(sympy.Symbol)]  # Variables of monomial
-    #             arg_f1 = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_to_study]
-    #             f1 = sympy.lambdify(var_to_study, mons_list[0],
-    #                                 modules=dict(Heaviside=self._heaviside_num, log=numpy.log, Abs=numpy.abs))
-    #             mon_values = f1(*arg_f1)
-    #             mons_data[mdkey] = mon_values
-    #             mons_matrix[q] = mon_values
-    #         for col in range(len(self.tspan) - 1):
-    #             signature[col] = numpy.nonzero(mons_matrix[:, col])[0][0]
-    #         signature_sp[i] = signature
-    #         trop_data[i] = mons_data
-    #     self.driver_signatures = signature_sp
-    #     self.mon_names = driver_monomials
-    #     self.tro_species = trop_data
-    #     return
 
     def visualization2(self, sp_to_vis=None):
         if sp_to_vis:
@@ -437,6 +357,10 @@ class Tropical:
             raise Exception('None of the input species is a driver')
 
         for sp in species_ready:
+            # Setting up figure
+            plt.figure()
+            plt.subplot(313)
+
             mon_val = OrderedDict()
             signature = self.all_sp_signatures[sp]
             for idx, mon in enumerate(list(set(signature))):
@@ -446,77 +370,22 @@ class Tropical:
             y_pos = numpy.arange(len(mon_val.keys()))
             plt.scatter(self.tspan[1:], mon_rep)
             plt.yticks(y_pos, mon_val.keys())
-            plt.xlabel('Time')
-            plt.show()
-
-    def visualization(self, driver_species=None):
-        # TODO increase figure size when there are too many monomials
-        tropical_system = self.tropical_eqs
-        if driver_species:
-            species_ready = list(set(driver_species).intersection(self.tro_species.keys()))
-
-        else:
-            raise Exception('list of driver species must be defined')
-
-        if not species_ready:
-            raise Exception('None of the input species is a driver')
-
-        colors = sns.color_palette("Set2", max([len(ode.as_coeff_add()[1]) for ode in self.model.odes]))
-
-        sep = len(self.tspan) / 1
-
-        for sp in species_ready:
-            si_flux = 0
-            plt.figure()
-            plt.subplot(313)
-            monomials = []
-            monomials_inf = self.mon_names[sp]
-            for idx, name in enumerate(self.tro_species[sp].keys()):
-                m_value = self.tro_species[sp][name]
-                x_concentration = numpy.nonzero(m_value)[0]
-                monomials.append(name)
-                si_flux += 1
-                x_points = [self.tspan[x] for x in x_concentration]
-                prueba_y = numpy.repeat(2 * si_flux, len(x_concentration))
-                if monomials_inf[sympy.sympify(name)] > 0:
-                    plt.scatter(
-                        x_points[::int(math.ceil(len(self.tspan) / sep))],
-                        prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                        color=colors[idx], marker=r'$\uparrow$',
-                        s=numpy.array([200] * len(x_concentration))[
-                          ::int(math.ceil(len(self.tspan) / sep))])
-                if monomials_inf[sympy.sympify(name)] < 0:
-                    plt.scatter(
-                        x_points[::int(math.ceil(len(self.tspan) / sep))],
-                        prueba_y[::int(math.ceil(len(self.tspan) / sep))],
-                        color=colors[idx], marker=r'$\downarrow$',
-                        s=numpy.array([200] * len(x_concentration))[
-                          ::int(math.ceil(len(self.tspan) / sep))])
-
-            y_pos = numpy.arange(2, 2 * si_flux + 4, 2)
-            plt.yticks(y_pos, monomials, fontsize=12)
             plt.ylabel('Monomials', fontsize=16)
-            plt.xlabel('Time (s)', fontsize=16)
+            plt.xlabel('Time(s)', fontsize=16)
             plt.xlim(0, self.tspan[-1])
             plt.ylim(0, max(y_pos))
 
             plt.subplot(312)
-            mons = tropical_system[sp].as_coefficients_dict().items()
-            mons_matrix = numpy.zeros((len(mons), len(self.tspan[1:])), dtype=float)
 
-            for q, name in enumerate(self.tro_species[sp].keys()):
-                j = sympy.sympify(name)
-                for par in self.param_values:
-                    j = j.subs(par, self.param_values[par])
-                var_to_study = [atom for atom in j.atoms(sympy.Symbol)]  # Variables of monomial
-
+            for name in self.model.odes[sp].as_coefficients_dict():
+                mon = name
+                mon = mon.subs(self.param_values)
+                var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
                 arg_f1 = [numpy.maximum(self.mach_eps, self.y[str(va)][1:]) for va in var_to_study]
-                f1 = sympy.lambdify(var_to_study, j,
-                                    modules=dict(Heaviside=self._heaviside_num, log=numpy.log, Abs=numpy.abs))
+                f1 = sympy.lambdify(var_to_study, mon)
                 mon_values = f1(*arg_f1)
-                mon_name = name.partition('__')[2]
-                plt.plot(self.tspan[1:], mon_values, label=mon_name, color=colors[q])
-                mons_matrix[q] = mon_values
+                mon_name = str(name).partition('__')[2]
+                plt.plot(self.tspan[1:], mon_values, label=mon_name)
             plt.ylabel('Rate(m/sec)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=1)
 
@@ -528,20 +397,11 @@ class Tropical:
 
             plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
-        # plt.ylim(0, len(monomials)+1)
-        return
-
-    def get_trop_data(self):
-        return self.tro_species
-
     def get_passenger(self):
         return self.passengers
 
-    def get_tropical_eqs(self):
-        return self.tropical_eqs
-
-    def get_driver_signatures(self):
-        return self.driver_signatures
+    def get_species_signatures(self):
+        return self.all_sp_signatures
 
 
 def run_tropical(model, tspan, parameters=None, sp_visualize=None):
@@ -550,4 +410,4 @@ def run_tropical(model, tspan, parameters=None, sp_visualize=None):
     if sp_visualize is not None:
         tr.visualization2(sp_to_vis=sp_visualize)
         # tr.visualization(driver_species=sp_visualize)
-    return tr.get_driver_signatures()
+    return tr.get_species_signatures()
