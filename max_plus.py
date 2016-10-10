@@ -341,7 +341,7 @@ class Tropical:
             self.all_comb[sp].update(merge_dicts(*cons_comb.values()))
 
             for t in mons_df.columns.values.tolist():
-                signature_species[t] = choose_max(mons_df.iloc[:, t], diff_par=2, prod_comb=prod_comb,
+                signature_species[t] = choose_max(mons_df.iloc[:, t], diff_par=1, prod_comb=prod_comb,
                                                   cons_comb=cons_comb)
             all_signatures[sp] = signature_species
         self.all_sp_signatures = all_signatures
@@ -395,6 +395,7 @@ class Tropical:
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
+            plt.show()
             plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
     def get_passenger(self):
