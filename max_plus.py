@@ -50,22 +50,24 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
 
     # Checks if the value of the producing monomials is larger than the value of the consuming monomials. If so, it
     # chooses the larger monomial or combination of monomials that satisfy diff_par
-    if not cons_comb or prod_total > cons_total:
+    if not cons_comb or prod_total > cons_total + 1:
         for comb in prod_comb.keys():
-            foo1 = {}
+            monomials_values = {}
             for idx in prod_comb[comb].keys():
                 value = 0
                 for j in prod_comb[comb][idx]:
                     value += prod.loc[j]
-                foo1[idx] = value
-            if len(foo1) == 1:
-                largest = foo1.keys()[0]
+                monomials_values[idx] = value
+            if len(monomials_values) == 1:
+                largest = monomials_values.keys()[0]
                 break
-            foo2 = pd.Series(foo1).sort_values(ascending=False)
+            foo2 = pd.Series(monomials_values).sort_values(ascending=False)
             comb_largest = prod_comb[comb][list(foo2.index)[0]]
             for cm in list(foo2.index):
+                # Compares the largest combination of monomials to other combinations whose monomials that are not
+                # present in comb_largest
                 if len(set(comb_largest) - set(prod_comb[comb][cm])) == len(comb_largest):
-                    if not math.log10(foo2.loc[list(foo2.index)[0]]) > (math.log10(foo2.loc[cm]) + diff_par):
+                    if not abs(math.log10(foo2.loc[list(foo2.index)[0]]) - math.log10(foo2.loc[cm])) > diff_par:
                         largest = 'ND'
                         break
                     else:
@@ -75,23 +77,23 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
 
     # Checks if the value of the consuming monomials is larger than the value of the producing monomials. If so, it
     # chooses the larger monomial or combination of monomials that satisfy diff_par
-    elif not prod_comb or prod_total < cons_total:
+    elif not prod_comb or cons_total > prod_total + 1:
         for comb in cons_comb.keys():
-            foo1 = {}
+            monomials_values = {}
             for idx in cons_comb[comb].keys():
                 value = 0
                 for j in cons_comb[comb][idx]:
                     value += cons.loc[j]
-                foo1[idx] = value
-            if len(foo1) == 1:
-                largest = foo1.keys()[0]
+                monomials_values[idx] = value
+            if len(monomials_values) == 1:
+                largest = monomials_values.keys()[0]
                 break
 
-            foo2 = pd.Series(foo1).sort_values(ascending=True)
+            foo2 = pd.Series(monomials_values).sort_values(ascending=True)
             comb_largest = cons_comb[comb][list(foo2.index)[0]]
             for cm in list(foo2.index):
                 if len(set(comb_largest) - set(cons_comb[comb][cm])) == len(comb_largest):
-                    if not math.log10(-foo2.loc[list(foo2.index)[0]]) > (math.log10(-foo2.loc[cm]) - diff_par):
+                    if not abs(math.log10(-foo2.loc[list(foo2.index)[0]]) - math.log10(-foo2.loc[cm])) > diff_par:
                         largest = 'ND'
                         break
                     else:
@@ -99,7 +101,7 @@ def choose_max(s, diff_par, prod_comb, cons_comb):
             if largest != 'ND':
                 break
     else:
-        print('paila')
+        pass
 
     return largest
 
@@ -339,6 +341,7 @@ class Tropical:
                     cons_idx += 1
                 cons_comb[L] = cons_comb_names
             self.all_comb[sp].update(merge_dicts(*cons_comb.values()))
+            self.all_comb[sp].update({'ND': 'No dominants'})
 
             for t in mons_df.columns.values.tolist():
                 signature_species[t] = choose_max(mons_df.iloc[:, t], diff_par=1, prod_comb=prod_comb,
@@ -364,8 +367,18 @@ class Tropical:
             mon_val = OrderedDict()
             signature = self.all_sp_signatures[sp]
             for idx, mon in enumerate(list(set(signature))):
-                mon_val[self.all_comb[sp][mon]] = idx
-            mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
+                if mon[0] == 'C':
+                    mon_val[self.all_comb[sp][mon]+(-1,)] = idx
+                else:
+                    mon_val[self.all_comb[sp][mon]] = idx
+
+            mon_rep = [0]*len(signature)
+            for i, m in enumerate(signature):
+                if m[0] == 'C':
+                    mon_rep[i] = mon_val[self.all_comb[sp][m]+(-1,)]
+                else:
+                    mon_rep[i] = mon_val[self.all_comb[sp][m]]
+            # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
 
             y_pos = numpy.arange(len(mon_val.keys()))
             plt.scatter(self.tspan[1:], mon_rep)
@@ -395,7 +408,7 @@ class Tropical:
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
-            plt.show()
+            # plt.show()
             plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
     def get_passenger(self):
