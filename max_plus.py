@@ -408,8 +408,8 @@ class Tropical:
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
-            # plt.show()
-            plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
+            plt.show()
+            # plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
     def get_passenger(self):
         return self.passengers
