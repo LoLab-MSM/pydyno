@@ -32,7 +32,7 @@ def parameter_signatures(par, model, tspan):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-def compare_all_drivers_signatures(model, tspan, parameters, to_data_frame=False, dir_path=None):
+def compare_all_drivers_signatures(model, tspan, parameters, to_data_frame=True, dir_path=None):
     """
 
     :param model: PySB model

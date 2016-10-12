@@ -23,89 +23,6 @@ def merge_dicts(*dict_args):
     return result
 
 
-def choose_max(s, diff_par, prod_comb, cons_comb):
-    """
-
-    :param cons_comb: combinations of monomials that consume certain species
-    :param prod_comb: combinations of monomials thtat produce certain species
-    :param s: Pandas series whose axis labels are the monomials and the data is their values at a specific time point
-    :param diff_par: Parameter to define when a monomial is larger
-    :return: monomial or combination of monomials that dominate at certain time point
-    """
-    # Choosing the reactions (monomials) that consume and produce certain species
-    cons = s[s < 0]
-    prod = s[s > 0]
-
-    prod_total = 0
-    cons_total = 0
-
-    largest = 'ND'
-    # Gets the values of the sum of the consuming and producing monomials.
-    if cons_comb and prod_comb:
-        for p in prod_comb.values()[-1].values()[0]:
-            prod_total += prod.loc[p]
-        for c in cons_comb.values()[-1].values()[0]:
-            cons_total += cons.loc[c]
-    cons_total = abs(cons_total)
-
-    # Checks if the value of the producing monomials is larger than the value of the consuming monomials. If so, it
-    # chooses the larger monomial or combination of monomials that satisfy diff_par
-    if not cons_comb or prod_total > cons_total + 1:
-        for comb in prod_comb.keys():
-            monomials_values = {}
-            for idx in prod_comb[comb].keys():
-                value = 0
-                for j in prod_comb[comb][idx]:
-                    value += prod.loc[j]
-                monomials_values[idx] = value
-            if len(monomials_values) == 1:
-                largest = monomials_values.keys()[0]
-                break
-            foo2 = pd.Series(monomials_values).sort_values(ascending=False)
-            comb_largest = prod_comb[comb][list(foo2.index)[0]]
-            for cm in list(foo2.index):
-                # Compares the largest combination of monomials to other combinations whose monomials that are not
-                # present in comb_largest
-                if len(set(comb_largest) - set(prod_comb[comb][cm])) == len(comb_largest):
-                    if not abs(math.log10(foo2.loc[list(foo2.index)[0]]) - math.log10(foo2.loc[cm])) > diff_par:
-                        largest = 'ND'
-                        break
-                    else:
-                        largest = list(foo2.index)[0]
-            if largest != 'ND':
-                break
-
-    # Checks if the value of the consuming monomials is larger than the value of the producing monomials. If so, it
-    # chooses the larger monomial or combination of monomials that satisfy diff_par
-    elif not prod_comb or cons_total > prod_total + 1:
-        for comb in cons_comb.keys():
-            monomials_values = {}
-            for idx in cons_comb[comb].keys():
-                value = 0
-                for j in cons_comb[comb][idx]:
-                    value += cons.loc[j]
-                monomials_values[idx] = value
-            if len(monomials_values) == 1:
-                largest = monomials_values.keys()[0]
-                break
-
-            foo2 = pd.Series(monomials_values).sort_values(ascending=True)
-            comb_largest = cons_comb[comb][list(foo2.index)[0]]
-            for cm in list(foo2.index):
-                if len(set(comb_largest) - set(cons_comb[comb][cm])) == len(comb_largest):
-                    if not abs(math.log10(-foo2.loc[list(foo2.index)[0]]) - math.log10(-foo2.loc[cm])) > diff_par:
-                        largest = 'ND'
-                        break
-                    else:
-                        largest = list(foo2.index)[0]
-            if largest != 'ND':
-                break
-    else:
-        pass
-
-    return largest
-
-
 class Tropical:
     mach_eps = numpy.finfo(float).eps
 
@@ -181,6 +98,89 @@ class Tropical:
             print("Getting signatures")
         self.signal_signature(self.y[ignore:])
         return
+
+    @staticmethod
+    def choose_max(s, diff_par, prod_comb, cons_comb):
+        """
+
+        :param cons_comb: combinations of monomials that consume certain species
+        :param prod_comb: combinations of monomials thtat produce certain species
+        :param s: Pandas series whose axis labels are the monomials and the data is their values at a specific time point
+        :param diff_par: Parameter to define when a monomial is larger
+        :return: monomial or combination of monomials that dominate at certain time point
+        """
+        # Choosing the reactions (monomials) that consume and produce certain species
+        cons = s[s < 0]
+        prod = s[s > 0]
+
+        prod_total = 0
+        cons_total = 0
+
+        largest = 'ND'
+        # Gets the values of the sum of the consuming and producing monomials.
+        if cons_comb and prod_comb:
+            for p in prod_comb.values()[-1].values()[0]:
+                prod_total += prod.loc[p]
+            for c in cons_comb.values()[-1].values()[0]:
+                cons_total += cons.loc[c]
+        cons_total = abs(cons_total)
+
+        # Checks if the value of the producing monomials is larger than the value of the consuming monomials. If so, it
+        # chooses the larger monomial or combination of monomials that satisfy diff_par
+        if not cons_comb or prod_total > cons_total + 1:
+            for comb in prod_comb.keys():
+                monomials_values = {}
+                for idx in prod_comb[comb].keys():
+                    value = 0
+                    for j in prod_comb[comb][idx]:
+                        value += prod.loc[j]
+                    monomials_values[idx] = value
+                if len(monomials_values) == 1:
+                    largest = monomials_values.keys()[0]
+                    break
+                foo2 = pd.Series(monomials_values).sort_values(ascending=False)
+                comb_largest = prod_comb[comb][list(foo2.index)[0]]
+                for cm in list(foo2.index):
+                    # Compares the largest combination of monomials to other combinations whose monomials that are not
+                    # present in comb_largest
+                    if len(set(comb_largest) - set(prod_comb[comb][cm])) == len(comb_largest):
+                        if not abs(math.log10(foo2.loc[list(foo2.index)[0]]) - math.log10(foo2.loc[cm])) > diff_par:
+                            largest = 'ND'
+                            break
+                        else:
+                            largest = list(foo2.index)[0]
+                if largest != 'ND':
+                    break
+
+        # Checks if the value of the consuming monomials is larger than the value of the producing monomials. If so, it
+        # chooses the larger monomial or combination of monomials that satisfy diff_par
+        elif not prod_comb or cons_total > prod_total + 1:
+            for comb in cons_comb.keys():
+                monomials_values = {}
+                for idx in cons_comb[comb].keys():
+                    value = 0
+                    for j in cons_comb[comb][idx]:
+                        value += cons.loc[j]
+                    monomials_values[idx] = value
+                if len(monomials_values) == 1:
+                    largest = monomials_values.keys()[0]
+                    break
+
+                foo2 = pd.Series(monomials_values).sort_values(ascending=True)
+                comb_largest = cons_comb[comb][list(foo2.index)[0]]
+                for cm in list(foo2.index):
+                    if len(set(comb_largest) - set(cons_comb[comb][cm])) == len(comb_largest):
+                        if not abs(math.log10(-foo2.loc[list(foo2.index)[0]]) - math.log10(-foo2.loc[cm])) > diff_par:
+                            largest = 'ND'
+                            break
+                        else:
+                            largest = list(foo2.index)[0]
+                if largest != 'ND':
+                    break
+        else:
+            pass
+
+        return largest
 
     def find_important_nodes(self):
         """
@@ -302,7 +302,7 @@ class Tropical:
             cons = []
             for term in self.model.odes[sp].args:
                 if term.could_extract_minus_sign():
-                    cons.append(term*(-1))
+                    cons.append(term * (-1))
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in prod:
@@ -344,8 +344,8 @@ class Tropical:
             self.all_comb[sp].update({'ND': 'No dominants'})
 
             for t in mons_df.columns.values.tolist():
-                signature_species[t] = choose_max(mons_df.iloc[:, t], diff_par=1, prod_comb=prod_comb,
-                                                  cons_comb=cons_comb)
+                signature_species[t] = self.choose_max(mons_df.iloc[:, t], diff_par=1, prod_comb=prod_comb,
+                                                       cons_comb=cons_comb)
             all_signatures[sp] = signature_species
         self.all_sp_signatures = all_signatures
         return
@@ -368,14 +368,14 @@ class Tropical:
             signature = self.all_sp_signatures[sp]
             for idx, mon in enumerate(list(set(signature))):
                 if mon[0] == 'C':
-                    mon_val[self.all_comb[sp][mon]+(-1,)] = idx
+                    mon_val[self.all_comb[sp][mon] + (-1,)] = idx
                 else:
                     mon_val[self.all_comb[sp][mon]] = idx
 
-            mon_rep = [0]*len(signature)
+            mon_rep = [0] * len(signature)
             for i, m in enumerate(signature):
                 if m[0] == 'C':
-                    mon_rep[i] = mon_val[self.all_comb[sp][m]+(-1,)]
+                    mon_rep[i] = mon_val[self.all_comb[sp][m] + (-1,)]
                 else:
                     mon_rep[i] = mon_val[self.all_comb[sp][m]]
             # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
