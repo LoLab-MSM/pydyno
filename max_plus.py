@@ -12,17 +12,6 @@ import pandas as pd
 import math
 
 
-def merge_dicts(*dict_args):
-    """
-    Given any number of dicts, shallow copy and merge into a new dict,
-    precedence goes to key value pairs in latter dicts.
-    """
-    result = {}
-    for dictionary in dict_args:
-        result.update(dictionary)
-    return result
-
-
 class Tropical:
     mach_eps = numpy.finfo(float).eps
 
@@ -34,17 +23,18 @@ class Tropical:
         self.model = model
         self.tspan = None
         self.y = None
-        self.param_values = None
+        self.param_values = {}
         self.passengers = []
-        self.eqs_for_tropicalization = None
+        self.eqs_for_tropicalization = {}
         self.all_sp_signatures = {}
         self.all_comb = {}
 
-    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, sp_to_trop='imp_nodes',
+    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, find_passengers_by='imp_nodes',
                     plot_imposed_trace=False, verbose=False):
         """
         tropicalization of driver species
-        :param sp_to_trop:
+        :param find_passengers_by: Option to find passenger species. 'imp_nodes' finds the nodes that only have one edge.
+        'qssa' finds passenger species using the quasi steady state approach
         :param plot_imposed_trace: Option to plot imposed trace
         :param tspan: Time span
         :param param_values: PySB model parameter values
@@ -80,13 +70,13 @@ class Tropical:
 
         if verbose:
             print("Getting Passenger species")
-        if sp_to_trop == 'qssa':
+        if find_passengers_by == 'qssa':
             if plot_imposed_trace:
                 self.find_passengers(self.y[ignore:], epsilon, plot=plot_imposed_trace)
             else:
                 self.find_passengers(self.y[ignore:], epsilon)
-        elif sp_to_trop == 'imp_nodes':
-            self.find_important_nodes()
+        elif find_passengers_by == 'imp_nodes':
+            self.find_nonimportant_nodes()
         else:
             raise Exception("equations to tropicalize must be chosen")
 
@@ -100,24 +90,36 @@ class Tropical:
         return
 
     @staticmethod
-    def choose_max(s, diff_par, prod_comb, cons_comb):
+    def merge_dicts(*dict_args):
+        """
+        Given any number of dicts, shallow copy and merge into a new dict,
+        precedence goes to key value pairs in latter dicts.
+        """
+        result = {}
+        for dictionary in dict_args:
+            result.update(dictionary)
+        return result
+
+    @staticmethod
+    def choose_max(pd_series, diff_par, prod_comb, cons_comb):
         """
 
         :param cons_comb: combinations of monomials that consume certain species
-        :param prod_comb: combinations of monomials thtat produce certain species
-        :param s: Pandas series whose axis labels are the monomials and the data is their values at a specific time point
+        :param prod_comb: combinations of monomials that produce certain species
+        :param pd_series: Pandas series whose axis labels are the monomials and the data is their values at a specific
+        time point
         :param diff_par: Parameter to define when a monomial is larger
         :return: monomial or combination of monomials that dominate at certain time point
         """
         # Choosing the reactions (monomials) that consume and produce certain species
-        cons = s[s < 0]
-        prod = s[s > 0]
+        cons = pd_series[pd_series < 0]
+        prod = pd_series[pd_series > 0]
 
         prod_total = 0
         cons_total = 0
 
         largest = 'ND'
-        # Gets the values of the sum of the consuming and producing monomials.
+        # Gets the values of the sum of all the consuming and producing monomials.
         if cons_comb and prod_comb:
             for p in prod_comb.values()[-1].values()[0]:
                 prod_total += prod.loc[p]
@@ -182,10 +184,10 @@ class Tropical:
 
         return largest
 
-    def find_important_nodes(self):
+    def find_nonimportant_nodes(self):
         """
 
-        :return:
+        :return: a list of non-important nodes
         """
         rcts_sp = list(sum([i['reactants'] for i in self.model.reactions_bidirectional], ()))
         pdts_sp = list(sum([i['products'] for i in self.model.reactions_bidirectional], ()))
@@ -198,7 +200,7 @@ class Tropical:
 
     def find_passengers(self, y, epsilon=None, plot=False, verbose=False):
         """
-        Finds passenger species in the model
+        Finds passenger species based in the Quasi Steady State Approach (QSSA) in the model
         :param verbose: Verbose
         :param y: Solution of the differential equations
         :param epsilon: Minimum difference between the imposed trace and the dynamic solution to be considered passenger
@@ -333,15 +335,33 @@ class Tropical:
                     prod_comb_names['P{0}{1}'.format(L, prod_idx)] = subset
                     prod_idx += 1
                 prod_comb[L] = prod_comb_names
-            self.all_comb[sp] = merge_dicts(*prod_comb.values())
+            self.all_comb[sp] = self.merge_dicts(*prod_comb.values())
             for L in range(1, len(cons) + 1):
                 cons_comb_names = {}
                 for subset in itertools.combinations(cons, L):
                     cons_comb_names['C{0}{1}'.format(L, cons_idx)] = subset
                     cons_idx += 1
                 cons_comb[L] = cons_comb_names
-            self.all_comb[sp].update(merge_dicts(*cons_comb.values()))
-            self.all_comb[sp].update({'ND': 'No dominants'})
+            self.all_comb[sp].update(self.merge_dicts(*cons_comb.values()))
+            self.all_comb[sp].update({'ND': 'N'})
+
+            # Substitution matrix
+            len_ND = len(max(self.all_comb[sp].values(), key=len)) + 1
+            sm = numpy.zeros((len(self.all_comb[sp].keys()), len(self.all_comb[sp].keys())))
+            for i, a in enumerate(self.all_comb[sp]):
+                for j, b in enumerate(self.all_comb[sp]):
+                    if a == 'ND' and b == 'ND':
+                        sm[i, j] = 0
+                    elif a == 'ND':
+                        sm[i, j] = 2*len_ND - len(self.all_comb[sp][b])
+                    elif b == 'ND':
+                        sm[i, j] = 2*len_ND - len(self.all_comb[sp][a])
+                    else:
+                        sm[i, j] = self.sub_value(self.all_comb[sp][a], self.all_comb[sp][b])
+                            # max(len(self.all_comb[sp][a]), len(self.all_comb[sp][b])) - len(
+                            #             set(self.all_comb[sp][a]).intersection(self.all_comb[sp][b]))
+            sm_df = pd.DataFrame(data=sm, index=self.all_comb[sp].keys(), columns=self.all_comb[sp].keys())
+            sm_df.to_csv('/home/oscar/Documents/tropical_earm/subs_matrix/sm_{0}.{1}'.format(sp, 'csv'))
 
             for t in mons_df.columns.values.tolist():
                 signature_species[t] = self.choose_max(mons_df.iloc[:, t], diff_par=1, prod_comb=prod_comb,
@@ -349,6 +369,11 @@ class Tropical:
             all_signatures[sp] = signature_species
         self.all_sp_signatures = all_signatures
         return
+
+    @staticmethod
+    def sub_value(a, b):
+        value = 2*len(max(a, b, key=len)) - len(min(a, b, key=len)) - len(set(a).intersection(b))
+        return value
 
     def visualization2(self, sp_to_vis=None):
         if sp_to_vis:
@@ -408,17 +433,33 @@ class Tropical:
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
-            plt.show()
-            # plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
+            # plt.show()
+            plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
 
     def get_passenger(self):
+        """
+
+        :return: Passenger species of the systems
+        """
         return self.passengers
 
     def get_species_signatures(self):
+        """
+
+        :return: Signatures of the molecular species
+        """
         return self.all_sp_signatures
 
 
 def run_tropical(model, tspan, parameters=None, sp_visualize=None):
+    """
+
+    :param model: PySB model of a biological system
+    :param tspan: Time of the simulation
+    :param parameters: Parameter values of the PySB model
+    :param sp_visualize: Species to visualize
+    :return: The tropical signatures of all non-passenger species
+    """
     tr = Tropical(model)
     tr.tropicalize(tspan, parameters)
     if sp_visualize is not None:
