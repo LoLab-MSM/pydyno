@@ -516,4 +516,4 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, sp_visualize=None):
     if sp_visualize is not None:
         tr.visualization2(sp_to_vis=sp_visualize)
         # tr.visualization(driver_species=sp_visualize)
-    return tr.get_species_signatures_prod()
+    return tr.get_species_signatures_prod(), tr.get_species_signatures_cons()
