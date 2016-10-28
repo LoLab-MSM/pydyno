@@ -1,5 +1,5 @@
 from __future__ import print_function
-from tropicalize import run_tropical
+from max_plus_consumption_production import run_tropical
 from multiprocessing import Pool
 from multiprocessing import cpu_count
 import numpy as np
@@ -98,9 +98,11 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
                          columns=cindex).to_csv(path + '/data_frame%d' % sp + '.csv')
     return
 
+# from earm.lopez_embedded import model
+#
 # t = np.linspace(0, 20000, 100)
-# pars = hf.listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_5')
-# compare_all_drivers_signatures(model, t, pars, to_data_frame=True)
+# pars = hf.listdir_fullpath('/home/oscar/home/oscar/Documents/tropical_project/parameters_5')
+# compare_all_drivers_signatures(model, t, pars[:10], to_data_frame=True, dir_path='/home/oscar/Desktop')
 
 # all_drivers = np.load('/home/oscar/Documents/tropical_projetct/drivers_all_parameters5000.npy')
 # drivers_all = {idx: dr.keys() for idx, dr in enumerate(all_drivers)}
