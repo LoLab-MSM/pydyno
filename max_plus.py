@@ -29,10 +29,11 @@ class Tropical:
         self.all_sp_signatures = {}
         self.all_comb = {}
 
-    def tropicalize(self, tspan=None, param_values=None, ignore=1, epsilon=1, find_passengers_by='imp_nodes',
+    def tropicalize(self, tspan=None, param_values=None, diff_par=1, ignore=1, epsilon=1, find_passengers_by='imp_nodes',
                     plot_imposed_trace=False, verbose=False):
         """
         tropicalization of driver species
+        :param diff_par:
         :param find_passengers_by: Option to find passenger species. 'imp_nodes' finds the nodes that only have one edge.
         'qssa' finds passenger species using the quasi steady state approach
         :param plot_imposed_trace: Option to plot imposed trace
@@ -86,7 +87,7 @@ class Tropical:
 
         if verbose:
             print("Getting signatures")
-        self.signal_signature(self.y[ignore:])
+        self.signal_signature(self.y[ignore:], diff_par=diff_par)
         return
 
     @staticmethod
@@ -126,7 +127,9 @@ class Tropical:
             for c in cons_comb.values()[-1].values()[0]:
                 cons_total += cons.loc[c]
         cons_total = abs(cons_total)
-
+        # print (cons_total, 'a', prod_total, 'b', cons_total-prod_total)
+        # print(prod_comb.values()[-1].values()[0])
+        # print(pd_series)
         # Checks if the value of the producing monomials is larger than the value of the consuming monomials. If so, it
         # chooses the larger monomial or combination of monomials that satisfy diff_par
         if not cons_comb or prod_total > cons_total + 1:
@@ -290,7 +293,7 @@ class Tropical:
         self.eqs_for_tropicalization = eqs
         return
 
-    def signal_signature(self, y):
+    def signal_signature(self, y, diff_par):
         # Dictionary whose keys are species and values are the monomial signatures
         all_signatures = {}
         for sp in self.eqs_for_tropicalization:
@@ -305,6 +308,7 @@ class Tropical:
             for term in self.model.odes[sp].args:
                 if term.could_extract_minus_sign():
                     cons.append(term * (-1))
+            print (cons)
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in prod:
@@ -364,7 +368,7 @@ class Tropical:
             sm_df.to_csv('/home/oscar/Documents/tropical_earm/subs_matrix/sm_{0}.{1}'.format(sp, 'csv'))
 
             for t in mons_df.columns.values.tolist():
-                signature_species[t] = self.choose_max(mons_df.iloc[:, t], diff_par=1, prod_comb=prod_comb,
+                signature_species[t] = self.choose_max(mons_df.iloc[:, t], diff_par=diff_par, prod_comb=prod_comb,
                                                        cons_comb=cons_comb)
             all_signatures[sp] = signature_species
         self.all_sp_signatures = all_signatures
@@ -451,9 +455,10 @@ class Tropical:
         return self.all_sp_signatures
 
 
-def run_tropical(model, tspan, parameters=None, sp_visualize=None):
+def run_tropical(model, tspan, diff_par=1, parameters=None, sp_visualize=None):
     """
 
+    :param diff_par:
     :param model: PySB model of a biological system
     :param tspan: Time of the simulation
     :param parameters: Parameter values of the PySB model
@@ -461,7 +466,7 @@ def run_tropical(model, tspan, parameters=None, sp_visualize=None):
     :return: The tropical signatures of all non-passenger species
     """
     tr = Tropical(model)
-    tr.tropicalize(tspan, parameters)
+    tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par)
     if sp_visualize is not None:
         tr.visualization2(sp_to_vis=sp_visualize)
         # tr.visualization(driver_species=sp_visualize)
