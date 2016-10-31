@@ -26,15 +26,14 @@ class Tropical:
         self.param_values = {}
         self.passengers = []
         self.eqs_for_tropicalization = {}
-        self.all_sp_signatures_prod = {}
-        self.all_sp_signatures_cons = {}
+        self.all_sp_signatures = {}
         self.all_comb = {}
 
-    def tropicalize(self, tspan=None, param_values=None, diff_par=1, ignore=1, epsilon=1,
-                    find_passengers_by='imp_nodes',
-                    plot_imposed_trace=False, verbose=False):
+    def tropicalize(self, tspan=None, param_values=None, type_sign='production', diff_par=1, ignore=1, epsilon=1,
+                    find_passengers_by='imp_nodes', plot_imposed_trace=False, verbose=False):
         """
         tropicalization of driver species
+        :param type_sign: Type of max-plus signature. This is to see the way a species is being produced or consumed
         :param diff_par: Parameter that defines when a monomial or combination of monomials is larger than the others
         :param find_passengers_by: Option to find passenger species. 'imp_nodes' finds the nodes that only have one edge.
         'qssa' finds passenger species using the quasi steady state approach
@@ -69,6 +68,9 @@ class Tropical:
         # convert model parameters into dictionary
         self.param_values = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
 
+        if type_sign not in ['production', 'consumption']:
+            raise Exception('Wrong type_sign')
+
         self.y = odesolve(self.model, self.tspan, self.param_values)
 
         if verbose:
@@ -89,7 +91,7 @@ class Tropical:
 
         if verbose:
             print("Getting signatures")
-        self.signal_signature(self.y, diff_par=diff_par)
+        self.signal_signature(self.y, diff_par=diff_par, type_sign=type_sign)
         return
 
     @staticmethod
@@ -104,91 +106,65 @@ class Tropical:
         return result
 
     @staticmethod
-    def choose_max2(pd_series, diff_par, prod_comb, cons_comb, type_sign='consumption'):
+    def choose_max2(pd_series, diff_par, mon_comb, type_sign='production'):
         """
 
         :param type_sign: Type of signature. It can be 'consumption' or 'consumption'
-        :param cons_comb: combinations of monomials that consume certain species
-        :param prod_comb: combinations of monomials that produce certain species
+        :param mon_comb: combinations of monomials that produce certain species
         :param pd_series: Pandas series whose axis labels are the monomials and the data is their values at a specific
         time point
         :param diff_par: Parameter to define when a monomial is larger
         :return: monomial or combination of monomials that dominate at certain time point
         """
 
-        # chooses the larger monomial or combination of monomials that satisfy diff_par
         if type_sign == 'production':
-            prod = pd_series[pd_series > 0]
-            largest_prod = 'ND'
-            for comb in prod_comb.keys():
-                # comb is an integer that represents the number of monomials in a combination
-                if comb == prod_comb.keys()[-1]:
-                    break
-
-                if len(prod_comb[comb].keys()) == 1:
-                    largest_prod = prod_comb[comb].keys()[0]
-                    break
-
-                monomials_values = {}
-                for idx in prod_comb[comb].keys():
-                    value = 0
-                    for j in prod_comb[comb][idx]:
-                        if j not in list(prod.index):
-                            value += 1e-100
-                        else:
-                            value += prod.loc[j]
-                    monomials_values[idx] = value
-
-                foo2 = pd.Series(monomials_values).sort_values(ascending=False)
-                comb_largest = prod_comb[comb][list(foo2.index)[0]]
-                for cm in list(foo2.index):
-                    # Compares the largest combination of monomials to other combinations whose monomials that are not
-                    # present in comb_largest
-                    if len(set(comb_largest) - set(prod_comb[comb][cm])) == len(comb_largest):
-                        value_prod_largest = math.log10(foo2.loc[list(foo2.index)[0]])
-                        if abs(value_prod_largest - math.log10(foo2.loc[cm])) > diff_par and value_prod_largest > -1:
-                            largest_prod = list(foo2.index)[0]
-                            break
-                if largest_prod != 'ND':
-                    break
-            return largest_prod
+            monomials = pd_series[pd_series > 0]
+            value_to_add = 1e-100
+            sign = 1
+            ascending = False
+        elif type_sign == 'consumption':
+            monomials = pd_series[pd_series < 0]
+            value_to_add = -1e-100
+            sign = -1
+            ascending = True
+        else:
+            raise Exception('Wrong type_sign')
 
         # chooses the larger monomial or combination of monomials that satisfy diff_par
-        elif type_sign == 'consumption':
-            cons = pd_series[pd_series < 0]
-            largest_cons = 'ND'
-            for comb in cons_comb.keys():
-                if comb == cons_comb.keys()[-1]:
-                    break
+        largest_prod = 'ND'
+        for comb in mon_comb.keys():
+            # comb is an integer that represents the number of monomials in a combination
+            if comb == mon_comb.keys()[-1]:
+                break
 
-                if len(cons_comb[comb].keys()) == 1:
-                    largest_cons = cons_comb[comb].keys()
+            if len(mon_comb[comb].keys()) == 1:
+                largest_prod = mon_comb[comb].keys()[0]
+                break
 
-                monomials_values = {}
-                for idx in cons_comb[comb].keys():
-                    value = 0
-                    for j in cons_comb[comb][idx]:
-                        if j not in list(cons.index):
-                            value += -1e-100
-                        else:
-                            value += cons.loc[j]
-                    monomials_values[idx] = value
+            monomials_values = {}
+            for idx in mon_comb[comb].keys():
+                value = 0
+                for j in mon_comb[comb][idx]:
+                    # j(reversible) might not be in the prod df because it has a negative value
+                    if j not in list(monomials.index):
+                        value += value_to_add
+                    else:
+                        value += monomials.loc[j]
+                monomials_values[idx] = value
 
-                foo2 = pd.Series(monomials_values).sort_values(ascending=True)
-                comb_largest = cons_comb[comb][list(foo2.index)[0]]
-                for cm in list(foo2.index):
-                    # Compares the largest combination of monomials to other combinations whose monomials that are not
-                    # present in comb_largest
-                    if len(set(comb_largest) - set(cons_comb[comb][cm])) == len(comb_largest):
-                        value_cons_largest = math.log10(-foo2.loc[list(foo2.index)[0]])
-                        if abs(value_cons_largest - math.log10(-foo2.loc[cm])) > diff_par and value_cons_largest > -1:
-                            largest_cons = list(foo2.index)[0]
-                            break
-                if largest_cons != 'ND':
-                    break
-            return largest_cons
-        else:
-            raise Exception('type_sign must be defined')
+            foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
+            comb_largest = mon_comb[comb][list(foo2.index)[0]]
+            for cm in list(foo2.index):
+                # Compares the largest combination of monomials to other combinations whose monomials that are not
+                # present in comb_largest
+                if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
+                    value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
+                    if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
+                        largest_prod = list(foo2.index)[0]
+                        break
+            if largest_prod != 'ND':
+                break
+        return largest_prod
 
     def find_nonimportant_nodes(self):
         """
@@ -296,67 +272,51 @@ class Tropical:
         self.eqs_for_tropicalization = eqs
         return
 
-    def signal_signature(self, y, diff_par):
+    def signal_signature(self, y, diff_par, type_sign='production'):
         # Dictionary whose keys are species and values are the monomial signatures
-        all_signatures_prod = {}
-        all_signatures_cons = {}
+        all_signatures = {}
+
+        if type_sign == 'production':
+            mon_type = 'products'
+        elif type_sign == 'consumption':
+            mon_type = 'reactants'
+        else:
+            raise Exception("type sign must be 'production' or 'consumption'")
+
         for sp in self.eqs_for_tropicalization:
 
-            # Production terms
-            prod = []
-            # Consumption terms
-            cons = []
+            # reaction terms
+            monomials = []
 
             for term in self.model.reactions_bidirectional:
                 if sp in term['reactants'] and term['reversible'] is True:
-                    prod.append((-1) * term['rate'])
-                    cons.append((-1) * term['rate'])
-                elif sp in term['products']:
-                    prod.append(term['rate'])
-                elif sp in term['reactants']:
-                    cons.append(term['rate'])
-            print(sp, self.model.odes[sp])
+                    monomials.append((-1) * term['rate'])
+                elif sp in term[mon_type]:
+                    monomials.append(term['rate'])
 
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
-            for mon_p in prod:
+            for mon_p in monomials:
                 mon_p_values = mon_p.subs(self.param_values)
                 var_prod = [atom for atom in mon_p_values.atoms(sympy.Symbol)]  # Variables of monomial
                 arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
                 f_prod = sympy.lambdify(var_prod, mon_p_values)
                 prod_values = f_prod(*arg_prod)
                 mons_dict[mon_p] = prod_values
-            for mon_c in cons:
-                if mon_c in prod:
-                    continue
-                mon_c_values = -mon_c.subs(self.param_values)
-                var_cons = [atom for atom in mon_c_values.atoms(sympy.Symbol)]  # Variables of monomial
-                arg_cons = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_cons]
-                f_cons = sympy.lambdify(var_cons, mon_c_values, modules="numpy")
-                cons_values = f_cons(*arg_cons)
-                mons_dict[mon_c] = cons_values
+
             # Dataframe whose rownames are the monomials and the columns contain their values at each time point
             mons_df = pd.DataFrame(mons_dict).T
 
-            prod_comb = OrderedDict()
-            cons_comb = OrderedDict()
+            mon_comb = OrderedDict()
             prod_idx = 0
-            cons_idx = 0
 
-            for L in range(1, len(prod) + 1):
+            for L in range(1, len(monomials) + 1):
                 prod_comb_names = {}
-                for subset in itertools.combinations(prod, L):
-                    prod_comb_names['P{0}{1}'.format(L, prod_idx)] = subset
+                for subset in itertools.combinations(monomials, L):
+                    prod_comb_names['M{0}{1}'.format(L, prod_idx)] = subset
                     prod_idx += 1
-                prod_comb[L] = prod_comb_names
-            self.all_comb[sp] = self.merge_dicts(*prod_comb.values())
-            for L in range(1, len(cons) + 1):
-                cons_comb_names = {}
-                for subset in itertools.combinations(cons, L):
-                    cons_comb_names['C{0}{1}'.format(L, cons_idx)] = subset
-                    cons_idx += 1
-                cons_comb[L] = cons_comb_names
-            self.all_comb[sp].update(self.merge_dicts(*cons_comb.values()))
+                mon_comb[L] = prod_comb_names
+            self.all_comb[sp] = self.merge_dicts(*mon_comb.values())
             self.all_comb[sp].update({'ND': 'N'})
 
             # Substitution matrix
@@ -377,15 +337,10 @@ class Tropical:
             sm_df = pd.DataFrame(data=sm, index=self.all_comb[sp].keys(), columns=self.all_comb[sp].keys())
             sm_df.to_csv('/home/oscar/Documents/tropical_earm/subs_matrix/sm_{0}.{1}'.format(sp, 'csv'))
 
-            signature_species_prod = mons_df.apply(self.choose_max2,
-                                                   args=(diff_par, prod_comb, cons_comb, 'production'))
-            signature_species_cons = mons_df.apply(self.choose_max2,
-                                                   args=(diff_par, prod_comb, cons_comb, 'consumption'))
+            signature_species = mons_df.apply(self.choose_max2, args=(diff_par, mon_comb, type_sign))
+            all_signatures[sp] = list(signature_species)
 
-            all_signatures_prod[sp] = list(signature_species_prod)
-            all_signatures_cons[sp] = list(signature_species_cons)
-        self.all_sp_signatures_prod = all_signatures_prod
-        self.all_sp_signatures_cons = all_signatures_cons
+        self.all_sp_signatures = all_signatures
         return
 
     @staticmethod
@@ -395,7 +350,7 @@ class Tropical:
 
     def visualization2(self, sp_to_vis=None):
         if sp_to_vis:
-            species_ready = list(set(sp_to_vis).intersection(self.all_sp_signatures_prod.keys()))
+            species_ready = list(set(sp_to_vis).intersection(self.all_sp_signatures.keys()))
         else:
             raise Exception('list of driver species must be defined')
 
@@ -403,24 +358,23 @@ class Tropical:
             raise Exception('None of the input species is a driver')
 
         for sp in species_ready:
+
             # Setting up figure
             plt.figure(1)
-            plt.subplot(414)
+            plt.subplot(313)
 
             mon_val = OrderedDict()
-            signature = self.all_sp_signatures_prod[sp]
+            signature = self.all_sp_signatures[sp]
+
+            if not signature:
+                continue
+
             for idx, mon in enumerate(list(set(signature))):
-                if mon[0] == 'C':
-                    mon_val[self.all_comb[sp][mon] + (-1,)] = idx
-                else:
-                    mon_val[self.all_comb[sp][mon]] = idx
+                mon_val[self.all_comb[sp][mon]] = idx
 
             mon_rep = [0] * len(signature)
             for i, m in enumerate(signature):
-                if m[0] == 'C':
-                    mon_rep[i] = mon_val[self.all_comb[sp][m] + (-1,)]
-                else:
-                    mon_rep[i] = mon_val[self.all_comb[sp][m]]
+                mon_rep[i] = mon_val[self.all_comb[sp][m]]
             # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
 
             y_pos = numpy.arange(len(mon_val.keys()))
@@ -431,32 +385,7 @@ class Tropical:
             plt.xlim(0, self.tspan[-1])
             plt.ylim(0, max(y_pos))
 
-            plt.subplot(413)
-
-            mon_val_cons = OrderedDict()
-            signature_cons = self.all_sp_signatures_cons[sp]
-            for idx, mon in enumerate(list(set(signature_cons))):
-                if mon[0] == 'C':
-                    mon_val_cons[self.all_comb[sp][mon] + (-1,)] = idx
-                else:
-                    mon_val_cons[self.all_comb[sp][mon]] = idx
-
-            mon_rep_cons = [0] * len(signature_cons)
-            for i, m in enumerate(signature_cons):
-                if m[0] == 'C':
-                    mon_rep_cons[i] = mon_val_cons[self.all_comb[sp][m] + (-1,)]
-                else:
-                    mon_rep_cons[i] = mon_val_cons[self.all_comb[sp][m]]
-            # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
-
-            y_pos_cons = numpy.arange(len(mon_val_cons.keys()))
-            plt.scatter(self.tspan, mon_rep_cons)
-            plt.yticks(y_pos_cons, mon_val_cons.keys())
-            plt.ylabel('Monomials', fontsize=16)
-            plt.xlim(0, self.tspan[-1])
-            plt.ylim(0, max(y_pos_cons))
-
-            plt.subplot(412)
+            plt.subplot(312)
             for name in self.model.odes[sp].as_coefficients_dict():
                 mon = name
                 mon = mon.subs(self.param_values)
@@ -469,7 +398,7 @@ class Tropical:
             plt.ylabel('Rate(m/sec)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=3)
 
-            plt.subplot(411)
+            plt.subplot(311)
             plt.plot(self.tspan, self.y['__s%d' % sp], label=parse_name(self.model.species[sp]))
             plt.ylabel('Molecules', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
@@ -486,24 +415,18 @@ class Tropical:
         """
         return self.passengers
 
-    def get_species_signatures_prod(self):
+    def get_species_signatures(self):
         """
 
         :return: Signatures of the molecular species
         """
-        return self.all_sp_signatures_prod
-
-    def get_species_signatures_cons(self):
-        """
-
-        :return: Signatures of the molecular species
-        """
-        return self.all_sp_signatures_cons
+        return self.all_sp_signatures
 
 
-def run_tropical(model, tspan, parameters=None, diff_par=1, sp_visualize=None):
+def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='production', sp_visualize=None):
     """
 
+    :param type_sign:
     :param diff_par:
     :param model: PySB model of a biological system
     :param tspan: Time of the simulation
@@ -512,8 +435,7 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, sp_visualize=None):
     :return: The tropical signatures of all non-passenger species
     """
     tr = Tropical(model)
-    tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par)
+    tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par, type_sign=type_sign)
     if sp_visualize is not None:
         tr.visualization2(sp_to_vis=sp_visualize)
-        # tr.visualization(driver_species=sp_visualize)
-    return tr.get_species_signatures_prod(), tr.get_species_signatures_cons()
+    return tr.get_species_signatures()
