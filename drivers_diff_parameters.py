@@ -10,7 +10,7 @@ import pandas
 import helper_functions as hf
 
 
-def parameter_signatures(par, model, tspan):
+def parameter_signatures(par, model, tspan, type_sign='production'):
     """
 
     :param par: parameter file path or vector of parameters
@@ -24,7 +24,7 @@ def parameter_signatures(par, model, tspan):
             parames = hf.read_pars(par)
         else:
             parames = par
-        drivers = run_tropical(model, tspan, parameters=parames, sp_visualize=None)
+        drivers = run_tropical(model, tspan, parameters=parames, type_sign=type_sign, sp_visualize=None)
         return drivers
     except:
         print(par)
@@ -46,10 +46,10 @@ def compare_all_drivers_signatures(model, tspan, parameters, to_data_frame=True,
 
     p = Pool(cpu_count() - 1)
     all_drivers = p.map(functools.partial(parameter_signatures, model=model, tspan=tspan), parameters)
-    np.save("drivers_CORM", np.array(all_drivers))
+    # np.save("drivers_CORM", np.array(all_drivers))
 
     if to_data_frame:
-        array_to_dataframe(all_drivers, dir_path, tspan[1:], parameters)
+        array_to_dataframe(all_drivers, dir_path, tspan, parameters)
     return
 
 
@@ -83,6 +83,7 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
     else:
         rindex = range(tropical_data.shape[0])
 
+    print (tropical_data)
     drivers_all = [set(dr.keys()) for dr in tropical_data]
     drivers_over_pars = set.intersection(*drivers_all)
     drivers_to_df = {}
@@ -98,11 +99,11 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
                          columns=cindex).to_csv(path + '/data_frame%d' % sp + '.csv')
     return
 
-# from earm.lopez_embedded import model
-#
-# t = np.linspace(0, 20000, 100)
-# pars = hf.listdir_fullpath('/home/oscar/home/oscar/Documents/tropical_project/parameters_5')
-# compare_all_drivers_signatures(model, t, pars[:10], to_data_frame=True, dir_path='/home/oscar/Desktop')
+from earm.lopez_embedded import model
+
+t = np.linspace(0, 20000, 100)
+pars = hf.listdir_fullpath('/home/oscar/home/oscar/Documents/tropical_project/parameters_5000')
+compare_all_drivers_signatures(model, t, pars[:10], to_data_frame=True, dir_path='/home/oscar/Desktop')
 
 # all_drivers = np.load('/home/oscar/Documents/tropical_projetct/drivers_all_parameters5000.npy')
 # drivers_all = {idx: dr.keys() for idx, dr in enumerate(all_drivers)}
