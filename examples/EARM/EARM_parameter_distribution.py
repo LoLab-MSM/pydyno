@@ -2,11 +2,10 @@ from miscellaneous_analysis import parameter_distribution
 from earm.lopez_embedded import model
 import helper_functions as hf
 
-# parameter_distribution('/home/oscar/Documents/tropical_project/parameters_5000', 'bind_L_R_to_LR_kr')
-# parameter_distribution('/home/oscar/tropical_project_new/parameters_clusters/data_frame47_Type2', 'bind_L_R_to_LR_kr')
+# Script to get the comparison of parameter distribution between different parameter clusters in EARM
 
-clus = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_clusters')
+clus = hf.listdir_fullpath('/home/oscar/Documents/tropical_earm/clustered_parameters_bid')
+new_path = '/home/oscar/Documents/tropical_earm/parameters_5000'
 
-for c in clus:
-    for par in model.parameters:
-        parameter_distribution(c, par.name)
+for par in model.parameters:
+    parameter_distribution(clus, par.name, new_path)
