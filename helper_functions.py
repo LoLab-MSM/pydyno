@@ -15,6 +15,19 @@ def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
 
 
+def list_pars_infile(f, new_path=None):
+    """
+
+    :param f: File that contain paths to parameter set values
+    :param new_path: parameter paths of f may be different to where they are in the local computer
+    :return: list of parameter paths
+    """
+    par_sets = pd.read_csv(f, names=['parameters'])['parameters'].tolist()
+    if new_path:
+        par_sets = [w.replace(w.rsplit('/', 1)[0], new_path) for w in par_sets]
+    return par_sets
+
+
 def read_pars(par_path):
     """
     Reads parameter file
@@ -27,14 +40,15 @@ def read_pars(par_path):
     return param
 
 
-def read_all_pars(pars_path):
+def read_all_pars(pars_path, new_path=None):
     """
     Reads all pars in file or directory
+    :param new_path:
     :param pars_path: Parameter file or directory path
     :return: DataFrame with all the parameters
     """
     if os.path.isfile(pars_path):
-        par_sets = pd.read_csv(pars_path, names=['parameters'])['parameters'].tolist()
+        par_sets = list_pars_infile(pars_path, new_path)
     elif os.path.isdir(pars_path):
         par_sets = listdir_fullpath(pars_path)
     else:
