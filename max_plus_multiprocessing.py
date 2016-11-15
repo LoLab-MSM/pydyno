@@ -69,7 +69,7 @@ class Tropical:
         :param verbose: Verbose
         :return:
         """
-        all_signatures = dynamic_signatures(self, tspan=tspan, param_values=param_values, type_sign=type_sign,
+        all_signatures = dynamic_signatures(param_values, self, tspan=tspan, type_sign=type_sign,
                                             diff_par=diff_par,
                                             ignore=ignore, epsilon=epsilon, find_passengers_by=find_passengers_by,
                                             sp_to_visualize=sp_to_visualize, plot_imposed_trace=plot_imposed_trace,
