@@ -47,7 +47,9 @@ def read_all_pars(pars_path, new_path=None):
     :param pars_path: Parameter file or directory path
     :return: DataFrame with all the parameters
     """
-    if os.path.isfile(pars_path):
+    if type(pars_path) is list:
+        par_sets = pars_path
+    elif os.path.isfile(pars_path):
         par_sets = list_pars_infile(pars_path, new_path)
     elif os.path.isdir(pars_path):
         par_sets = listdir_fullpath(pars_path)
