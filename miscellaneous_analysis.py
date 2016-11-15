@@ -37,11 +37,26 @@ def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_ch
     plt.show()
 
 
-def parameter_distribution(parameters_path, par_name):
-    all_parameters = hf.read_all_pars(parameters_path)
-    plt.figure()
-    all_parameters[par_name].plot.hist()
-    plt.show()
+def parameter_distribution(parameters_paths, par_name, new_path):
+    """
+
+    :param parameters_paths: paths to clusters of parameters. It can be a folder or a file that contains the paths
+    :param par_name: Specific PySB parameter name to look at
+    :param new_path: Optional, path to where the parameters are in the file names
+    :return: a matplotlib histogram of the parameters
+    """
+
+    plt.figure(1)
+    for i, par_path in enumerate(parameters_paths):
+        all_parameters = hf.read_all_pars(par_path, new_path)
+        weights = np.ones_like(all_parameters[par_name]*100)/len(all_parameters[par_name])
+        all_parameters[par_name].plot.hist(title=par_name, alpha=0.5, label='Type{0}'.format(i), weights=weights)
+
+    plt.legend(loc=0)
+    plt.savefig('/home/oscar/Documents/tropical_earm/type1_pars_distribution/{0}.{1}'.format(par_name, 'png'), bbox_inches='tight', dpi=400
+                , format='png')
+    plt.clf()
+    # plt.show()
 
 
 def sig_apop(t, f, td, ts):
