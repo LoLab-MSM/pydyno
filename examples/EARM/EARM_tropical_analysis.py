@@ -73,7 +73,7 @@ def display_observables(params_estimated):
         keyword arguments:
         params_estimated -- list of parameter sets
     """
-    fig, axApop = plt.subplots(figsize=(7, 7))
+    fig, axApop = plt.subplots(figsize=(5.5, 5.5))
     # Construct matrix of experimental data and variance columns of interest
     exp_obs_norm = exp_data[data_names].view(float).reshape(len(exp_data), -1).T
     var_norm = exp_data[var_names].view(float).reshape(len(exp_data), -1).T
@@ -87,32 +87,23 @@ def display_observables(params_estimated):
     # Plot experimental data and simulation on the same axes
     colors = ('r', 'b')
     obs_range = [0, 1]
-    for exp, exp_err, obs, c in zip([exp_obs_norm[1]], [std_norm[1]], [obs_range[1]], [colors[1]]):
+    axApop.vlines(momp_data[0], -0.05, 1.05, color='g', linestyle=':', label='aSmac')
+    for exp, exp_err, obs, c in zip(exp_obs_norm, std_norm, obs_range, colors):
 
-
+        axApop.plot(exp_data['Time'], exp, color=c, marker='.', linestyle=':', label=obs_names[obs])
+        axApop.errorbar(exp_data['Time'], exp, yerr=exp_err, ecolor=c,
+                        elinewidth=0.5, capsize=0, fmt=None)
 
         for idx, par in enumerate(params_estimated):
             params = hf.read_pars(par)
-            # params[62] -= params[62] * 0.89
+            params[73] -= params[73] * 0.89
             solver.run(params)
             sim_obs = solver.yobs[obs_names_disp].view(float).reshape(len(solver.yobs), -1)
             sim_obs_norm = (sim_obs / totals).T
-            cparp_info[idx] = curve_fit(sig_apop, solver.tspan, sim_obs_norm[1], p0=[100, 100, 100])[0]
+            cparp_info[idx] = curve_fit(sig_apop, tspan, sim_obs_norm[1], p0=[100, 100, 100])[0]
             cparp_info_fraction[idx] = sim_obs_norm[1][-1]
-            # axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.5)
-            axApop.plot(solver.tspan, sim_obs_norm[2], color='g', alpha=0.4)
-
-        # axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.5, label=obs_names[obs] + ' sim')
-
-        # axApop.plot(solver.tspan, sim_obs_norm[obs], color=c, alpha=0.5, label=obs_names[obs] + ' sim')
-
-        axApop.plot(solver.tspan, sim_obs_norm[2], color='g',  alpha=0.4, label='aSmac' + ' sim')
-        axApop.vlines(momp_data[0], -0.05, 1.05, color='k', linestyle=':', label='aSmac' + ' data')
-
-
-        # axApop.plot(exp_data['Time'], exp, color='k', marker='.', linestyle=':', label=obs_names[obs]+' data')
-        # axApop.errorbar(exp_data['Time'], exp, yerr=exp_err, ecolor='k',
-        #                 elinewidth=0.5, capsize=0, fmt=None)
+            axApop.plot(tspan, sim_obs_norm[obs], color=c, alpha=0.4)
+            axApop.plot(tspan, sim_obs_norm[2], color='g', alpha=0.4)
 
     plt.xticks(rotation=-30)
     plt.xlabel('Time')
@@ -128,7 +119,7 @@ def display_observables(params_estimated):
     # now determine nice limits by hand:
     binwidth = 0.11
     binwidthx = 600
-    xymax = np.max([np.max(np.fabs(solver.tspan)), np.max(np.fabs(1))])
+    xymax = np.max([np.max(np.fabs(tspan)), np.max(np.fabs(1))])
     lim = (int(xymax / binwidth) + 1) * binwidth
 
     weightsx = np.ones_like(column(cparp_info, 1)) / len(column(cparp_info, 1))
@@ -136,8 +127,9 @@ def display_observables(params_estimated):
 
     axHisty.hist(cparp_info_fraction, orientation='horizontal', bins=np.arange(0, 1.01 + binwidth, binwidth),
                  weights=weightsy)
-    axHistx.hist(column(cparp_info, 1), bins=np.arange(min(solver.tspan), max(solver.tspan) + binwidthx, binwidthx),
+    axHistx.hist(column(cparp_info, 1), bins=np.arange(min(tspan), max(tspan) + binwidthx, binwidthx),
                  weights=weightsx)
+    axHistx.vlines(momp_data[0], 0, 1, color='g', linestyle=':', label='aSmac')
 
     # axHistx.axis["bottom"].major_ticklabels.set_visible(False)
     for tl in axHistx.get_xticklabels():
@@ -148,44 +140,51 @@ def display_observables(params_estimated):
         tl.set_visible(False)
     axHisty.set_xticks([0, 0.5, 1])
     axApop.legend(loc=0)
-    fig.savefig('/home/oscar/Documents/tropical_project/all_parameters_earm.png', format='png', dpi=400)
+    fig.savefig('/home/oscar/Desktop/tropical_earm_results/clusterBid1_earm.jpg', format='jpg', dpi=400)
     return
 
-all_parameters_path = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_5000')
+# Gets the parameter files and display the observables of the EARM model with the experimental values
+all_parameters_path = hf.listdir_fullpath('/home/oscar/home/oscar/tropical_project_new/parameters_5000')
+new_path = '/home/oscar/Documents/tropical_earm/parameters_5000'
+cluster2_pars = hf.list_pars_infile('/home/oscar/Documents/tropical_earm/clustered_parameters_bid_consumption/data_frame37_Type2',
+                                    new_path=new_path)
 
-clusters_path = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_clusters')
-
-cluster_pars_path = {}
-for sc in clusters_path:
-    ff = open(sc)
-    data_paths = csv.reader(ff)
-    params_path = [dd[0] for dd in data_paths]
-    cluster_pars_path[sc.split('clusters/')[1]] = params_path
-
-display_observables(all_parameters_path)
+display_observables(all_parameters_path )
 
 
-def display_all_species(cluster_parameters):
-    """Saves figures of all species for each cluster of parameters
 
-        keyword arguments:
-        cluster_parameters -- list of files, where each file contains the clustered parameters
-    """
-    for cl in cluster_parameters:
-        directory = '/home/oscar/Documents/tropical_project/' + cl
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        for sp in range(len(model.species)):
-            plt.figure()
-            for idx, par in enumerate(cluster_parameters[cl]):
-                params = hf.read_pars(par)
-                solver.run(params)
-                y = solver.y.T
-                plt.plot(solver.tspan, y[sp])
-            plt.title(str(model.species[sp]))
-            plt.savefig(directory + '/' + str(model.species[sp]) + '.jpg', format='jpg', bbox_inches='tight', dpi=400)
-            plt.close()
-    return
+# clusters_path = hf.listdir_fullpath('/home/oscar/tropical_project_new/parameters_clusters')
+#
+# cluster_pars_path = {}
+# for sc in clusters_path:
+#     ff = open(sc)
+#     data_paths = csv.reader(ff)
+#     params_path = [dd[0] for dd in data_paths]
+#     cluster_pars_path[sc.split('clusters/')[1]] = params_path
+#
+#
+#
+# def display_all_species(cluster_parameters):
+#     """Saves figures of all species for each cluster of parameters
+#
+#         keyword arguments:
+#         cluster_parameters -- list of files, where each file contains the clustered parameters
+#     """
+#     for cl in cluster_parameters:
+#         directory = '/home/oscar/Documents/tropical_project/' + cl
+#         if not os.path.exists(directory):
+#             os.makedirs(directory)
+#         for sp in range(len(model.species)):
+#               plt.figure()
+#             for idx, par in enumerate(cluster_parameters[cl]):
+#                 params = hf.read_pars(par)
+#                 solver.run(params)
+#                 y = solver.y.T
+#                 plt.plot(solver.tspan, y[sp])
+#             plt.title(str(model.species[sp]))
+#             plt.savefig(directory + '/' + str(model.species[sp]) + '.jpg', format='jpg', bbox_inches='tight', dpi=400)
+#             plt.close()
+#     return
 
 # display_all_species(cluster_pars_path)
 

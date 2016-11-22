@@ -11,6 +11,11 @@ import pandas as pd
 import math
 from multiprocessing import Pool, cpu_count
 import functools
+import choose_max
+
+
+# This is a global function that takes the class object as a parameter to compute the dynamical signature.
+# This global function is necessary to use the multiprocessing module.
 
 
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
@@ -28,7 +33,7 @@ def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='pro
 
     if verbose:
         print("Getting signatures")
-    all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par, type_sign=type_sign,
+    all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par,
                                                       sp_to_visualize=sp_to_visualize)
 
     return all_signatures
@@ -51,6 +56,7 @@ class Tropical:
         self.all_comb = {}
         self.sim = None
         self.is_setup = False
+        self.type_sign = ''
 
     def tropicalize(self, tspan=None, param_values=None, type_sign='production', diff_par=1, ignore=1, epsilon=1,
                     find_passengers_by='imp_nodes', sp_to_visualize=None, plot_imposed_trace=False, verbose=False):
@@ -65,7 +71,7 @@ class Tropical:
         :param param_values: PySB model parameter values
         :param ignore: Initial time points to ignore
         :param epsilon: Order of magnitude difference between solution of ODE and imposed trace to consider species as
-        passenger
+         passenger
         :param verbose: Verbose
         :return:
         """
@@ -92,6 +98,8 @@ class Tropical:
 
         if type_sign not in ['production', 'consumption']:
             raise Exception('Wrong type_sign')
+        else:
+            self.type_sign = type_sign
 
         self.sim = ScipyOdeSimulator(self.model, self.tspan)
 
@@ -100,7 +108,7 @@ class Tropical:
             self.equations_to_tropicalize()
 
         if not self.all_comb:
-            self.set_combinations_sm(type_sign=type_sign)
+            self.set_combinations_sm()
 
         self.is_setup = True
         return
@@ -117,7 +125,7 @@ class Tropical:
         return result
 
     @staticmethod
-    def choose_max2(pd_series, diff_par, mon_comb, type_sign='production'):
+    def choose_max2(pd_series, diff_par, mon_comb, type_sign):
         """
 
         :param type_sign: Type of signature. It can be 'consumption' or 'consumption'
@@ -284,7 +292,7 @@ class Tropical:
         self.eqs_for_tropicalization = eqs
         return
 
-    def signal_signature(self, param_values, diff_par=1, type_sign='production', sp_to_visualize=None):
+    def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
         if param_values is not None:
             if type(param_values) is str:
                 param_values = hf.read_pars(param_values)
@@ -305,9 +313,9 @@ class Tropical:
         # Dictionary whose keys are species and values are the monomial signatures
         all_signatures = {}
 
-        if type_sign == 'production':
+        if self.type_sign == 'production':
             mon_type = 'products'
-        elif type_sign == 'consumption':
+        elif self.type_sign == 'consumption':
             mon_type = 'reactants'
         else:
             raise Exception("type sign must be 'production' or 'consumption'")
@@ -336,7 +344,8 @@ class Tropical:
             # Dataframe whose rownames are the monomials and the columns contain their values at each time point
             mons_df = pd.DataFrame(mons_dict).T
 
-            signature_species = mons_df.apply(self.choose_max2, args=(diff_par, self.all_comb[sp], type_sign))
+            signature_species = mons_df.apply(choose_max.choose_max3,
+                                              args=(diff_par, self.all_comb[sp], self.type_sign))
             all_signatures[sp] = list(signature_species)
 
         # self.all_sp_signatures = all_signatures
@@ -346,10 +355,10 @@ class Tropical:
 
         return all_signatures
 
-    def set_combinations_sm(self, type_sign='production', create_sm=False):
-        if type_sign == 'production':
+    def set_combinations_sm(self, create_sm=False):
+        if self.type_sign == 'production':
             mon_type = 'products'
-        elif type_sign == 'consumption':
+        elif self.type_sign == 'consumption':
             mon_type = 'reactants'
         else:
             raise Exception("type sign must be 'production' or 'consumption'")
@@ -492,9 +501,13 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='productio
     # return tr.get_species_signatures()
 
 
-def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, type_sign='production', sp_visualize=None):
+def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, type_sign='production', sp_visualize=None,
+                                 to_data_frame=False, dir_path=None):
     tr = Tropical(model)
-    dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan)
+    dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
+                                                   type_sign=type_sign)
     p = Pool(cpu_count() - 1)
     all_drivers = p.map(dynamic_signatures_partial, parameters)
+    if to_data_frame:
+        hf.array_to_dataframe(all_drivers, dir_path, tspan, parameters)
     return all_drivers

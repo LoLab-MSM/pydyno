@@ -1,5 +1,4 @@
 import matplotlib
-matplotlib.use('GTK3Cairo')
 from earm.lopez_embedded import model
 import numpy as np
 from numpy.random import lognormal
@@ -47,7 +46,7 @@ parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.
 
 samples = 10
 
-f = open('/home/oscar/Documents/tropical_project/parameters_5000/pars_embedded_5400.txt')
+f = open('/home/oscar/home/oscar/Documents/tropical_project/parameters_5000/pars_embedded_5400.txt')
 data = csv.reader(f)
 parames = [float(i[1]) for i in data]
 # parames[0] = 10
@@ -74,5 +73,5 @@ for pmter in range(repeated_parameter_values.shape[0]):
     td_list[pmter] = cparp_info[1]
 
 td = np.array(td_list)/3600
-plt.hist(td, bins=40)
+plt.hist(td)
 plt.show()

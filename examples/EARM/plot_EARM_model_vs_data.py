@@ -60,14 +60,14 @@ def display(pars):
         plt.plot(exp_data['Time'], exp, color=c, marker='.', linestyle=':')
         plt.errorbar(exp_data['Time'], exp, yerr=exp_err, ecolor=c,
                      elinewidth=0.5, capsize=0, fmt=None)
-        plt.plot(solver.tspan, sim, color=c)
-    plt.plot(solver.tspan, sim_obs_norm[2], color='g')
+        plt.plot(tspan, sim, color=c)
+    plt.plot(tspan, sim_obs_norm[2], color='g')
     plt.vlines(momp_data[0], -0.05, 1.05, color='g', linestyle=':')
     plt.show()
 
-tspan = np.linspace(0, 20000, 100)
+# tspan = np.linspace(0, 20000, 100)
 
-f = open('/home/oscar/Documents/tropical_project/parameters_3000/pars_embedded_906.txt')
+f = open('/home/oscar/home/oscar/Documents/tropical_project/parameters_3000/pars_embedded_906.txt')
 data = csv.reader(f)
 parames = [float(i[1]) for i in data]
 

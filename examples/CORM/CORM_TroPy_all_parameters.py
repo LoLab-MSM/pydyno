@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from corm import model
-from drivers_diff_parameters import compare_all_drivers_signatures
-
+# from drivers_diff_parameters import compare_all_drivers_signatures
+#TODO fix library from drivers_diff_parameters to run_tropical_multiprocessing
 
 all_dream_log_parames = np.load("/home/oscar/PycharmProjects/CORM/results/2015_02_02_COX2_all_traces.npy")
 unique_dream_log_pars = pd.DataFrame(all_dream_log_parames).drop_duplicates()
@@ -33,5 +33,5 @@ for pa in range(sets_of_pars):
     pars_to_use[pa] = [par.value for par in model.parameters]
 
 tspan = np.linspace(0, 10, num=100)
-compare_all_drivers_signatures(model, tspan, pars_to_use, to_data_frame=True,
-                               dir_path='/home/oscar/tropical_project_new/data_frames5')
+# compare_all_drivers_signatures(model, tspan, pars_to_use, to_data_frame=True,
+#                                dir_path='/home/oscar/tropical_project_new/data_frames5')

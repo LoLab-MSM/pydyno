@@ -92,7 +92,7 @@ def parse_name(spec):
             parsed_name += sp + '_'
         else:
             parsed_name += str(counts) + sp + '_'
-    return parsed_name[:len(parsed_name)-1]
+    return parsed_name[:len(parsed_name) - 1]
 
 
 def _find_nearest_zero(array):
@@ -103,3 +103,48 @@ def _find_nearest_zero(array):
     """
     idx = np.nanargmin(np.abs(array))
     return array[idx]
+
+
+def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
+    """
+
+    :param array: array or path to npy file to convert to data frame
+    :param dir_path: Path to the directory where the data frames are saved
+    :param col_index: usually tspan
+    :param row_index: usually the name or idx of parameter set
+    :return:
+    """
+
+    if dir_path is not None:
+        path = dir_path
+    else:
+        raise Exception("'dir_path' must be given.")
+
+    if isinstance(array, str):
+        tropical_data = np.load(array)
+    else:
+        tropical_data = array
+
+    if col_index is not None:
+        cindex = col_index
+    else:
+        cindex = range(tropical_data.shape[1])
+
+    if row_index is not None:
+        rindex = row_index
+    else:
+        rindex = range(tropical_data.shape[0])
+
+    drivers_all = [set(dr.keys()) for dr in tropical_data]
+    drivers_over_pars = set.intersection(*drivers_all)
+    drivers_to_df = {}
+    for sp in drivers_over_pars:
+        tmp = [0] * len(drivers_all)
+        for idx, tro in enumerate(tropical_data):
+            tmp[idx] = tro[sp]
+        drivers_to_df[sp] = tmp
+
+    for sp in drivers_to_df.keys():
+        pd.DataFrame(np.array(drivers_to_df[sp]), index=rindex, columns=cindex).to_csv(
+            path + '/data_frame%d' % sp + '.csv')
+    return

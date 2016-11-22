@@ -36,12 +36,8 @@ ClusterDynS <- function(signatures, sm=NA, nclusters=2, clustered_pars_path='', 
     heatmap(as.matrix(diss), Rowv=as.dendrogram(wardCluster), Colv= as.dendrogram(wardCluster), scale="none", revC=T, labRow=F, labCol=F, main='Bid Mitochondria')
 
     if(clustered_pars_path != ''){
-      types <- vector("list", nclusters)
-      for (j in 1:nclusters){
-        types[j] <- paste("Type", j, sep='')
-
-      }
       clust <- cutree(wardCluster,k=nclusters)
+      types = paste("Type", 1:nclusters, sep='')
       cluster.fac <- factor(clust, labels = types)
       for (k in types){
         pars_sp_type = sp.seq[cluster.fac==k,]
@@ -56,14 +52,10 @@ ClusterDynS <- function(signatures, sm=NA, nclusters=2, clustered_pars_path='', 
     pamRange = wcKMedRange(diss, kvals=2:15, weights=aggSp$aggWeights)
     pamclust<-wcKMedoids(diss,k=nclusters,weights= aggSp$aggWeights)
     print(summary(pamRange, max.rank=2))
-    seqdplot(sp.seq, group=pamclust$clustering,border=NA)
+    types = paste("Type", 1:nclusters, sep='')
+    cluster.fac <- factor(pamclust$clustering, labels=types)
+    seqdplot(sp.seq, group=cluster.fac,border=NA)
     if(clustered_pars_path != ''){
-      types <- vector("list", nclusters)
-      for (j in 1:nclusters){
-        types[j] <- paste("Type", j, sep='')
-
-      }
-      cluster.fac <- factor(pamclust$clustering, labels = types)
       for (k in types){
         pars_sp_type = sp.seq[cluster.fac==k,]
         sp_type_pars = rownames(pars_sp_type)

@@ -1,4 +1,4 @@
-from tropicalize import run_tropical
+from max_plus_multiprocessing import run_tropical
 from corm import model
 import numpy as np
 
@@ -25,5 +25,5 @@ for pname, pvalue in param_dict.items():
         model.parameters[pname].value = 10 ** pvalue
 
 
-tspan = np.linspace(0, 10, num=100)
+tspan = np.linspace(0, 0.005, num=100)
 run_tropical(model, tspan,   sp_visualize=[3, 4])
