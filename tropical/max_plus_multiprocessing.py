@@ -5,7 +5,8 @@ import itertools
 import math
 from collections import OrderedDict
 from multiprocessing import Pool, cpu_count
-
+import matplotlib
+matplotlib.use('AGG')
 import matplotlib.pylab as plt
 import numpy
 import pandas as pd
