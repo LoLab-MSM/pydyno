@@ -1,7 +1,7 @@
-from pysb.examples.earm_1_3 import model
-from max_plus_multiprocessing import run_tropical
 import numpy as np
 
+from pysb.examples.earm_1_3 import model
+from tropical.max_plus_multiprocessing import run_tropical
 
 t = np.linspace(0, 20000,  100)
 

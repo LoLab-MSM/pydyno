@@ -1,13 +1,13 @@
-from earm.lopez_embedded import model
-import numpy as np
-import csv
-import helper_functions as hf
-import matplotlib.pyplot as plt
 import os
-import pysb.integrate
-import itertools
+
+import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.optimize import curve_fit
+
+import pysb.integrate
+from earm.lopez_embedded import model
+from tropical import helper_functions as hf
 
 # List of model observables and corresponding data file columns for
 # point-by-point fitting

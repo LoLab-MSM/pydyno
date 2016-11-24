@@ -1,10 +1,12 @@
-from earm.lopez_embedded import model
-import helper_functions as hf
-from pysb.simulator import ScipyOdeSimulator
-import numpy as np
 from multiprocessing import Pool, cpu_count
+
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+from earm.lopez_embedded import model
+from pysb.simulator import ScipyOdeSimulator
+from tropical import helper_functions as hf
 
 tspan = np.linspace(0, 20000, 100)
 sim = ScipyOdeSimulator(model, tspan)

@@ -1,6 +1,7 @@
-from max_plus_multiprocessing import run_tropical
-from corm import model
 import numpy as np
+
+from corm import model
+from tropical.max_plus_multiprocessing import run_tropical
 
 # tipe 1 cluster: 8509
 # type 2 cluster: 7848

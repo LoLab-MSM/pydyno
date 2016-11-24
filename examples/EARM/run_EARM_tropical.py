@@ -1,8 +1,10 @@
-from earm.lopez_embedded import model
-from max_plus_multiprocessing import run_tropical
-import numpy as np
 import os
+
 import helper_functions as hf
+import numpy as np
+
+from earm.lopez_embedded import model
+from tropical.max_plus_multiprocessing import run_tropical
 
 directory = os.path.dirname(__file__)
 parameters_path = os.path.join(directory, "parameters_5000")

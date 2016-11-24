@@ -1,6 +1,7 @@
-from mm_two_paths_model import model
-from max_plus_multiprocessing import run_tropical
 import numpy as np
+
+from mm_two_paths_model import model
+from tropical.max_plus_multiprocessing import run_tropical
 
 tspan = np.linspace(0, 50, 501)
 

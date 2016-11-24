@@ -1,17 +1,19 @@
 from __future__ import print_function
+
+import functools
+import itertools
+import math
 from collections import OrderedDict
+from multiprocessing import Pool, cpu_count
+
 import matplotlib.pylab as plt
 import numpy
+import pandas as pd
 import sympy
-import seaborn as sns
+
 import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
-import itertools
-import pandas as pd
-import math
-from multiprocessing import Pool, cpu_count
-import functools
-import choose_max
+from tropical import choose_max
 
 
 # This is a global function that takes the class object as a parameter to compute the dynamical signature.

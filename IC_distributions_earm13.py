@@ -1,19 +1,11 @@
 from __future__ import print_function
-from pysb.examples.earm_1_3 import model
-from tropicalize import run_tropical
-from multiprocessing import Pool
-from multiprocessing import cpu_count
-from numpy.random import lognormal
-import numpy as np
-import traceback
-import sys
-import functools
-import pandas
-import helper_functions as hf
-import os
-import csv
-from max_plus_multiprocessing import run_tropical_multiprocessing
+
 import math
+
+import numpy as np
+from numpy.random import lognormal
+
+from pysb.examples.earm_1_3 import model
 
 
 def normal_mu_sigma(log_mean, cv):

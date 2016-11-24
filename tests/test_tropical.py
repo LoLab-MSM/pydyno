@@ -1,10 +1,9 @@
-from tropicalize import Tropical
-from pysb.testing import *
-from pysb.examples.tyson_oscillator import model
 import numpy as np
+
+from pysb.examples.tyson_oscillator import model
 from pysb.simulator import ScipyOdeSimulator
 from pysb.simulator.base import SimulatorException
-from tropicalize import run_tropical
+from tropical.max_plus_multiprocessing import Tropical, run_tropical
 
 
 class TestFluxVisualization(object):
