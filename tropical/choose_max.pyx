@@ -1,7 +1,7 @@
 import math
 import pandas as pd
 
-cpdef char choose_max3(pd.DataFrame pd_series, float diff_par, dict mon_comb, char type_sign):
+cpdef char choose_max3(pd_series, float diff_par, dict mon_comb, char type_sign):
     """
 
     :param type_sign: Type of signature. It can be 'consumption' or 'consumption'
