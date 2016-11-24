@@ -1,6 +1,6 @@
 import os
 
-import helper_functions as hf
+import tropical.helper_functions as hf
 import numpy as np
 
 from earm.lopez_embedded import model
