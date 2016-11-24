@@ -3,7 +3,7 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {}, 
-    "module_name": "tropical.choose_max"
+    "module_name": "tropical.tropical.choose_max"
 }
 END: Cython Metadata */
 
@@ -405,8 +405,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__tropical__choose_max
-#define __PYX_HAVE_API__tropical__choose_max
+#define __PYX_HAVE__tropical__tropical__choose_max
+#define __PYX_HAVE_API__tropical__tropical__choose_max
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -622,7 +622,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "tropical/choose_max.pyx",
+  "tropical/tropical/choose_max.pyx",
 };
 
 /*--- Type declarations ---*/
@@ -691,18 +691,6 @@ static const char *__pyx_f[] = {
 #define __Pyx_CLEAR(r)    do { PyObject* tmp = ((PyObject*)(r)); r = NULL; __Pyx_DECREF(tmp);} while(0)
 #define __Pyx_XCLEAR(r)   do { if((r) != NULL) {PyObject* tmp = ((PyObject*)(r)); r = NULL; __Pyx_DECREF(tmp);}} while(0)
 
-/* RaiseArgTupleInvalid.proto */
-static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
-    Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
-
-/* RaiseDoubleKeywords.proto */
-static void __Pyx_RaiseDoubleKeywordsError(const char* func_name, PyObject* kw_name);
-
-/* ParseKeywords.proto */
-static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
-    PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,\
-    const char* function_name);
-
 /* IncludeStringH.proto */
 #include <string.h>
 
@@ -753,6 +741,9 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 /* RaiseException.proto */
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
 
+/* py_dict_keys.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyDict_Keys(PyObject* d);
+
 /* PyObjectGetAttrStr.proto */
 #if CYTHON_USE_TYPE_SLOTS
 static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name) {
@@ -767,6 +758,73 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject
 }
 #else
 #define __Pyx_PyObject_GetAttrStr(o,n) PyObject_GetAttr(o,n)
+#endif
+
+/* UnpackUnboundCMethod.proto */
+typedef struct {
+    PyObject *type;
+    PyObject **method_name;
+    PyCFunction func;
+    PyObject *method;
+    int flag;
+} __Pyx_CachedCFunction;
+
+/* CallUnboundCMethod0.proto */
+static PyObject* __Pyx__CallUnboundCMethod0(__Pyx_CachedCFunction* cfunc, PyObject* self);
+#if CYTHON_COMPILING_IN_CPYTHON
+#define __Pyx_CallUnboundCMethod0(cfunc, self)\
+    ((likely((cfunc)->func)) ?\
+        (likely((cfunc)->flag == METH_NOARGS) ?  (*((cfunc)->func))(self, NULL) :\
+         (likely((cfunc)->flag == (METH_VARARGS | METH_KEYWORDS)) ?  ((*(PyCFunctionWithKeywords)(cfunc)->func)(self, __pyx_empty_tuple, NULL)) :\
+             ((cfunc)->flag == METH_VARARGS ?  (*((cfunc)->func))(self, __pyx_empty_tuple) :\
+              (PY_VERSION_HEX >= 0x030600B1 && (cfunc)->flag == METH_FASTCALL ?  (*(__Pyx_PyCFunctionFast)(cfunc)->func)(self, &PyTuple_GET_ITEM(__pyx_empty_tuple, 0), 0, NULL) :\
+                __Pyx__CallUnboundCMethod0(cfunc, self))))) :\
+        __Pyx__CallUnboundCMethod0(cfunc, self))
+#else
+#define __Pyx_CallUnboundCMethod0(cfunc, self)  __Pyx__CallUnboundCMethod0(cfunc, self)
+#endif
+
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
+
+/* DictGetItem.proto */
+#if PY_MAJOR_VERSION >= 3 && !CYTHON_COMPILING_IN_PYPY
+static PyObject *__Pyx_PyDict_GetItem(PyObject *d, PyObject* key) {
+    PyObject *value;
+    value = PyDict_GetItemWithError(d, key);
+    if (unlikely(!value)) {
+        if (!PyErr_Occurred()) {
+            PyObject* args = PyTuple_Pack(1, key);
+            if (likely(args))
+                PyErr_SetObject(PyExc_KeyError, args);
+            Py_XDECREF(args);
+        }
+        return NULL;
+    }
+    Py_INCREF(value);
+    return value;
+}
+#else
+    #define __Pyx_PyDict_GetItem(d, key) PyObject_GetItem(d, key)
 #endif
 
 /* PyCFunctionFastCall.proto */
@@ -802,28 +860,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
 #define __Pyx_PyObject_CallNoArg(func) __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL)
 #endif
 
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
-
 /* PySequenceContains.proto */
 static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
     int result = PySequence_Contains(seq, item);
@@ -835,6 +871,27 @@ static PyObject *__Pyx_GetBuiltinName(PyObject *name);
 
 /* GetModuleGlobalName.proto */
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
+
+/* WriteUnraisableException.proto */
+static void __Pyx_WriteUnraisable(const char *name, int clineno,
+                                  int lineno, const char *filename,
+                                  int full_traceback, int nogil);
+
+/* RaiseArgTupleInvalid.proto */
+static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
+    Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
+
+/* RaiseDoubleKeywords.proto */
+static void __Pyx_RaiseDoubleKeywordsError(const char* func_name, PyObject* kw_name);
+
+/* ParseKeywords.proto */
+static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
+    PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,\
+    const char* function_name);
+
+/* ArgTypeTest.proto */
+static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, int none_allowed,
+    const char *name, int exact);
 
 /* Import.proto */
 static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
@@ -859,7 +916,13 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
                                int py_line, const char *filename);
 
 /* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_char(char value);
+
+/* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+
+/* CIntFromPy.proto */
+static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
@@ -874,111 +937,1177 @@ static int __Pyx_check_binary_version(void);
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 
-/* Module declarations from 'tropical.choose_max' */
-#define __Pyx_MODULE_NAME "tropical.choose_max"
-int __pyx_module_is_main_tropical__choose_max = 0;
+/* Module declarations from 'tropical.tropical.choose_max' */
+static char __pyx_f_8tropical_8tropical_10choose_max_choose_max3(PyObject *, float, PyObject *, char, int __pyx_skip_dispatch); /*proto*/
+#define __Pyx_MODULE_NAME "tropical.tropical.choose_max"
+int __pyx_module_is_main_tropical__tropical__choose_max = 0;
 
-/* Implementation of 'tropical.choose_max' */
-static const char __pyx_k_j[] = "j";
+/* Implementation of 'tropical.tropical.choose_max' */
 static const char __pyx_k_ND[] = "ND";
-static const char __pyx_k_cm[] = "cm";
 static const char __pyx_k_pd[] = "pd";
-static const char __pyx_k_idx[] = "idx";
 static const char __pyx_k_loc[] = "loc";
-static const char __pyx_k_comb[] = "comb";
-static const char __pyx_k_foo2[] = "foo2";
 static const char __pyx_k_keys[] = "keys";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_math[] = "math";
-static const char __pyx_k_sign[] = "sign";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_index[] = "index";
 static const char __pyx_k_log10[] = "log10";
-static const char __pyx_k_value[] = "value";
 static const char __pyx_k_Series[] = "Series";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_pandas[] = "pandas";
 static const char __pyx_k_diff_par[] = "diff_par";
 static const char __pyx_k_mon_comb[] = "mon_comb";
 static const char __pyx_k_ascending[] = "ascending";
-static const char __pyx_k_monomials[] = "monomials";
 static const char __pyx_k_pd_series[] = "pd_series";
 static const char __pyx_k_type_sign[] = "type_sign";
 static const char __pyx_k_production[] = "production";
-static const char __pyx_k_choose_max3[] = "choose_max3";
 static const char __pyx_k_consumption[] = "consumption";
 static const char __pyx_k_sort_values[] = "sort_values";
-static const char __pyx_k_comb_largest[] = "comb_largest";
-static const char __pyx_k_largest_prod[] = "largest_prod";
-static const char __pyx_k_value_to_add[] = "value_to_add";
 static const char __pyx_k_Wrong_type_sign[] = "Wrong type_sign";
-static const char __pyx_k_monomials_values[] = "monomials_values";
-static const char __pyx_k_value_prod_largest[] = "value_prod_largest";
-static const char __pyx_k_tropical_choose_max[] = "tropical.choose_max";
-static const char __pyx_k_home_oscar_PycharmProjects_trop[] = "/home/oscar/PycharmProjects/tropical/choose_max.pyx";
 static PyObject *__pyx_n_s_ND;
 static PyObject *__pyx_n_s_Series;
 static PyObject *__pyx_kp_s_Wrong_type_sign;
 static PyObject *__pyx_n_s_ascending;
-static PyObject *__pyx_n_s_choose_max3;
-static PyObject *__pyx_n_s_cm;
-static PyObject *__pyx_n_s_comb;
-static PyObject *__pyx_n_s_comb_largest;
 static PyObject *__pyx_n_s_consumption;
 static PyObject *__pyx_n_s_diff_par;
-static PyObject *__pyx_n_s_foo2;
-static PyObject *__pyx_kp_s_home_oscar_PycharmProjects_trop;
-static PyObject *__pyx_n_s_idx;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_index;
-static PyObject *__pyx_n_s_j;
 static PyObject *__pyx_n_s_keys;
-static PyObject *__pyx_n_s_largest_prod;
 static PyObject *__pyx_n_s_loc;
 static PyObject *__pyx_n_s_log10;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_math;
 static PyObject *__pyx_n_s_mon_comb;
-static PyObject *__pyx_n_s_monomials;
-static PyObject *__pyx_n_s_monomials_values;
 static PyObject *__pyx_n_s_pandas;
 static PyObject *__pyx_n_s_pd;
 static PyObject *__pyx_n_s_pd_series;
 static PyObject *__pyx_n_s_production;
-static PyObject *__pyx_n_s_sign;
 static PyObject *__pyx_n_s_sort_values;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_tropical_choose_max;
 static PyObject *__pyx_n_s_type_sign;
-static PyObject *__pyx_n_s_value;
-static PyObject *__pyx_n_s_value_prod_largest;
-static PyObject *__pyx_n_s_value_to_add;
-static PyObject *__pyx_pf_8tropical_10choose_max_choose_max3(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pd_series, PyObject *__pyx_v_diff_par, PyObject *__pyx_v_mon_comb, PyObject *__pyx_v_type_sign); /* proto */
+static PyObject *__pyx_pf_8tropical_8tropical_10choose_max_choose_max3(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pd_series, float __pyx_v_diff_par, PyObject *__pyx_v_mon_comb, char __pyx_v_type_sign); /* proto */
+static __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_keys = {0, &__pyx_n_s_keys, 0, 0, 0};
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_neg_1;
 static PyObject *__pyx_int_neg_5;
 static PyObject *__pyx_tuple_;
-static PyObject *__pyx_tuple__2;
-static PyObject *__pyx_codeobj__3;
 
-/* "tropical/choose_max.pyx":4
+/* "tropical/tropical/choose_max.pyx":4
  * import pandas as pd
  * 
- * def choose_max3(pd_series, diff_par, mon_comb, type_sign):             # <<<<<<<<<<<<<<
+ * cpdef char choose_max3(pd_series, float diff_par, dict mon_comb, char type_sign):             # <<<<<<<<<<<<<<
  *     """
  * 
  */
 
+static PyObject *__pyx_pw_8tropical_8tropical_10choose_max_1choose_max3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_f_8tropical_8tropical_10choose_max_choose_max3(PyObject *__pyx_v_pd_series, float __pyx_v_diff_par, PyObject *__pyx_v_mon_comb, char __pyx_v_type_sign, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_v_monomials = NULL;
+  double __pyx_v_value_to_add;
+  PyObject *__pyx_v_sign = NULL;
+  int __pyx_v_ascending;
+  PyObject *__pyx_v_largest_prod = NULL;
+  PyObject *__pyx_v_comb = NULL;
+  PyObject *__pyx_v_monomials_values = NULL;
+  PyObject *__pyx_v_idx = NULL;
+  PyObject *__pyx_v_value = NULL;
+  PyObject *__pyx_v_j = NULL;
+  PyObject *__pyx_v_foo2 = NULL;
+  PyObject *__pyx_v_comb_largest = NULL;
+  PyObject *__pyx_v_cm = NULL;
+  PyObject *__pyx_v_value_prod_largest = NULL;
+  char __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  Py_ssize_t __pyx_t_4;
+  PyObject *(*__pyx_t_5)(PyObject *);
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  Py_ssize_t __pyx_t_8;
+  PyObject *(*__pyx_t_9)(PyObject *);
+  Py_ssize_t __pyx_t_10;
+  PyObject *(*__pyx_t_11)(PyObject *);
+  PyObject *__pyx_t_12 = NULL;
+  int __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
+  PyObject *__pyx_t_15 = NULL;
+  PyObject *__pyx_t_16 = NULL;
+  char __pyx_t_17;
+  __Pyx_RefNannySetupContext("choose_max3", 0);
+
+  /* "tropical/tropical/choose_max.pyx":15
+ *     """
+ * 
+ *     if type_sign == 'production':             # <<<<<<<<<<<<<<
+ *         monomials = pd_series[pd_series > 0]
+ *         value_to_add = 1e-100
+ */
+  __pyx_t_1 = __Pyx_PyInt_From_char(__pyx_v_type_sign); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_production, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (__pyx_t_2) {
+
+    /* "tropical/tropical/choose_max.pyx":16
+ * 
+ *     if type_sign == 'production':
+ *         monomials = pd_series[pd_series > 0]             # <<<<<<<<<<<<<<
+ *         value_to_add = 1e-100
+ *         sign = 1
+ */
+    __pyx_t_1 = PyObject_RichCompare(__pyx_v_pd_series, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
+    __pyx_t_3 = PyObject_GetItem(__pyx_v_pd_series, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 16, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_v_monomials = __pyx_t_3;
+    __pyx_t_3 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":17
+ *     if type_sign == 'production':
+ *         monomials = pd_series[pd_series > 0]
+ *         value_to_add = 1e-100             # <<<<<<<<<<<<<<
+ *         sign = 1
+ *         ascending = False
+ */
+    __pyx_v_value_to_add = 1e-100;
+
+    /* "tropical/tropical/choose_max.pyx":18
+ *         monomials = pd_series[pd_series > 0]
+ *         value_to_add = 1e-100
+ *         sign = 1             # <<<<<<<<<<<<<<
+ *         ascending = False
+ *     elif type_sign == 'consumption':
+ */
+    __Pyx_INCREF(__pyx_int_1);
+    __pyx_v_sign = __pyx_int_1;
+
+    /* "tropical/tropical/choose_max.pyx":19
+ *         value_to_add = 1e-100
+ *         sign = 1
+ *         ascending = False             # <<<<<<<<<<<<<<
+ *     elif type_sign == 'consumption':
+ *         monomials = pd_series[pd_series < 0]
+ */
+    __pyx_v_ascending = 0;
+
+    /* "tropical/tropical/choose_max.pyx":15
+ *     """
+ * 
+ *     if type_sign == 'production':             # <<<<<<<<<<<<<<
+ *         monomials = pd_series[pd_series > 0]
+ *         value_to_add = 1e-100
+ */
+    goto __pyx_L3;
+  }
+
+  /* "tropical/tropical/choose_max.pyx":20
+ *         sign = 1
+ *         ascending = False
+ *     elif type_sign == 'consumption':             # <<<<<<<<<<<<<<
+ *         monomials = pd_series[pd_series < 0]
+ *         value_to_add = -1e-100
+ */
+  __pyx_t_3 = __Pyx_PyInt_From_char(__pyx_v_type_sign); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_consumption, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_2) {
+
+    /* "tropical/tropical/choose_max.pyx":21
+ *         ascending = False
+ *     elif type_sign == 'consumption':
+ *         monomials = pd_series[pd_series < 0]             # <<<<<<<<<<<<<<
+ *         value_to_add = -1e-100
+ *         sign = -1
+ */
+    __pyx_t_3 = PyObject_RichCompare(__pyx_v_pd_series, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
+    __pyx_t_1 = PyObject_GetItem(__pyx_v_pd_series, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_v_monomials = __pyx_t_1;
+    __pyx_t_1 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":22
+ *     elif type_sign == 'consumption':
+ *         monomials = pd_series[pd_series < 0]
+ *         value_to_add = -1e-100             # <<<<<<<<<<<<<<
+ *         sign = -1
+ *         ascending = True
+ */
+    __pyx_v_value_to_add = -1e-100;
+
+    /* "tropical/tropical/choose_max.pyx":23
+ *         monomials = pd_series[pd_series < 0]
+ *         value_to_add = -1e-100
+ *         sign = -1             # <<<<<<<<<<<<<<
+ *         ascending = True
+ *     else:
+ */
+    __Pyx_INCREF(__pyx_int_neg_1);
+    __pyx_v_sign = __pyx_int_neg_1;
+
+    /* "tropical/tropical/choose_max.pyx":24
+ *         value_to_add = -1e-100
+ *         sign = -1
+ *         ascending = True             # <<<<<<<<<<<<<<
+ *     else:
+ *         raise Exception('Wrong type_sign')
+ */
+    __pyx_v_ascending = 1;
+
+    /* "tropical/tropical/choose_max.pyx":20
+ *         sign = 1
+ *         ascending = False
+ *     elif type_sign == 'consumption':             # <<<<<<<<<<<<<<
+ *         monomials = pd_series[pd_series < 0]
+ *         value_to_add = -1e-100
+ */
+    goto __pyx_L3;
+  }
+
+  /* "tropical/tropical/choose_max.pyx":26
+ *         ascending = True
+ *     else:
+ *         raise Exception('Wrong type_sign')             # <<<<<<<<<<<<<<
+ * 
+ *     # chooses the larger monomial or combination of monomials that satisfy diff_par
+ */
+  /*else*/ {
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __PYX_ERR(0, 26, __pyx_L1_error)
+  }
+  __pyx_L3:;
+
+  /* "tropical/tropical/choose_max.pyx":29
+ * 
+ *     # chooses the larger monomial or combination of monomials that satisfy diff_par
+ *     largest_prod = 'ND'             # <<<<<<<<<<<<<<
+ *     for comb in mon_comb.keys():
+ *         # comb is an integer that represents the number of monomials in a combination
+ */
+  __Pyx_INCREF(__pyx_n_s_ND);
+  __pyx_v_largest_prod = __pyx_n_s_ND;
+
+  /* "tropical/tropical/choose_max.pyx":30
+ *     # chooses the larger monomial or combination of monomials that satisfy diff_par
+ *     largest_prod = 'ND'
+ *     for comb in mon_comb.keys():             # <<<<<<<<<<<<<<
+ *         # comb is an integer that represents the number of monomials in a combination
+ *         if comb == mon_comb.keys()[-1]:
+ */
+  if (unlikely(__pyx_v_mon_comb == Py_None)) {
+    PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%s'", "keys");
+    __PYX_ERR(0, 30, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_PyDict_Keys(__pyx_v_mon_comb); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
+    __pyx_t_3 = __pyx_t_1; __Pyx_INCREF(__pyx_t_3); __pyx_t_4 = 0;
+    __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_4 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 30, __pyx_L1_error)
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  for (;;) {
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_3))) {
+        if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_3)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 30, __pyx_L1_error)
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        #endif
+      } else {
+        if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 30, __pyx_L1_error)
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        #endif
+      }
+    } else {
+      __pyx_t_1 = __pyx_t_5(__pyx_t_3);
+      if (unlikely(!__pyx_t_1)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 30, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_comb, __pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":32
+ *     for comb in mon_comb.keys():
+ *         # comb is an integer that represents the number of monomials in a combination
+ *         if comb == mon_comb.keys()[-1]:             # <<<<<<<<<<<<<<
+ *             break
+ * 
+ */
+    if (unlikely(__pyx_v_mon_comb == Py_None)) {
+      PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%s'", "keys");
+      __PYX_ERR(0, 32, __pyx_L1_error)
+    }
+    __pyx_t_1 = __Pyx_PyDict_Keys(__pyx_v_mon_comb); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_1, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = PyObject_RichCompare(__pyx_v_comb, __pyx_t_6, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (__pyx_t_2) {
+
+      /* "tropical/tropical/choose_max.pyx":33
+ *         # comb is an integer that represents the number of monomials in a combination
+ *         if comb == mon_comb.keys()[-1]:
+ *             break             # <<<<<<<<<<<<<<
+ * 
+ *         if len(mon_comb[comb].keys()) == 1:
+ */
+      goto __pyx_L5_break;
+
+      /* "tropical/tropical/choose_max.pyx":32
+ *     for comb in mon_comb.keys():
+ *         # comb is an integer that represents the number of monomials in a combination
+ *         if comb == mon_comb.keys()[-1]:             # <<<<<<<<<<<<<<
+ *             break
+ * 
+ */
+    }
+
+    /* "tropical/tropical/choose_max.pyx":35
+ *             break
+ * 
+ *         if len(mon_comb[comb].keys()) == 1:             # <<<<<<<<<<<<<<
+ *             largest_prod = mon_comb[comb].keys()[0]
+ *             break
+ */
+    if (unlikely(__pyx_v_mon_comb == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(0, 35, __pyx_L1_error)
+    }
+    __pyx_t_6 = __Pyx_PyDict_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 35, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_keys); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 35, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_7);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_7, function);
+      }
+    }
+    if (__pyx_t_6) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    } else {
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+    }
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_8 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 35, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_2 = ((__pyx_t_8 == 1) != 0);
+    if (__pyx_t_2) {
+
+      /* "tropical/tropical/choose_max.pyx":36
+ * 
+ *         if len(mon_comb[comb].keys()) == 1:
+ *             largest_prod = mon_comb[comb].keys()[0]             # <<<<<<<<<<<<<<
+ *             break
+ * 
+ */
+      if (unlikely(__pyx_v_mon_comb == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+        __PYX_ERR(0, 36, __pyx_L1_error)
+      }
+      __pyx_t_7 = __Pyx_PyDict_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 36, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_keys); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 36, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_7 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_6);
+        if (likely(__pyx_t_7)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+          __Pyx_INCREF(__pyx_t_7);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_6, function);
+        }
+      }
+      if (__pyx_t_7) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      } else {
+        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+      }
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 36, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF_SET(__pyx_v_largest_prod, __pyx_t_6);
+      __pyx_t_6 = 0;
+
+      /* "tropical/tropical/choose_max.pyx":37
+ *         if len(mon_comb[comb].keys()) == 1:
+ *             largest_prod = mon_comb[comb].keys()[0]
+ *             break             # <<<<<<<<<<<<<<
+ * 
+ *         monomials_values = {}
+ */
+      goto __pyx_L5_break;
+
+      /* "tropical/tropical/choose_max.pyx":35
+ *             break
+ * 
+ *         if len(mon_comb[comb].keys()) == 1:             # <<<<<<<<<<<<<<
+ *             largest_prod = mon_comb[comb].keys()[0]
+ *             break
+ */
+    }
+
+    /* "tropical/tropical/choose_max.pyx":39
+ *             break
+ * 
+ *         monomials_values = {}             # <<<<<<<<<<<<<<
+ *         for idx in mon_comb[comb].keys():
+ *             value = 0
+ */
+    __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 39, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_XDECREF_SET(__pyx_v_monomials_values, ((PyObject*)__pyx_t_6));
+    __pyx_t_6 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":40
+ * 
+ *         monomials_values = {}
+ *         for idx in mon_comb[comb].keys():             # <<<<<<<<<<<<<<
+ *             value = 0
+ *             for j in mon_comb[comb][idx]:
+ */
+    if (unlikely(__pyx_v_mon_comb == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(0, 40, __pyx_L1_error)
+    }
+    __pyx_t_1 = __Pyx_PyDict_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_keys); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_7);
+      if (likely(__pyx_t_1)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+        __Pyx_INCREF(__pyx_t_1);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_7, function);
+      }
+    }
+    if (__pyx_t_1) {
+      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    } else {
+      __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
+    }
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    if (likely(PyList_CheckExact(__pyx_t_6)) || PyTuple_CheckExact(__pyx_t_6)) {
+      __pyx_t_7 = __pyx_t_6; __Pyx_INCREF(__pyx_t_7); __pyx_t_8 = 0;
+      __pyx_t_9 = NULL;
+    } else {
+      __pyx_t_8 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 40, __pyx_L1_error)
+    }
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    for (;;) {
+      if (likely(!__pyx_t_9)) {
+        if (likely(PyList_CheckExact(__pyx_t_7))) {
+          if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_7)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_6 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_6); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 40, __pyx_L1_error)
+          #else
+          __pyx_t_6 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_6);
+          #endif
+        } else {
+          if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_7)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_6); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 40, __pyx_L1_error)
+          #else
+          __pyx_t_6 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_6);
+          #endif
+        }
+      } else {
+        __pyx_t_6 = __pyx_t_9(__pyx_t_7);
+        if (unlikely(!__pyx_t_6)) {
+          PyObject* exc_type = PyErr_Occurred();
+          if (exc_type) {
+            if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+            else __PYX_ERR(0, 40, __pyx_L1_error)
+          }
+          break;
+        }
+        __Pyx_GOTREF(__pyx_t_6);
+      }
+      __Pyx_XDECREF_SET(__pyx_v_idx, __pyx_t_6);
+      __pyx_t_6 = 0;
+
+      /* "tropical/tropical/choose_max.pyx":41
+ *         monomials_values = {}
+ *         for idx in mon_comb[comb].keys():
+ *             value = 0             # <<<<<<<<<<<<<<
+ *             for j in mon_comb[comb][idx]:
+ *                 # j(reversible) might not be in the prod df because it has a negative value
+ */
+      __Pyx_INCREF(__pyx_int_0);
+      __Pyx_XDECREF_SET(__pyx_v_value, __pyx_int_0);
+
+      /* "tropical/tropical/choose_max.pyx":42
+ *         for idx in mon_comb[comb].keys():
+ *             value = 0
+ *             for j in mon_comb[comb][idx]:             # <<<<<<<<<<<<<<
+ *                 # j(reversible) might not be in the prod df because it has a negative value
+ *                 if j not in list(monomials.index):
+ */
+      if (unlikely(__pyx_v_mon_comb == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+        __PYX_ERR(0, 42, __pyx_L1_error)
+      }
+      __pyx_t_6 = __Pyx_PyDict_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __pyx_t_1 = PyObject_GetItem(__pyx_t_6, __pyx_v_idx); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
+        __pyx_t_6 = __pyx_t_1; __Pyx_INCREF(__pyx_t_6); __pyx_t_10 = 0;
+        __pyx_t_11 = NULL;
+      } else {
+        __pyx_t_10 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __pyx_t_11 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 42, __pyx_L1_error)
+      }
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      for (;;) {
+        if (likely(!__pyx_t_11)) {
+          if (likely(PyList_CheckExact(__pyx_t_6))) {
+            if (__pyx_t_10 >= PyList_GET_SIZE(__pyx_t_6)) break;
+            #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+            __pyx_t_1 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_10); __Pyx_INCREF(__pyx_t_1); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 42, __pyx_L1_error)
+            #else
+            __pyx_t_1 = PySequence_ITEM(__pyx_t_6, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_1);
+            #endif
+          } else {
+            if (__pyx_t_10 >= PyTuple_GET_SIZE(__pyx_t_6)) break;
+            #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+            __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_10); __Pyx_INCREF(__pyx_t_1); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 42, __pyx_L1_error)
+            #else
+            __pyx_t_1 = PySequence_ITEM(__pyx_t_6, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_1);
+            #endif
+          }
+        } else {
+          __pyx_t_1 = __pyx_t_11(__pyx_t_6);
+          if (unlikely(!__pyx_t_1)) {
+            PyObject* exc_type = PyErr_Occurred();
+            if (exc_type) {
+              if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+              else __PYX_ERR(0, 42, __pyx_L1_error)
+            }
+            break;
+          }
+          __Pyx_GOTREF(__pyx_t_1);
+        }
+        __Pyx_XDECREF_SET(__pyx_v_j, __pyx_t_1);
+        __pyx_t_1 = 0;
+
+        /* "tropical/tropical/choose_max.pyx":44
+ *             for j in mon_comb[comb][idx]:
+ *                 # j(reversible) might not be in the prod df because it has a negative value
+ *                 if j not in list(monomials.index):             # <<<<<<<<<<<<<<
+ *                     value += value_to_add
+ *                 else:
+ */
+        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_monomials, __pyx_n_s_index); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_12 = PySequence_List(__pyx_t_1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 44, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_v_j, __pyx_t_12, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 44, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_13 = (__pyx_t_2 != 0);
+        if (__pyx_t_13) {
+
+          /* "tropical/tropical/choose_max.pyx":45
+ *                 # j(reversible) might not be in the prod df because it has a negative value
+ *                 if j not in list(monomials.index):
+ *                     value += value_to_add             # <<<<<<<<<<<<<<
+ *                 else:
+ *                     value += monomials.loc[j]
+ */
+          __pyx_t_12 = PyFloat_FromDouble(__pyx_v_value_to_add); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 45, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_12);
+          __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_value, __pyx_t_12); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          __Pyx_DECREF_SET(__pyx_v_value, __pyx_t_1);
+          __pyx_t_1 = 0;
+
+          /* "tropical/tropical/choose_max.pyx":44
+ *             for j in mon_comb[comb][idx]:
+ *                 # j(reversible) might not be in the prod df because it has a negative value
+ *                 if j not in list(monomials.index):             # <<<<<<<<<<<<<<
+ *                     value += value_to_add
+ *                 else:
+ */
+          goto __pyx_L12;
+        }
+
+        /* "tropical/tropical/choose_max.pyx":47
+ *                     value += value_to_add
+ *                 else:
+ *                     value += monomials.loc[j]             # <<<<<<<<<<<<<<
+ *             monomials_values[idx] = value
+ * 
+ */
+        /*else*/ {
+          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_monomials, __pyx_n_s_loc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __pyx_t_12 = PyObject_GetItem(__pyx_t_1, __pyx_v_j); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 47, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_12);
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_value, __pyx_t_12); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          __Pyx_DECREF_SET(__pyx_v_value, __pyx_t_1);
+          __pyx_t_1 = 0;
+        }
+        __pyx_L12:;
+
+        /* "tropical/tropical/choose_max.pyx":42
+ *         for idx in mon_comb[comb].keys():
+ *             value = 0
+ *             for j in mon_comb[comb][idx]:             # <<<<<<<<<<<<<<
+ *                 # j(reversible) might not be in the prod df because it has a negative value
+ *                 if j not in list(monomials.index):
+ */
+      }
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+      /* "tropical/tropical/choose_max.pyx":48
+ *                 else:
+ *                     value += monomials.loc[j]
+ *             monomials_values[idx] = value             # <<<<<<<<<<<<<<
+ * 
+ *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
+ */
+      if (unlikely(PyDict_SetItem(__pyx_v_monomials_values, __pyx_v_idx, __pyx_v_value) < 0)) __PYX_ERR(0, 48, __pyx_L1_error)
+
+      /* "tropical/tropical/choose_max.pyx":40
+ * 
+ *         monomials_values = {}
+ *         for idx in mon_comb[comb].keys():             # <<<<<<<<<<<<<<
+ *             value = 0
+ *             for j in mon_comb[comb][idx]:
+ */
+    }
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":50
+ *             monomials_values[idx] = value
+ * 
+ *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)             # <<<<<<<<<<<<<<
+ *         comb_largest = mon_comb[comb][list(foo2.index)[0]]
+ *         for cm in list(foo2.index):
+ */
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_pd); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_Series); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_1);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_1, function);
+      }
+    }
+    if (!__pyx_t_6) {
+      __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_monomials_values); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_1)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_monomials_values};
+        __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_7);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_v_monomials_values};
+        __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_GOTREF(__pyx_t_7);
+      } else
+      #endif
+      {
+        __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_6); __pyx_t_6 = NULL;
+        __Pyx_INCREF(__pyx_v_monomials_values);
+        __Pyx_GIVEREF(__pyx_v_monomials_values);
+        PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_v_monomials_values);
+        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_12, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_sort_values); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_12 = __Pyx_PyBool_FromLong(__pyx_v_ascending); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_ascending, __pyx_t_12) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 50, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_foo2, __pyx_t_12);
+    __pyx_t_12 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":51
+ * 
+ *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
+ *         comb_largest = mon_comb[comb][list(foo2.index)[0]]             # <<<<<<<<<<<<<<
+ *         for cm in list(foo2.index):
+ *             # Compares the largest combination of monomials to other combinations whose monomials that are not
+ */
+    if (unlikely(__pyx_v_mon_comb == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(0, 51, __pyx_L1_error)
+    }
+    __pyx_t_12 = __Pyx_PyDict_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 51, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_12);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 51, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_1 = PySequence_List(__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 51, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_7 = __Pyx_GetItemInt_List(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 51, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = PyObject_GetItem(__pyx_t_12, __pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 51, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_comb_largest, __pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":52
+ *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
+ *         comb_largest = mon_comb[comb][list(foo2.index)[0]]
+ *         for cm in list(foo2.index):             # <<<<<<<<<<<<<<
+ *             # Compares the largest combination of monomials to other combinations whose monomials that are not
+ *             # present in comb_largest
+ */
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 52, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_7 = PySequence_List(__pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 52, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __pyx_t_7; __Pyx_INCREF(__pyx_t_1); __pyx_t_8 = 0;
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    for (;;) {
+      if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_1)) break;
+      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+      __pyx_t_7 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 52, __pyx_L1_error)
+      #else
+      __pyx_t_7 = PySequence_ITEM(__pyx_t_1, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 52, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      #endif
+      __Pyx_XDECREF_SET(__pyx_v_cm, __pyx_t_7);
+      __pyx_t_7 = 0;
+
+      /* "tropical/tropical/choose_max.pyx":55
+ *             # Compares the largest combination of monomials to other combinations whose monomials that are not
+ *             # present in comb_largest
+ *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):             # <<<<<<<<<<<<<<
+ *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
+ */
+      __pyx_t_7 = PySet_New(__pyx_v_comb_largest); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      if (unlikely(__pyx_v_mon_comb == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+        __PYX_ERR(0, 55, __pyx_L1_error)
+      }
+      __pyx_t_12 = __Pyx_PyDict_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
+      __pyx_t_6 = PyObject_GetItem(__pyx_t_12, __pyx_v_cm); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_12 = PySet_New(__pyx_t_6); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_12);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __pyx_t_6 = PyNumber_Subtract(__pyx_t_7, __pyx_t_12); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = PyObject_Length(__pyx_t_6); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __pyx_t_14 = PyObject_Length(__pyx_v_comb_largest); if (unlikely(__pyx_t_14 == -1)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __pyx_t_13 = ((__pyx_t_10 == __pyx_t_14) != 0);
+      if (__pyx_t_13) {
+
+        /* "tropical/tropical/choose_max.pyx":56
+ *             # present in comb_largest
+ *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
+ *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])             # <<<<<<<<<<<<<<
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
+ *                     largest_prod = list(foo2.index)[0]
+ */
+        __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_math); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_log10); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_loc); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_15);
+        __pyx_t_16 = PySequence_List(__pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_16);
+        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+        __pyx_t_15 = __Pyx_GetItemInt_List(__pyx_t_16, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_15);
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __pyx_t_16 = PyObject_GetItem(__pyx_t_12, __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_16);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+        __pyx_t_15 = PyNumber_Multiply(__pyx_v_sign, __pyx_t_16); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 56, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_15);
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __pyx_t_16 = NULL;
+        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
+          __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_7);
+          if (likely(__pyx_t_16)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+            __Pyx_INCREF(__pyx_t_16);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_7, function);
+          }
+        }
+        if (!__pyx_t_16) {
+          __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_15); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 56, __pyx_L1_error)
+          __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+          __Pyx_GOTREF(__pyx_t_6);
+        } else {
+          #if CYTHON_FAST_PYCALL
+          if (PyFunction_Check(__pyx_t_7)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_16, __pyx_t_15};
+            __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 56, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+            __Pyx_GOTREF(__pyx_t_6);
+            __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+          } else
+          #endif
+          #if CYTHON_FAST_PYCCALL
+          if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_16, __pyx_t_15};
+            __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 56, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+            __Pyx_GOTREF(__pyx_t_6);
+            __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+          } else
+          #endif
+          {
+            __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 56, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_12);
+            __Pyx_GIVEREF(__pyx_t_16); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_16); __pyx_t_16 = NULL;
+            __Pyx_GIVEREF(__pyx_t_15);
+            PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_15);
+            __pyx_t_15 = 0;
+            __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_12, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 56, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_6);
+            __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          }
+        }
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __Pyx_XDECREF_SET(__pyx_v_value_prod_largest, __pyx_t_6);
+        __pyx_t_6 = 0;
+
+        /* "tropical/tropical/choose_max.pyx":57
+ *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
+ *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:             # <<<<<<<<<<<<<<
+ *                     largest_prod = list(foo2.index)[0]
+ *                     break
+ */
+        __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_math); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_log10); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_loc); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_15 = PyObject_GetItem(__pyx_t_7, __pyx_v_cm); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_15);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        __pyx_t_7 = PyNumber_Multiply(__pyx_v_sign, __pyx_t_15); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+        __pyx_t_15 = NULL;
+        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_12))) {
+          __pyx_t_15 = PyMethod_GET_SELF(__pyx_t_12);
+          if (likely(__pyx_t_15)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_12);
+            __Pyx_INCREF(__pyx_t_15);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_12, function);
+          }
+        }
+        if (!__pyx_t_15) {
+          __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_12, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+          __Pyx_GOTREF(__pyx_t_6);
+        } else {
+          #if CYTHON_FAST_PYCALL
+          if (PyFunction_Check(__pyx_t_12)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_15, __pyx_t_7};
+            __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+            __Pyx_GOTREF(__pyx_t_6);
+            __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+          } else
+          #endif
+          #if CYTHON_FAST_PYCCALL
+          if (__Pyx_PyFastCFunction_Check(__pyx_t_12)) {
+            PyObject *__pyx_temp[2] = {__pyx_t_15, __pyx_t_7};
+            __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+            __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+            __Pyx_GOTREF(__pyx_t_6);
+            __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+          } else
+          #endif
+          {
+            __pyx_t_16 = PyTuple_New(1+1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 57, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_16);
+            __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_15); __pyx_t_15 = NULL;
+            __Pyx_GIVEREF(__pyx_t_7);
+            PyTuple_SET_ITEM(__pyx_t_16, 0+1, __pyx_t_7);
+            __pyx_t_7 = 0;
+            __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_16, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_6);
+            __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+          }
+        }
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_12 = PyNumber_Subtract(__pyx_v_value_prod_largest, __pyx_t_6); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __pyx_t_6 = PyNumber_Absolute(__pyx_t_12); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_12 = PyFloat_FromDouble(__pyx_v_diff_par); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_16 = PyObject_RichCompare(__pyx_t_6, __pyx_t_12, Py_GT); __Pyx_XGOTREF(__pyx_t_16); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_16); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        if (__pyx_t_2) {
+        } else {
+          __pyx_t_13 = __pyx_t_2;
+          goto __pyx_L17_bool_binop_done;
+        }
+        __pyx_t_16 = PyObject_RichCompare(__pyx_v_value_prod_largest, __pyx_int_neg_5, Py_GT); __Pyx_XGOTREF(__pyx_t_16); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_16); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __pyx_t_13 = __pyx_t_2;
+        __pyx_L17_bool_binop_done:;
+        if (__pyx_t_13) {
+
+          /* "tropical/tropical/choose_max.pyx":58
+ *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
+ *                     largest_prod = list(foo2.index)[0]             # <<<<<<<<<<<<<<
+ *                     break
+ *         if largest_prod != 'ND':
+ */
+          __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 58, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_16);
+          __pyx_t_12 = PySequence_List(__pyx_t_16); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 58, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_12);
+          __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+          __pyx_t_16 = __Pyx_GetItemInt_List(__pyx_t_12, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 58, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_16);
+          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+          __Pyx_DECREF_SET(__pyx_v_largest_prod, __pyx_t_16);
+          __pyx_t_16 = 0;
+
+          /* "tropical/tropical/choose_max.pyx":59
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
+ *                     largest_prod = list(foo2.index)[0]
+ *                     break             # <<<<<<<<<<<<<<
+ *         if largest_prod != 'ND':
+ *             break
+ */
+          goto __pyx_L14_break;
+
+          /* "tropical/tropical/choose_max.pyx":57
+ *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
+ *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:             # <<<<<<<<<<<<<<
+ *                     largest_prod = list(foo2.index)[0]
+ *                     break
+ */
+        }
+
+        /* "tropical/tropical/choose_max.pyx":55
+ *             # Compares the largest combination of monomials to other combinations whose monomials that are not
+ *             # present in comb_largest
+ *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):             # <<<<<<<<<<<<<<
+ *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
+ *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
+ */
+      }
+
+      /* "tropical/tropical/choose_max.pyx":52
+ *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
+ *         comb_largest = mon_comb[comb][list(foo2.index)[0]]
+ *         for cm in list(foo2.index):             # <<<<<<<<<<<<<<
+ *             # Compares the largest combination of monomials to other combinations whose monomials that are not
+ *             # present in comb_largest
+ */
+    }
+    __pyx_L14_break:;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "tropical/tropical/choose_max.pyx":60
+ *                     largest_prod = list(foo2.index)[0]
+ *                     break
+ *         if largest_prod != 'ND':             # <<<<<<<<<<<<<<
+ *             break
+ *     return largest_prod
+ */
+    __pyx_t_13 = (__Pyx_PyString_Equals(__pyx_v_largest_prod, __pyx_n_s_ND, Py_NE)); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 60, __pyx_L1_error)
+    if (__pyx_t_13) {
+
+      /* "tropical/tropical/choose_max.pyx":61
+ *                     break
+ *         if largest_prod != 'ND':
+ *             break             # <<<<<<<<<<<<<<
+ *     return largest_prod
+ */
+      goto __pyx_L5_break;
+
+      /* "tropical/tropical/choose_max.pyx":60
+ *                     largest_prod = list(foo2.index)[0]
+ *                     break
+ *         if largest_prod != 'ND':             # <<<<<<<<<<<<<<
+ *             break
+ *     return largest_prod
+ */
+    }
+
+    /* "tropical/tropical/choose_max.pyx":30
+ *     # chooses the larger monomial or combination of monomials that satisfy diff_par
+ *     largest_prod = 'ND'
+ *     for comb in mon_comb.keys():             # <<<<<<<<<<<<<<
+ *         # comb is an integer that represents the number of monomials in a combination
+ *         if comb == mon_comb.keys()[-1]:
+ */
+  }
+  __pyx_L5_break:;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "tropical/tropical/choose_max.pyx":62
+ *         if largest_prod != 'ND':
+ *             break
+ *     return largest_prod             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_17 = __Pyx_PyInt_As_char(__pyx_v_largest_prod); if (unlikely((__pyx_t_17 == (char)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_r = __pyx_t_17;
+  goto __pyx_L0;
+
+  /* "tropical/tropical/choose_max.pyx":4
+ * import pandas as pd
+ * 
+ * cpdef char choose_max3(pd_series, float diff_par, dict mon_comb, char type_sign):             # <<<<<<<<<<<<<<
+ *     """
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_12);
+  __Pyx_XDECREF(__pyx_t_15);
+  __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_WriteUnraisable("tropical.tropical.choose_max.choose_max3", __pyx_clineno, __pyx_lineno, __pyx_filename, 0, 0);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_monomials);
+  __Pyx_XDECREF(__pyx_v_sign);
+  __Pyx_XDECREF(__pyx_v_largest_prod);
+  __Pyx_XDECREF(__pyx_v_comb);
+  __Pyx_XDECREF(__pyx_v_monomials_values);
+  __Pyx_XDECREF(__pyx_v_idx);
+  __Pyx_XDECREF(__pyx_v_value);
+  __Pyx_XDECREF(__pyx_v_j);
+  __Pyx_XDECREF(__pyx_v_foo2);
+  __Pyx_XDECREF(__pyx_v_comb_largest);
+  __Pyx_XDECREF(__pyx_v_cm);
+  __Pyx_XDECREF(__pyx_v_value_prod_largest);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
 /* Python wrapper */
-static PyObject *__pyx_pw_8tropical_10choose_max_1choose_max3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_8tropical_10choose_max_choose_max3[] = "\n\n    :param type_sign: Type of signature. It can be 'consumption' or 'consumption'\n    :param mon_comb: combinations of monomials that produce certain species\n    :param pd_series: Pandas series whose axis labels are the monomials and the data is their values at a specific\n    time point\n    :param diff_par: Parameter to define when a monomial is larger\n    :return: monomial or combination of monomials that dominate at certain time point\n    ";
-static PyMethodDef __pyx_mdef_8tropical_10choose_max_1choose_max3 = {"choose_max3", (PyCFunction)__pyx_pw_8tropical_10choose_max_1choose_max3, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8tropical_10choose_max_choose_max3};
-static PyObject *__pyx_pw_8tropical_10choose_max_1choose_max3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8tropical_8tropical_10choose_max_1choose_max3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8tropical_8tropical_10choose_max_choose_max3[] = "\n\n    :param type_sign: Type of signature. It can be 'consumption' or 'consumption'\n    :param mon_comb: combinations of monomials that produce certain species\n    :param pd_series: Pandas series whose axis labels are the monomials and the data is their values at a specific\n    time point\n    :param diff_par: Parameter to define when a monomial is larger\n    :return: monomial or combination of monomials that dominate at certain time point\n    ";
+static PyObject *__pyx_pw_8tropical_8tropical_10choose_max_1choose_max3(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_pd_series = 0;
-  PyObject *__pyx_v_diff_par = 0;
+  float __pyx_v_diff_par;
   PyObject *__pyx_v_mon_comb = 0;
-  PyObject *__pyx_v_type_sign = 0;
+  char __pyx_v_type_sign;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("choose_max3 (wrapper)", 0);
@@ -1029,1120 +2158,55 @@ static PyObject *__pyx_pw_8tropical_10choose_max_1choose_max3(PyObject *__pyx_se
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
     __pyx_v_pd_series = values[0];
-    __pyx_v_diff_par = values[1];
-    __pyx_v_mon_comb = values[2];
-    __pyx_v_type_sign = values[3];
+    __pyx_v_diff_par = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_diff_par == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 4, __pyx_L3_error)
+    __pyx_v_mon_comb = ((PyObject*)values[2]);
+    __pyx_v_type_sign = __Pyx_PyInt_As_char(values[3]); if (unlikely((__pyx_v_type_sign == (char)-1) && PyErr_Occurred())) __PYX_ERR(0, 4, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("choose_max3", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 4, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("tropical.choose_max.choose_max3", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("tropical.tropical.choose_max.choose_max3", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8tropical_10choose_max_choose_max3(__pyx_self, __pyx_v_pd_series, __pyx_v_diff_par, __pyx_v_mon_comb, __pyx_v_type_sign);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_mon_comb), (&PyDict_Type), 1, "mon_comb", 1))) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_r = __pyx_pf_8tropical_8tropical_10choose_max_choose_max3(__pyx_self, __pyx_v_pd_series, __pyx_v_diff_par, __pyx_v_mon_comb, __pyx_v_type_sign);
 
   /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8tropical_10choose_max_choose_max3(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pd_series, PyObject *__pyx_v_diff_par, PyObject *__pyx_v_mon_comb, PyObject *__pyx_v_type_sign) {
-  PyObject *__pyx_v_monomials = NULL;
-  double __pyx_v_value_to_add;
-  PyObject *__pyx_v_sign = NULL;
-  int __pyx_v_ascending;
-  PyObject *__pyx_v_largest_prod = NULL;
-  PyObject *__pyx_v_comb = NULL;
-  PyObject *__pyx_v_monomials_values = NULL;
-  PyObject *__pyx_v_idx = NULL;
-  PyObject *__pyx_v_value = NULL;
-  PyObject *__pyx_v_j = NULL;
-  PyObject *__pyx_v_foo2 = NULL;
-  PyObject *__pyx_v_comb_largest = NULL;
-  PyObject *__pyx_v_cm = NULL;
-  PyObject *__pyx_v_value_prod_largest = NULL;
+static PyObject *__pyx_pf_8tropical_8tropical_10choose_max_choose_max3(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_pd_series, float __pyx_v_diff_par, PyObject *__pyx_v_mon_comb, char __pyx_v_type_sign) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  Py_ssize_t __pyx_t_5;
-  PyObject *(*__pyx_t_6)(PyObject *);
-  PyObject *__pyx_t_7 = NULL;
-  Py_ssize_t __pyx_t_8;
-  PyObject *(*__pyx_t_9)(PyObject *);
-  Py_ssize_t __pyx_t_10;
-  PyObject *(*__pyx_t_11)(PyObject *);
-  PyObject *__pyx_t_12 = NULL;
-  int __pyx_t_13;
-  Py_ssize_t __pyx_t_14;
-  PyObject *__pyx_t_15 = NULL;
-  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("choose_max3", 0);
-
-  /* "tropical/choose_max.pyx":15
- *     """
- * 
- *     if type_sign == 'production':             # <<<<<<<<<<<<<<
- *         monomials = pd_series[pd_series > 0]
- *         value_to_add = 1e-100
- */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_type_sign, __pyx_n_s_production, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 15, __pyx_L1_error)
-  if (__pyx_t_1) {
-
-    /* "tropical/choose_max.pyx":16
- * 
- *     if type_sign == 'production':
- *         monomials = pd_series[pd_series > 0]             # <<<<<<<<<<<<<<
- *         value_to_add = 1e-100
- *         sign = 1
- */
-    __pyx_t_2 = PyObject_RichCompare(__pyx_v_pd_series, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 16, __pyx_L1_error)
-    __pyx_t_3 = PyObject_GetItem(__pyx_v_pd_series, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 16, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_v_monomials = __pyx_t_3;
-    __pyx_t_3 = 0;
-
-    /* "tropical/choose_max.pyx":17
- *     if type_sign == 'production':
- *         monomials = pd_series[pd_series > 0]
- *         value_to_add = 1e-100             # <<<<<<<<<<<<<<
- *         sign = 1
- *         ascending = False
- */
-    __pyx_v_value_to_add = 1e-100;
-
-    /* "tropical/choose_max.pyx":18
- *         monomials = pd_series[pd_series > 0]
- *         value_to_add = 1e-100
- *         sign = 1             # <<<<<<<<<<<<<<
- *         ascending = False
- *     elif type_sign == 'consumption':
- */
-    __Pyx_INCREF(__pyx_int_1);
-    __pyx_v_sign = __pyx_int_1;
-
-    /* "tropical/choose_max.pyx":19
- *         value_to_add = 1e-100
- *         sign = 1
- *         ascending = False             # <<<<<<<<<<<<<<
- *     elif type_sign == 'consumption':
- *         monomials = pd_series[pd_series < 0]
- */
-    __pyx_v_ascending = 0;
-
-    /* "tropical/choose_max.pyx":15
- *     """
- * 
- *     if type_sign == 'production':             # <<<<<<<<<<<<<<
- *         monomials = pd_series[pd_series > 0]
- *         value_to_add = 1e-100
- */
-    goto __pyx_L3;
-  }
-
-  /* "tropical/choose_max.pyx":20
- *         sign = 1
- *         ascending = False
- *     elif type_sign == 'consumption':             # <<<<<<<<<<<<<<
- *         monomials = pd_series[pd_series < 0]
- *         value_to_add = -1e-100
- */
-  __pyx_t_1 = (__Pyx_PyString_Equals(__pyx_v_type_sign, __pyx_n_s_consumption, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 20, __pyx_L1_error)
-  if (__pyx_t_1) {
-
-    /* "tropical/choose_max.pyx":21
- *         ascending = False
- *     elif type_sign == 'consumption':
- *         monomials = pd_series[pd_series < 0]             # <<<<<<<<<<<<<<
- *         value_to_add = -1e-100
- *         sign = -1
- */
-    __pyx_t_3 = PyObject_RichCompare(__pyx_v_pd_series, __pyx_int_0, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 21, __pyx_L1_error)
-    __pyx_t_2 = PyObject_GetItem(__pyx_v_pd_series, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_v_monomials = __pyx_t_2;
-    __pyx_t_2 = 0;
-
-    /* "tropical/choose_max.pyx":22
- *     elif type_sign == 'consumption':
- *         monomials = pd_series[pd_series < 0]
- *         value_to_add = -1e-100             # <<<<<<<<<<<<<<
- *         sign = -1
- *         ascending = True
- */
-    __pyx_v_value_to_add = -1e-100;
-
-    /* "tropical/choose_max.pyx":23
- *         monomials = pd_series[pd_series < 0]
- *         value_to_add = -1e-100
- *         sign = -1             # <<<<<<<<<<<<<<
- *         ascending = True
- *     else:
- */
-    __Pyx_INCREF(__pyx_int_neg_1);
-    __pyx_v_sign = __pyx_int_neg_1;
-
-    /* "tropical/choose_max.pyx":24
- *         value_to_add = -1e-100
- *         sign = -1
- *         ascending = True             # <<<<<<<<<<<<<<
- *     else:
- *         raise Exception('Wrong type_sign')
- */
-    __pyx_v_ascending = 1;
-
-    /* "tropical/choose_max.pyx":20
- *         sign = 1
- *         ascending = False
- *     elif type_sign == 'consumption':             # <<<<<<<<<<<<<<
- *         monomials = pd_series[pd_series < 0]
- *         value_to_add = -1e-100
- */
-    goto __pyx_L3;
-  }
-
-  /* "tropical/choose_max.pyx":26
- *         ascending = True
- *     else:
- *         raise Exception('Wrong type_sign')             # <<<<<<<<<<<<<<
- * 
- *     # chooses the larger monomial or combination of monomials that satisfy diff_par
- */
-  /*else*/ {
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_Raise(__pyx_t_2, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 26, __pyx_L1_error)
-  }
-  __pyx_L3:;
-
-  /* "tropical/choose_max.pyx":29
- * 
- *     # chooses the larger monomial or combination of monomials that satisfy diff_par
- *     largest_prod = 'ND'             # <<<<<<<<<<<<<<
- *     for comb in mon_comb.keys():
- *         # comb is an integer that represents the number of monomials in a combination
- */
-  __Pyx_INCREF(__pyx_n_s_ND);
-  __pyx_v_largest_prod = __pyx_n_s_ND;
-
-  /* "tropical/choose_max.pyx":30
- *     # chooses the larger monomial or combination of monomials that satisfy diff_par
- *     largest_prod = 'ND'
- *     for comb in mon_comb.keys():             # <<<<<<<<<<<<<<
- *         # comb is an integer that represents the number of monomials in a combination
- *         if comb == mon_comb.keys()[-1]:
- */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_mon_comb, __pyx_n_s_keys); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  if (__pyx_t_4) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-  }
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
-    __pyx_t_3 = __pyx_t_2; __Pyx_INCREF(__pyx_t_3); __pyx_t_5 = 0;
-    __pyx_t_6 = NULL;
-  } else {
-    __pyx_t_5 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 30, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  for (;;) {
-    if (likely(!__pyx_t_6)) {
-      if (likely(PyList_CheckExact(__pyx_t_3))) {
-        if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_3)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 30, __pyx_L1_error)
-        #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-      } else {
-        if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 30, __pyx_L1_error)
-        #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-      }
-    } else {
-      __pyx_t_2 = __pyx_t_6(__pyx_t_3);
-      if (unlikely(!__pyx_t_2)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 30, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_2);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_comb, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "tropical/choose_max.pyx":32
- *     for comb in mon_comb.keys():
- *         # comb is an integer that represents the number of monomials in a combination
- *         if comb == mon_comb.keys()[-1]:             # <<<<<<<<<<<<<<
- *             break
- * 
- */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_mon_comb, __pyx_n_s_keys); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_7)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_7);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-      }
-    }
-    if (__pyx_t_7) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
-    }
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyObject_RichCompare(__pyx_v_comb, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 32, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (__pyx_t_1) {
-
-      /* "tropical/choose_max.pyx":33
- *         # comb is an integer that represents the number of monomials in a combination
- *         if comb == mon_comb.keys()[-1]:
- *             break             # <<<<<<<<<<<<<<
- * 
- *         if len(mon_comb[comb].keys()) == 1:
- */
-      goto __pyx_L5_break;
-
-      /* "tropical/choose_max.pyx":32
- *     for comb in mon_comb.keys():
- *         # comb is an integer that represents the number of monomials in a combination
- *         if comb == mon_comb.keys()[-1]:             # <<<<<<<<<<<<<<
- *             break
- * 
- */
-    }
-
-    /* "tropical/choose_max.pyx":35
- *             break
- * 
- *         if len(mon_comb[comb].keys()) == 1:             # <<<<<<<<<<<<<<
- *             largest_prod = mon_comb[comb].keys()[0]
- *             break
- */
-    __pyx_t_4 = PyObject_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_keys); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 35, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
-      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_7);
-      if (likely(__pyx_t_4)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-        __Pyx_INCREF(__pyx_t_4);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_7, function);
-      }
-    }
-    if (__pyx_t_4) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    } else {
-      __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
-    }
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_8 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 35, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_1 = ((__pyx_t_8 == 1) != 0);
-    if (__pyx_t_1) {
-
-      /* "tropical/choose_max.pyx":36
- * 
- *         if len(mon_comb[comb].keys()) == 1:
- *             largest_prod = mon_comb[comb].keys()[0]             # <<<<<<<<<<<<<<
- *             break
- * 
- */
-      __pyx_t_7 = PyObject_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 36, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_keys); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_4);
-        if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-          __Pyx_INCREF(__pyx_t_7);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
-        }
-      }
-      if (__pyx_t_7) {
-        __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      } else {
-        __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
-      }
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_DECREF_SET(__pyx_v_largest_prod, __pyx_t_4);
-      __pyx_t_4 = 0;
-
-      /* "tropical/choose_max.pyx":37
- *         if len(mon_comb[comb].keys()) == 1:
- *             largest_prod = mon_comb[comb].keys()[0]
- *             break             # <<<<<<<<<<<<<<
- * 
- *         monomials_values = {}
- */
-      goto __pyx_L5_break;
-
-      /* "tropical/choose_max.pyx":35
- *             break
- * 
- *         if len(mon_comb[comb].keys()) == 1:             # <<<<<<<<<<<<<<
- *             largest_prod = mon_comb[comb].keys()[0]
- *             break
- */
-    }
-
-    /* "tropical/choose_max.pyx":39
- *             break
- * 
- *         monomials_values = {}             # <<<<<<<<<<<<<<
- *         for idx in mon_comb[comb].keys():
- *             value = 0
- */
-    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 39, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_XDECREF_SET(__pyx_v_monomials_values, ((PyObject*)__pyx_t_4));
-    __pyx_t_4 = 0;
-
-    /* "tropical/choose_max.pyx":40
- * 
- *         monomials_values = {}
- *         for idx in mon_comb[comb].keys():             # <<<<<<<<<<<<<<
- *             value = 0
- *             for j in mon_comb[comb][idx]:
- */
-    __pyx_t_2 = PyObject_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_keys); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
-      __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_7);
-      if (likely(__pyx_t_2)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-        __Pyx_INCREF(__pyx_t_2);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_7, function);
-      }
-    }
-    if (__pyx_t_2) {
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else {
-      __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
-    }
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
-      __pyx_t_7 = __pyx_t_4; __Pyx_INCREF(__pyx_t_7); __pyx_t_8 = 0;
-      __pyx_t_9 = NULL;
-    } else {
-      __pyx_t_8 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 40, __pyx_L1_error)
-    }
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    for (;;) {
-      if (likely(!__pyx_t_9)) {
-        if (likely(PyList_CheckExact(__pyx_t_7))) {
-          if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_7)) break;
-          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_4 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 40, __pyx_L1_error)
-          #else
-          __pyx_t_4 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          #endif
-        } else {
-          if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_7)) break;
-          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 40, __pyx_L1_error)
-          #else
-          __pyx_t_4 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          #endif
-        }
-      } else {
-        __pyx_t_4 = __pyx_t_9(__pyx_t_7);
-        if (unlikely(!__pyx_t_4)) {
-          PyObject* exc_type = PyErr_Occurred();
-          if (exc_type) {
-            if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 40, __pyx_L1_error)
-          }
-          break;
-        }
-        __Pyx_GOTREF(__pyx_t_4);
-      }
-      __Pyx_XDECREF_SET(__pyx_v_idx, __pyx_t_4);
-      __pyx_t_4 = 0;
-
-      /* "tropical/choose_max.pyx":41
- *         monomials_values = {}
- *         for idx in mon_comb[comb].keys():
- *             value = 0             # <<<<<<<<<<<<<<
- *             for j in mon_comb[comb][idx]:
- *                 # j(reversible) might not be in the prod df because it has a negative value
- */
-      __Pyx_INCREF(__pyx_int_0);
-      __Pyx_XDECREF_SET(__pyx_v_value, __pyx_int_0);
-
-      /* "tropical/choose_max.pyx":42
- *         for idx in mon_comb[comb].keys():
- *             value = 0
- *             for j in mon_comb[comb][idx]:             # <<<<<<<<<<<<<<
- *                 # j(reversible) might not be in the prod df because it has a negative value
- *                 if j not in list(monomials.index):
- */
-      __pyx_t_4 = PyObject_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 42, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_2 = PyObject_GetItem(__pyx_t_4, __pyx_v_idx); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
-        __pyx_t_4 = __pyx_t_2; __Pyx_INCREF(__pyx_t_4); __pyx_t_10 = 0;
-        __pyx_t_11 = NULL;
-      } else {
-        __pyx_t_10 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 42, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_11 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 42, __pyx_L1_error)
-      }
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      for (;;) {
-        if (likely(!__pyx_t_11)) {
-          if (likely(PyList_CheckExact(__pyx_t_4))) {
-            if (__pyx_t_10 >= PyList_GET_SIZE(__pyx_t_4)) break;
-            #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_2 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_10); __Pyx_INCREF(__pyx_t_2); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 42, __pyx_L1_error)
-            #else
-            __pyx_t_2 = PySequence_ITEM(__pyx_t_4, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_2);
-            #endif
-          } else {
-            if (__pyx_t_10 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
-            #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_10); __Pyx_INCREF(__pyx_t_2); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 42, __pyx_L1_error)
-            #else
-            __pyx_t_2 = PySequence_ITEM(__pyx_t_4, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_2);
-            #endif
-          }
-        } else {
-          __pyx_t_2 = __pyx_t_11(__pyx_t_4);
-          if (unlikely(!__pyx_t_2)) {
-            PyObject* exc_type = PyErr_Occurred();
-            if (exc_type) {
-              if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else __PYX_ERR(0, 42, __pyx_L1_error)
-            }
-            break;
-          }
-          __Pyx_GOTREF(__pyx_t_2);
-        }
-        __Pyx_XDECREF_SET(__pyx_v_j, __pyx_t_2);
-        __pyx_t_2 = 0;
-
-        /* "tropical/choose_max.pyx":44
- *             for j in mon_comb[comb][idx]:
- *                 # j(reversible) might not be in the prod df because it has a negative value
- *                 if j not in list(monomials.index):             # <<<<<<<<<<<<<<
- *                     value += value_to_add
- *                 else:
- */
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_monomials, __pyx_n_s_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_12 = PySequence_List(__pyx_t_2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 44, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_1 = (__Pyx_PySequence_ContainsTF(__pyx_v_j, __pyx_t_12, Py_NE)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 44, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __pyx_t_13 = (__pyx_t_1 != 0);
-        if (__pyx_t_13) {
-
-          /* "tropical/choose_max.pyx":45
- *                 # j(reversible) might not be in the prod df because it has a negative value
- *                 if j not in list(monomials.index):
- *                     value += value_to_add             # <<<<<<<<<<<<<<
- *                 else:
- *                     value += monomials.loc[j]
- */
-          __pyx_t_12 = PyFloat_FromDouble(__pyx_v_value_to_add); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 45, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_12);
-          __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_value, __pyx_t_12); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 45, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          __Pyx_DECREF_SET(__pyx_v_value, __pyx_t_2);
-          __pyx_t_2 = 0;
-
-          /* "tropical/choose_max.pyx":44
- *             for j in mon_comb[comb][idx]:
- *                 # j(reversible) might not be in the prod df because it has a negative value
- *                 if j not in list(monomials.index):             # <<<<<<<<<<<<<<
- *                     value += value_to_add
- *                 else:
- */
-          goto __pyx_L12;
-        }
-
-        /* "tropical/choose_max.pyx":47
- *                     value += value_to_add
- *                 else:
- *                     value += monomials.loc[j]             # <<<<<<<<<<<<<<
- *             monomials_values[idx] = value
- * 
- */
-        /*else*/ {
-          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_monomials, __pyx_n_s_loc); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __pyx_t_12 = PyObject_GetItem(__pyx_t_2, __pyx_v_j); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 47, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_12);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_value, __pyx_t_12); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          __Pyx_DECREF_SET(__pyx_v_value, __pyx_t_2);
-          __pyx_t_2 = 0;
-        }
-        __pyx_L12:;
-
-        /* "tropical/choose_max.pyx":42
- *         for idx in mon_comb[comb].keys():
- *             value = 0
- *             for j in mon_comb[comb][idx]:             # <<<<<<<<<<<<<<
- *                 # j(reversible) might not be in the prod df because it has a negative value
- *                 if j not in list(monomials.index):
- */
-      }
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-      /* "tropical/choose_max.pyx":48
- *                 else:
- *                     value += monomials.loc[j]
- *             monomials_values[idx] = value             # <<<<<<<<<<<<<<
- * 
- *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
- */
-      if (unlikely(PyDict_SetItem(__pyx_v_monomials_values, __pyx_v_idx, __pyx_v_value) < 0)) __PYX_ERR(0, 48, __pyx_L1_error)
-
-      /* "tropical/choose_max.pyx":40
- * 
- *         monomials_values = {}
- *         for idx in mon_comb[comb].keys():             # <<<<<<<<<<<<<<
- *             value = 0
- *             for j in mon_comb[comb][idx]:
- */
-    }
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-
-    /* "tropical/choose_max.pyx":50
- *             monomials_values[idx] = value
- * 
- *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)             # <<<<<<<<<<<<<<
- *         comb_largest = mon_comb[comb][list(foo2.index)[0]]
- *         for cm in list(foo2.index):
- */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_pd); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_Series); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = NULL;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
-      if (likely(__pyx_t_4)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_4);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_2, function);
-      }
-    }
-    if (!__pyx_t_4) {
-      __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_monomials_values); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-    } else {
-      #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_2)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_monomials_values};
-        __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_GOTREF(__pyx_t_7);
-      } else
-      #endif
-      #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_monomials_values};
-        __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_GOTREF(__pyx_t_7);
-      } else
-      #endif
-      {
-        __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 50, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_4); __pyx_t_4 = NULL;
-        __Pyx_INCREF(__pyx_v_monomials_values);
-        __Pyx_GIVEREF(__pyx_v_monomials_values);
-        PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_v_monomials_values);
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_12, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      }
-    }
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_sort_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_12 = __Pyx_PyBool_FromLong(__pyx_v_ascending); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_ascending, __pyx_t_12) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_7); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __Pyx_XDECREF_SET(__pyx_v_foo2, __pyx_t_12);
-    __pyx_t_12 = 0;
-
-    /* "tropical/choose_max.pyx":51
- * 
- *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
- *         comb_largest = mon_comb[comb][list(foo2.index)[0]]             # <<<<<<<<<<<<<<
- *         for cm in list(foo2.index):
- *             # Compares the largest combination of monomials to other combinations whose monomials that are not
- */
-    __pyx_t_12 = PyObject_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_2 = PySequence_List(__pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_GetItemInt_List(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyObject_GetItem(__pyx_t_12, __pyx_t_7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __Pyx_XDECREF_SET(__pyx_v_comb_largest, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "tropical/choose_max.pyx":52
- *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
- *         comb_largest = mon_comb[comb][list(foo2.index)[0]]
- *         for cm in list(foo2.index):             # <<<<<<<<<<<<<<
- *             # Compares the largest combination of monomials to other combinations whose monomials that are not
- *             # present in comb_largest
- */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = PySequence_List(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 52, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __pyx_t_7; __Pyx_INCREF(__pyx_t_2); __pyx_t_8 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    for (;;) {
-      if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_2)) break;
-      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_7 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 52, __pyx_L1_error)
-      #else
-      __pyx_t_7 = PySequence_ITEM(__pyx_t_2, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 52, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      #endif
-      __Pyx_XDECREF_SET(__pyx_v_cm, __pyx_t_7);
-      __pyx_t_7 = 0;
-
-      /* "tropical/choose_max.pyx":55
- *             # Compares the largest combination of monomials to other combinations whose monomials that are not
- *             # present in comb_largest
- *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):             # <<<<<<<<<<<<<<
- *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
- */
-      __pyx_t_7 = PySet_New(__pyx_v_comb_largest); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_12 = PyObject_GetItem(__pyx_v_mon_comb, __pyx_v_comb); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_4 = PyObject_GetItem(__pyx_t_12, __pyx_v_cm); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PySet_New(__pyx_t_4); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_12);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = PyNumber_Subtract(__pyx_t_7, __pyx_t_12); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_10 = PyObject_Length(__pyx_t_4); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_14 = PyObject_Length(__pyx_v_comb_largest); if (unlikely(__pyx_t_14 == -1)) __PYX_ERR(0, 55, __pyx_L1_error)
-      __pyx_t_13 = ((__pyx_t_10 == __pyx_t_14) != 0);
-      if (__pyx_t_13) {
-
-        /* "tropical/choose_max.pyx":56
- *             # present in comb_largest
- *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
- *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])             # <<<<<<<<<<<<<<
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
- *                     largest_prod = list(foo2.index)[0]
- */
-        __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_math); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_12);
-        __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_log10); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_loc); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_12);
-        __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_15);
-        __pyx_t_16 = PySequence_List(__pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-        __pyx_t_15 = __Pyx_GetItemInt_List(__pyx_t_16, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_15);
-        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __pyx_t_16 = PyObject_GetItem(__pyx_t_12, __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-        __pyx_t_15 = PyNumber_Multiply(__pyx_v_sign, __pyx_t_16); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 56, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_15);
-        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __pyx_t_16 = NULL;
-        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
-          __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_7);
-          if (likely(__pyx_t_16)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-            __Pyx_INCREF(__pyx_t_16);
-            __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_7, function);
-          }
-        }
-        if (!__pyx_t_16) {
-          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_15); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 56, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-          __Pyx_GOTREF(__pyx_t_4);
-        } else {
-          #if CYTHON_FAST_PYCALL
-          if (PyFunction_Check(__pyx_t_7)) {
-            PyObject *__pyx_temp[2] = {__pyx_t_16, __pyx_t_15};
-            __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 56, __pyx_L1_error)
-            __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-          } else
-          #endif
-          #if CYTHON_FAST_PYCCALL
-          if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
-            PyObject *__pyx_temp[2] = {__pyx_t_16, __pyx_t_15};
-            __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 56, __pyx_L1_error)
-            __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-          } else
-          #endif
-          {
-            __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 56, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_12);
-            __Pyx_GIVEREF(__pyx_t_16); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_16); __pyx_t_16 = NULL;
-            __Pyx_GIVEREF(__pyx_t_15);
-            PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_15);
-            __pyx_t_15 = 0;
-            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_12, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 56, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          }
-        }
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __Pyx_XDECREF_SET(__pyx_v_value_prod_largest, __pyx_t_4);
-        __pyx_t_4 = 0;
-
-        /* "tropical/choose_max.pyx":57
- *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
- *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:             # <<<<<<<<<<<<<<
- *                     largest_prod = list(foo2.index)[0]
- *                     break
- */
-        __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_math); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_log10); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_loc); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_15 = PyObject_GetItem(__pyx_t_7, __pyx_v_cm); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_15);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __pyx_t_7 = PyNumber_Multiply(__pyx_v_sign, __pyx_t_15); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
-        __pyx_t_15 = NULL;
-        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_12))) {
-          __pyx_t_15 = PyMethod_GET_SELF(__pyx_t_12);
-          if (likely(__pyx_t_15)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_12);
-            __Pyx_INCREF(__pyx_t_15);
-            __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_12, function);
-          }
-        }
-        if (!__pyx_t_15) {
-          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_12, __pyx_t_7); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-          __Pyx_GOTREF(__pyx_t_4);
-        } else {
-          #if CYTHON_FAST_PYCALL
-          if (PyFunction_Check(__pyx_t_12)) {
-            PyObject *__pyx_temp[2] = {__pyx_t_15, __pyx_t_7};
-            __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
-            __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-          } else
-          #endif
-          #if CYTHON_FAST_PYCCALL
-          if (__Pyx_PyFastCFunction_Check(__pyx_t_12)) {
-            PyObject *__pyx_temp[2] = {__pyx_t_15, __pyx_t_7};
-            __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_12, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
-            __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-          } else
-          #endif
-          {
-            __pyx_t_16 = PyTuple_New(1+1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 57, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_16);
-            __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_15); __pyx_t_15 = NULL;
-            __Pyx_GIVEREF(__pyx_t_7);
-            PyTuple_SET_ITEM(__pyx_t_16, 0+1, __pyx_t_7);
-            __pyx_t_7 = 0;
-            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_16, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-          }
-        }
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __pyx_t_12 = PyNumber_Subtract(__pyx_v_value_prod_largest, __pyx_t_4); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_t_4 = PyNumber_Absolute(__pyx_t_12); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __pyx_t_12 = PyObject_RichCompare(__pyx_t_4, __pyx_v_diff_par, Py_GT); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        if (__pyx_t_1) {
-        } else {
-          __pyx_t_13 = __pyx_t_1;
-          goto __pyx_L17_bool_binop_done;
-        }
-        __pyx_t_12 = PyObject_RichCompare(__pyx_v_value_prod_largest, __pyx_int_neg_5, Py_GT); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 57, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __pyx_t_13 = __pyx_t_1;
-        __pyx_L17_bool_binop_done:;
-        if (__pyx_t_13) {
-
-          /* "tropical/choose_max.pyx":58
- *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
- *                     largest_prod = list(foo2.index)[0]             # <<<<<<<<<<<<<<
- *                     break
- *         if largest_prod != 'ND':
- */
-          __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_foo2, __pyx_n_s_index); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 58, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_12);
-          __pyx_t_4 = PySequence_List(__pyx_t_12); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-          __pyx_t_12 = __Pyx_GetItemInt_List(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 58, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_12);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __Pyx_DECREF_SET(__pyx_v_largest_prod, __pyx_t_12);
-          __pyx_t_12 = 0;
-
-          /* "tropical/choose_max.pyx":59
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
- *                     largest_prod = list(foo2.index)[0]
- *                     break             # <<<<<<<<<<<<<<
- *         if largest_prod != 'ND':
- *             break
- */
-          goto __pyx_L14_break;
-
-          /* "tropical/choose_max.pyx":57
- *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):
- *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:             # <<<<<<<<<<<<<<
- *                     largest_prod = list(foo2.index)[0]
- *                     break
- */
-        }
-
-        /* "tropical/choose_max.pyx":55
- *             # Compares the largest combination of monomials to other combinations whose monomials that are not
- *             # present in comb_largest
- *             if len(set(comb_largest) - set(mon_comb[comb][cm])) == len(comb_largest):             # <<<<<<<<<<<<<<
- *                 value_prod_largest = math.log10(sign * foo2.loc[list(foo2.index)[0]])
- *                 if abs(value_prod_largest - math.log10(sign * foo2.loc[cm])) > diff_par and value_prod_largest > -5:
- */
-      }
-
-      /* "tropical/choose_max.pyx":52
- *         foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
- *         comb_largest = mon_comb[comb][list(foo2.index)[0]]
- *         for cm in list(foo2.index):             # <<<<<<<<<<<<<<
- *             # Compares the largest combination of monomials to other combinations whose monomials that are not
- *             # present in comb_largest
- */
-    }
-    __pyx_L14_break:;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "tropical/choose_max.pyx":60
- *                     largest_prod = list(foo2.index)[0]
- *                     break
- *         if largest_prod != 'ND':             # <<<<<<<<<<<<<<
- *             break
- *     return largest_prod
- */
-    __pyx_t_13 = (__Pyx_PyString_Equals(__pyx_v_largest_prod, __pyx_n_s_ND, Py_NE)); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 60, __pyx_L1_error)
-    if (__pyx_t_13) {
-
-      /* "tropical/choose_max.pyx":61
- *                     break
- *         if largest_prod != 'ND':
- *             break             # <<<<<<<<<<<<<<
- *     return largest_prod
- */
-      goto __pyx_L5_break;
-
-      /* "tropical/choose_max.pyx":60
- *                     largest_prod = list(foo2.index)[0]
- *                     break
- *         if largest_prod != 'ND':             # <<<<<<<<<<<<<<
- *             break
- *     return largest_prod
- */
-    }
-
-    /* "tropical/choose_max.pyx":30
- *     # chooses the larger monomial or combination of monomials that satisfy diff_par
- *     largest_prod = 'ND'
- *     for comb in mon_comb.keys():             # <<<<<<<<<<<<<<
- *         # comb is an integer that represents the number of monomials in a combination
- *         if comb == mon_comb.keys()[-1]:
- */
-  }
-  __pyx_L5_break:;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "tropical/choose_max.pyx":62
- *         if largest_prod != 'ND':
- *             break
- *     return largest_prod             # <<<<<<<<<<<<<<
- */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_largest_prod);
-  __pyx_r = __pyx_v_largest_prod;
+  __pyx_t_1 = __Pyx_PyInt_From_char(__pyx_f_8tropical_8tropical_10choose_max_choose_max3(__pyx_v_pd_series, __pyx_v_diff_par, __pyx_v_mon_comb, __pyx_v_type_sign, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
   goto __pyx_L0;
-
-  /* "tropical/choose_max.pyx":4
- * import pandas as pd
- * 
- * def choose_max3(pd_series, diff_par, mon_comb, type_sign):             # <<<<<<<<<<<<<<
- *     """
- * 
- */
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_12);
-  __Pyx_XDECREF(__pyx_t_15);
-  __Pyx_XDECREF(__pyx_t_16);
-  __Pyx_AddTraceback("tropical.choose_max.choose_max3", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("tropical.tropical.choose_max.choose_max3", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_monomials);
-  __Pyx_XDECREF(__pyx_v_sign);
-  __Pyx_XDECREF(__pyx_v_largest_prod);
-  __Pyx_XDECREF(__pyx_v_comb);
-  __Pyx_XDECREF(__pyx_v_monomials_values);
-  __Pyx_XDECREF(__pyx_v_idx);
-  __Pyx_XDECREF(__pyx_v_value);
-  __Pyx_XDECREF(__pyx_v_j);
-  __Pyx_XDECREF(__pyx_v_foo2);
-  __Pyx_XDECREF(__pyx_v_comb_largest);
-  __Pyx_XDECREF(__pyx_v_cm);
-  __Pyx_XDECREF(__pyx_v_value_prod_largest);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
 static PyMethodDef __pyx_methods[] = {
+  {"choose_max3", (PyCFunction)__pyx_pw_8tropical_8tropical_10choose_max_1choose_max3, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8tropical_8tropical_10choose_max_choose_max3},
   {0, 0, 0, 0}
 };
 
@@ -2169,39 +2233,23 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_Series, __pyx_k_Series, sizeof(__pyx_k_Series), 0, 0, 1, 1},
   {&__pyx_kp_s_Wrong_type_sign, __pyx_k_Wrong_type_sign, sizeof(__pyx_k_Wrong_type_sign), 0, 0, 1, 0},
   {&__pyx_n_s_ascending, __pyx_k_ascending, sizeof(__pyx_k_ascending), 0, 0, 1, 1},
-  {&__pyx_n_s_choose_max3, __pyx_k_choose_max3, sizeof(__pyx_k_choose_max3), 0, 0, 1, 1},
-  {&__pyx_n_s_cm, __pyx_k_cm, sizeof(__pyx_k_cm), 0, 0, 1, 1},
-  {&__pyx_n_s_comb, __pyx_k_comb, sizeof(__pyx_k_comb), 0, 0, 1, 1},
-  {&__pyx_n_s_comb_largest, __pyx_k_comb_largest, sizeof(__pyx_k_comb_largest), 0, 0, 1, 1},
   {&__pyx_n_s_consumption, __pyx_k_consumption, sizeof(__pyx_k_consumption), 0, 0, 1, 1},
   {&__pyx_n_s_diff_par, __pyx_k_diff_par, sizeof(__pyx_k_diff_par), 0, 0, 1, 1},
-  {&__pyx_n_s_foo2, __pyx_k_foo2, sizeof(__pyx_k_foo2), 0, 0, 1, 1},
-  {&__pyx_kp_s_home_oscar_PycharmProjects_trop, __pyx_k_home_oscar_PycharmProjects_trop, sizeof(__pyx_k_home_oscar_PycharmProjects_trop), 0, 0, 1, 0},
-  {&__pyx_n_s_idx, __pyx_k_idx, sizeof(__pyx_k_idx), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_index, __pyx_k_index, sizeof(__pyx_k_index), 0, 0, 1, 1},
-  {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
   {&__pyx_n_s_keys, __pyx_k_keys, sizeof(__pyx_k_keys), 0, 0, 1, 1},
-  {&__pyx_n_s_largest_prod, __pyx_k_largest_prod, sizeof(__pyx_k_largest_prod), 0, 0, 1, 1},
   {&__pyx_n_s_loc, __pyx_k_loc, sizeof(__pyx_k_loc), 0, 0, 1, 1},
   {&__pyx_n_s_log10, __pyx_k_log10, sizeof(__pyx_k_log10), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_math, __pyx_k_math, sizeof(__pyx_k_math), 0, 0, 1, 1},
   {&__pyx_n_s_mon_comb, __pyx_k_mon_comb, sizeof(__pyx_k_mon_comb), 0, 0, 1, 1},
-  {&__pyx_n_s_monomials, __pyx_k_monomials, sizeof(__pyx_k_monomials), 0, 0, 1, 1},
-  {&__pyx_n_s_monomials_values, __pyx_k_monomials_values, sizeof(__pyx_k_monomials_values), 0, 0, 1, 1},
   {&__pyx_n_s_pandas, __pyx_k_pandas, sizeof(__pyx_k_pandas), 0, 0, 1, 1},
   {&__pyx_n_s_pd, __pyx_k_pd, sizeof(__pyx_k_pd), 0, 0, 1, 1},
   {&__pyx_n_s_pd_series, __pyx_k_pd_series, sizeof(__pyx_k_pd_series), 0, 0, 1, 1},
   {&__pyx_n_s_production, __pyx_k_production, sizeof(__pyx_k_production), 0, 0, 1, 1},
-  {&__pyx_n_s_sign, __pyx_k_sign, sizeof(__pyx_k_sign), 0, 0, 1, 1},
   {&__pyx_n_s_sort_values, __pyx_k_sort_values, sizeof(__pyx_k_sort_values), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_tropical_choose_max, __pyx_k_tropical_choose_max, sizeof(__pyx_k_tropical_choose_max), 0, 0, 1, 1},
   {&__pyx_n_s_type_sign, __pyx_k_type_sign, sizeof(__pyx_k_type_sign), 0, 0, 1, 1},
-  {&__pyx_n_s_value, __pyx_k_value, sizeof(__pyx_k_value), 0, 0, 1, 1},
-  {&__pyx_n_s_value_prod_largest, __pyx_k_value_prod_largest, sizeof(__pyx_k_value_prod_largest), 0, 0, 1, 1},
-  {&__pyx_n_s_value_to_add, __pyx_k_value_to_add, sizeof(__pyx_k_value_to_add), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
@@ -2212,7 +2260,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "tropical/choose_max.pyx":26
+  /* "tropical/tropical/choose_max.pyx":26
  *         ascending = True
  *     else:
  *         raise Exception('Wrong type_sign')             # <<<<<<<<<<<<<<
@@ -2222,18 +2270,6 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Wrong_type_sign); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
-
-  /* "tropical/choose_max.pyx":4
- * import pandas as pd
- * 
- * def choose_max3(pd_series, diff_par, mon_comb, type_sign):             # <<<<<<<<<<<<<<
- *     """
- * 
- */
-  __pyx_tuple__2 = PyTuple_Pack(18, __pyx_n_s_pd_series, __pyx_n_s_diff_par, __pyx_n_s_mon_comb, __pyx_n_s_type_sign, __pyx_n_s_monomials, __pyx_n_s_value_to_add, __pyx_n_s_sign, __pyx_n_s_ascending, __pyx_n_s_largest_prod, __pyx_n_s_comb, __pyx_n_s_monomials_values, __pyx_n_s_idx, __pyx_n_s_value, __pyx_n_s_j, __pyx_n_s_foo2, __pyx_n_s_comb_largest, __pyx_n_s_cm, __pyx_n_s_value_prod_largest); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__2);
-  __Pyx_GIVEREF(__pyx_tuple__2);
-  __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(4, 0, 18, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__2, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_oscar_PycharmProjects_trop, __pyx_n_s_choose_max3, 4, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -2242,6 +2278,7 @@ static int __Pyx_InitCachedConstants(void) {
 }
 
 static int __Pyx_InitGlobals(void) {
+  __pyx_umethod_PyDict_Type_keys.type = (PyObject*)&PyDict_Type;
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -2317,14 +2354,14 @@ PyMODINIT_FUNC PyInit_choose_max(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_tropical__choose_max) {
+  if (__pyx_module_is_main_tropical__tropical__choose_max) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "tropical.choose_max")) {
-      if (unlikely(PyDict_SetItemString(modules, "tropical.choose_max", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "tropical.tropical.choose_max")) {
+      if (unlikely(PyDict_SetItemString(modules, "tropical.tropical.choose_max", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -2344,7 +2381,7 @@ PyMODINIT_FUNC PyInit_choose_max(void)
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "tropical/choose_max.pyx":1
+  /* "tropical/tropical/choose_max.pyx":1
  * import math             # <<<<<<<<<<<<<<
  * import pandas as pd
  * 
@@ -2354,30 +2391,18 @@ PyMODINIT_FUNC PyInit_choose_max(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_math, __pyx_t_1) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "tropical/choose_max.pyx":2
+  /* "tropical/tropical/choose_max.pyx":2
  * import math
  * import pandas as pd             # <<<<<<<<<<<<<<
  * 
- * def choose_max3(pd_series, diff_par, mon_comb, type_sign):
+ * cpdef char choose_max3(pd_series, float diff_par, dict mon_comb, char type_sign):
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_pandas, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pd, __pyx_t_1) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "tropical/choose_max.pyx":4
- * import pandas as pd
- * 
- * def choose_max3(pd_series, diff_par, mon_comb, type_sign):             # <<<<<<<<<<<<<<
- *     """
- * 
- */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8tropical_10choose_max_1choose_max3, NULL, __pyx_n_s_tropical_choose_max); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_choose_max3, __pyx_t_1) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "tropical/choose_max.pyx":1
+  /* "tropical/tropical/choose_max.pyx":1
  * import math             # <<<<<<<<<<<<<<
  * import pandas as pd
  * 
@@ -2394,11 +2419,11 @@ PyMODINIT_FUNC PyInit_choose_max(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init tropical.choose_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init tropical.tropical.choose_max", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init tropical.choose_max");
+    PyErr_SetString(PyExc_ImportError, "init tropical.tropical.choose_max");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -2426,148 +2451,6 @@ end:
     return (__Pyx_RefNannyAPIStruct *)r;
 }
 #endif
-
-/* RaiseArgTupleInvalid */
-static void __Pyx_RaiseArgtupleInvalid(
-    const char* func_name,
-    int exact,
-    Py_ssize_t num_min,
-    Py_ssize_t num_max,
-    Py_ssize_t num_found)
-{
-    Py_ssize_t num_expected;
-    const char *more_or_less;
-    if (num_found < num_min) {
-        num_expected = num_min;
-        more_or_less = "at least";
-    } else {
-        num_expected = num_max;
-        more_or_less = "at most";
-    }
-    if (exact) {
-        more_or_less = "exactly";
-    }
-    PyErr_Format(PyExc_TypeError,
-                 "%.200s() takes %.8s %" CYTHON_FORMAT_SSIZE_T "d positional argument%.1s (%" CYTHON_FORMAT_SSIZE_T "d given)",
-                 func_name, more_or_less, num_expected,
-                 (num_expected == 1) ? "" : "s", num_found);
-}
-
-/* RaiseDoubleKeywords */
-static void __Pyx_RaiseDoubleKeywordsError(
-    const char* func_name,
-    PyObject* kw_name)
-{
-    PyErr_Format(PyExc_TypeError,
-        #if PY_MAJOR_VERSION >= 3
-        "%s() got multiple values for keyword argument '%U'", func_name, kw_name);
-        #else
-        "%s() got multiple values for keyword argument '%s'", func_name,
-        PyString_AsString(kw_name));
-        #endif
-}
-
-/* ParseKeywords */
-static int __Pyx_ParseOptionalKeywords(
-    PyObject *kwds,
-    PyObject **argnames[],
-    PyObject *kwds2,
-    PyObject *values[],
-    Py_ssize_t num_pos_args,
-    const char* function_name)
-{
-    PyObject *key = 0, *value = 0;
-    Py_ssize_t pos = 0;
-    PyObject*** name;
-    PyObject*** first_kw_arg = argnames + num_pos_args;
-    while (PyDict_Next(kwds, &pos, &key, &value)) {
-        name = first_kw_arg;
-        while (*name && (**name != key)) name++;
-        if (*name) {
-            values[name-argnames] = value;
-            continue;
-        }
-        name = first_kw_arg;
-        #if PY_MAJOR_VERSION < 3
-        if (likely(PyString_CheckExact(key)) || likely(PyString_Check(key))) {
-            while (*name) {
-                if ((CYTHON_COMPILING_IN_PYPY || PyString_GET_SIZE(**name) == PyString_GET_SIZE(key))
-                        && _PyString_Eq(**name, key)) {
-                    values[name-argnames] = value;
-                    break;
-                }
-                name++;
-            }
-            if (*name) continue;
-            else {
-                PyObject*** argname = argnames;
-                while (argname != first_kw_arg) {
-                    if ((**argname == key) || (
-                            (CYTHON_COMPILING_IN_PYPY || PyString_GET_SIZE(**argname) == PyString_GET_SIZE(key))
-                             && _PyString_Eq(**argname, key))) {
-                        goto arg_passed_twice;
-                    }
-                    argname++;
-                }
-            }
-        } else
-        #endif
-        if (likely(PyUnicode_Check(key))) {
-            while (*name) {
-                int cmp = (**name == key) ? 0 :
-                #if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION >= 3
-                    (PyUnicode_GET_SIZE(**name) != PyUnicode_GET_SIZE(key)) ? 1 :
-                #endif
-                    PyUnicode_Compare(**name, key);
-                if (cmp < 0 && unlikely(PyErr_Occurred())) goto bad;
-                if (cmp == 0) {
-                    values[name-argnames] = value;
-                    break;
-                }
-                name++;
-            }
-            if (*name) continue;
-            else {
-                PyObject*** argname = argnames;
-                while (argname != first_kw_arg) {
-                    int cmp = (**argname == key) ? 0 :
-                    #if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION >= 3
-                        (PyUnicode_GET_SIZE(**argname) != PyUnicode_GET_SIZE(key)) ? 1 :
-                    #endif
-                        PyUnicode_Compare(**argname, key);
-                    if (cmp < 0 && unlikely(PyErr_Occurred())) goto bad;
-                    if (cmp == 0) goto arg_passed_twice;
-                    argname++;
-                }
-            }
-        } else
-            goto invalid_keyword_type;
-        if (kwds2) {
-            if (unlikely(PyDict_SetItem(kwds2, key, value))) goto bad;
-        } else {
-            goto invalid_keyword;
-        }
-    }
-    return 0;
-arg_passed_twice:
-    __Pyx_RaiseDoubleKeywordsError(function_name, key);
-    goto bad;
-invalid_keyword_type:
-    PyErr_Format(PyExc_TypeError,
-        "%.200s() keywords must be strings", function_name);
-    goto bad;
-invalid_keyword:
-    PyErr_Format(PyExc_TypeError,
-    #if PY_MAJOR_VERSION < 3
-        "%.200s() got an unexpected keyword argument '%.200s'",
-        function_name, PyString_AsString(key));
-    #else
-        "%s() got an unexpected keyword argument '%U'",
-        function_name, key);
-    #endif
-bad:
-    return -1;
-}
 
 /* BytesEquals */
 static CYTHON_INLINE int __Pyx_PyBytes_Equals(PyObject* s1, PyObject* s2, int equals) {
@@ -2898,6 +2781,134 @@ bad:
 }
 #endif
 
+/* UnpackUnboundCMethod */
+  static int __Pyx_TryUnpackUnboundCMethod(__Pyx_CachedCFunction* target) {
+    PyObject *method;
+    method = __Pyx_PyObject_GetAttrStr(target->type, *target->method_name);
+    if (unlikely(!method))
+        return -1;
+    target->method = method;
+#if CYTHON_COMPILING_IN_CPYTHON
+    #if PY_MAJOR_VERSION >= 3
+    if (likely(PyObject_TypeCheck(method, &PyMethodDescr_Type)))
+    #endif
+    {
+        PyMethodDescrObject *descr = (PyMethodDescrObject*) method;
+        target->func = descr->d_method->ml_meth;
+        target->flag = descr->d_method->ml_flags & ~(METH_CLASS | METH_STATIC | METH_COEXIST);
+    }
+#endif
+    return 0;
+}
+
+/* CallUnboundCMethod0 */
+  static PyObject* __Pyx__CallUnboundCMethod0(__Pyx_CachedCFunction* cfunc, PyObject* self) {
+    PyObject *args, *result = NULL;
+    if (unlikely(!cfunc->method) && unlikely(__Pyx_TryUnpackUnboundCMethod(cfunc) < 0)) return NULL;
+#if CYTHON_ASSUME_SAFE_MACROS
+    args = PyTuple_New(1);
+    if (unlikely(!args)) goto bad;
+    Py_INCREF(self);
+    PyTuple_SET_ITEM(args, 0, self);
+#else
+    args = PyTuple_Pack(1, self);
+    if (unlikely(!args)) goto bad;
+#endif
+    result = __Pyx_PyObject_Call(cfunc->method, args, NULL);
+    Py_DECREF(args);
+bad:
+    return result;
+}
+
+/* py_dict_keys */
+  static CYTHON_INLINE PyObject* __Pyx_PyDict_Keys(PyObject* d) {
+    if (PY_MAJOR_VERSION >= 3)
+        return __Pyx_CallUnboundCMethod0(&__pyx_umethod_PyDict_Type_keys, d);
+    else
+        return PyDict_Keys(d);
+}
+
+/* GetItemInt */
+  static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    if (wraparound & unlikely(i < 0)) i += PyList_GET_SIZE(o);
+    if ((!boundscheck) || likely((0 <= i) & (i < PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    if (wraparound & unlikely(i < 0)) i += PyTuple_GET_SIZE(o);
+    if ((!boundscheck) || likely((0 <= i) & (i < PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely((n >= 0) & (n < PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely((n >= 0) & (n < PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+}
+
 /* PyCFunctionFastCall */
   #if CYTHON_FAST_PYCCALL
 static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, PyObject **args, Py_ssize_t nargs) {
@@ -3123,87 +3134,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
 }
 #endif
 
-/* GetItemInt */
-      static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    if (wraparound & unlikely(i < 0)) i += PyList_GET_SIZE(o);
-    if ((!boundscheck) || likely((0 <= i) & (i < PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    if (wraparound & unlikely(i < 0)) i += PyTuple_GET_SIZE(o);
-    if ((!boundscheck) || likely((0 <= i) & (i < PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely((n >= 0) & (n < PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely((n >= 0) & (n < PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
 /* GetBuiltinName */
       static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
     PyObject* result = __Pyx_PyObject_GetAttrStr(__pyx_b, name);
@@ -3234,6 +3164,217 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
         result = __Pyx_GetBuiltinName(name);
     }
     return result;
+}
+
+/* WriteUnraisableException */
+        static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
+                                  CYTHON_UNUSED int lineno, CYTHON_UNUSED const char *filename,
+                                  int full_traceback, CYTHON_UNUSED int nogil) {
+    PyObject *old_exc, *old_val, *old_tb;
+    PyObject *ctx;
+    __Pyx_PyThreadState_declare
+#ifdef WITH_THREAD
+    PyGILState_STATE state;
+    if (nogil)
+        state = PyGILState_Ensure();
+#ifdef _MSC_VER
+    else state = (PyGILState_STATE)-1;
+#endif
+#endif
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&old_exc, &old_val, &old_tb);
+    if (full_traceback) {
+        Py_XINCREF(old_exc);
+        Py_XINCREF(old_val);
+        Py_XINCREF(old_tb);
+        __Pyx_ErrRestore(old_exc, old_val, old_tb);
+        PyErr_PrintEx(1);
+    }
+    #if PY_MAJOR_VERSION < 3
+    ctx = PyString_FromString(name);
+    #else
+    ctx = PyUnicode_FromString(name);
+    #endif
+    __Pyx_ErrRestore(old_exc, old_val, old_tb);
+    if (!ctx) {
+        PyErr_WriteUnraisable(Py_None);
+    } else {
+        PyErr_WriteUnraisable(ctx);
+        Py_DECREF(ctx);
+    }
+#ifdef WITH_THREAD
+    if (nogil)
+        PyGILState_Release(state);
+#endif
+}
+
+/* RaiseArgTupleInvalid */
+        static void __Pyx_RaiseArgtupleInvalid(
+    const char* func_name,
+    int exact,
+    Py_ssize_t num_min,
+    Py_ssize_t num_max,
+    Py_ssize_t num_found)
+{
+    Py_ssize_t num_expected;
+    const char *more_or_less;
+    if (num_found < num_min) {
+        num_expected = num_min;
+        more_or_less = "at least";
+    } else {
+        num_expected = num_max;
+        more_or_less = "at most";
+    }
+    if (exact) {
+        more_or_less = "exactly";
+    }
+    PyErr_Format(PyExc_TypeError,
+                 "%.200s() takes %.8s %" CYTHON_FORMAT_SSIZE_T "d positional argument%.1s (%" CYTHON_FORMAT_SSIZE_T "d given)",
+                 func_name, more_or_less, num_expected,
+                 (num_expected == 1) ? "" : "s", num_found);
+}
+
+/* RaiseDoubleKeywords */
+        static void __Pyx_RaiseDoubleKeywordsError(
+    const char* func_name,
+    PyObject* kw_name)
+{
+    PyErr_Format(PyExc_TypeError,
+        #if PY_MAJOR_VERSION >= 3
+        "%s() got multiple values for keyword argument '%U'", func_name, kw_name);
+        #else
+        "%s() got multiple values for keyword argument '%s'", func_name,
+        PyString_AsString(kw_name));
+        #endif
+}
+
+/* ParseKeywords */
+        static int __Pyx_ParseOptionalKeywords(
+    PyObject *kwds,
+    PyObject **argnames[],
+    PyObject *kwds2,
+    PyObject *values[],
+    Py_ssize_t num_pos_args,
+    const char* function_name)
+{
+    PyObject *key = 0, *value = 0;
+    Py_ssize_t pos = 0;
+    PyObject*** name;
+    PyObject*** first_kw_arg = argnames + num_pos_args;
+    while (PyDict_Next(kwds, &pos, &key, &value)) {
+        name = first_kw_arg;
+        while (*name && (**name != key)) name++;
+        if (*name) {
+            values[name-argnames] = value;
+            continue;
+        }
+        name = first_kw_arg;
+        #if PY_MAJOR_VERSION < 3
+        if (likely(PyString_CheckExact(key)) || likely(PyString_Check(key))) {
+            while (*name) {
+                if ((CYTHON_COMPILING_IN_PYPY || PyString_GET_SIZE(**name) == PyString_GET_SIZE(key))
+                        && _PyString_Eq(**name, key)) {
+                    values[name-argnames] = value;
+                    break;
+                }
+                name++;
+            }
+            if (*name) continue;
+            else {
+                PyObject*** argname = argnames;
+                while (argname != first_kw_arg) {
+                    if ((**argname == key) || (
+                            (CYTHON_COMPILING_IN_PYPY || PyString_GET_SIZE(**argname) == PyString_GET_SIZE(key))
+                             && _PyString_Eq(**argname, key))) {
+                        goto arg_passed_twice;
+                    }
+                    argname++;
+                }
+            }
+        } else
+        #endif
+        if (likely(PyUnicode_Check(key))) {
+            while (*name) {
+                int cmp = (**name == key) ? 0 :
+                #if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION >= 3
+                    (PyUnicode_GET_SIZE(**name) != PyUnicode_GET_SIZE(key)) ? 1 :
+                #endif
+                    PyUnicode_Compare(**name, key);
+                if (cmp < 0 && unlikely(PyErr_Occurred())) goto bad;
+                if (cmp == 0) {
+                    values[name-argnames] = value;
+                    break;
+                }
+                name++;
+            }
+            if (*name) continue;
+            else {
+                PyObject*** argname = argnames;
+                while (argname != first_kw_arg) {
+                    int cmp = (**argname == key) ? 0 :
+                    #if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION >= 3
+                        (PyUnicode_GET_SIZE(**argname) != PyUnicode_GET_SIZE(key)) ? 1 :
+                    #endif
+                        PyUnicode_Compare(**argname, key);
+                    if (cmp < 0 && unlikely(PyErr_Occurred())) goto bad;
+                    if (cmp == 0) goto arg_passed_twice;
+                    argname++;
+                }
+            }
+        } else
+            goto invalid_keyword_type;
+        if (kwds2) {
+            if (unlikely(PyDict_SetItem(kwds2, key, value))) goto bad;
+        } else {
+            goto invalid_keyword;
+        }
+    }
+    return 0;
+arg_passed_twice:
+    __Pyx_RaiseDoubleKeywordsError(function_name, key);
+    goto bad;
+invalid_keyword_type:
+    PyErr_Format(PyExc_TypeError,
+        "%.200s() keywords must be strings", function_name);
+    goto bad;
+invalid_keyword:
+    PyErr_Format(PyExc_TypeError,
+    #if PY_MAJOR_VERSION < 3
+        "%.200s() got an unexpected keyword argument '%.200s'",
+        function_name, PyString_AsString(key));
+    #else
+        "%s() got an unexpected keyword argument '%U'",
+        function_name, key);
+    #endif
+bad:
+    return -1;
+}
+
+/* ArgTypeTest */
+        static void __Pyx_RaiseArgumentTypeInvalid(const char* name, PyObject *obj, PyTypeObject *type) {
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
+        name, type->tp_name, Py_TYPE(obj)->tp_name);
+}
+static CYTHON_INLINE int __Pyx_ArgTypeTest(PyObject *obj, PyTypeObject *type, int none_allowed,
+    const char *name, int exact)
+{
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    if (none_allowed && obj == Py_None) return 1;
+    else if (exact) {
+        if (likely(Py_TYPE(obj) == type)) return 1;
+        #if PY_MAJOR_VERSION == 2
+        else if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
+        #endif
+    }
+    else {
+        if (likely(PyObject_TypeCheck(obj, type))) return 1;
+    }
+    __Pyx_RaiseArgumentTypeInvalid(name, obj, type);
+    return 0;
 }
 
 /* Import */
@@ -3471,6 +3612,59 @@ bad:
     Py_XDECREF(py_frame);
 }
 
+/* CIntFromPyVerify */
+        #define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)\
+    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 0)
+#define __PYX_VERIFY_RETURN_INT_EXC(target_type, func_type, func_value)\
+    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 1)
+#define __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, exc)\
+    {\
+        func_type value = func_value;\
+        if (sizeof(target_type) < sizeof(func_type)) {\
+            if (unlikely(value != (func_type) (target_type) value)) {\
+                func_type zero = 0;\
+                if (exc && unlikely(value == (func_type)-1 && PyErr_Occurred()))\
+                    return (target_type) -1;\
+                if (is_unsigned && unlikely(value < zero))\
+                    goto raise_neg_overflow;\
+                else\
+                    goto raise_overflow;\
+            }\
+        }\
+        return (target_type) value;\
+    }
+
+/* CIntToPy */
+        static CYTHON_INLINE PyObject* __Pyx_PyInt_From_char(char value) {
+    const char neg_one = (char) -1, const_zero = (char) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(char) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(char) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(char) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(char) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(char) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(char),
+                                     little, !is_unsigned);
+    }
+}
+
 /* CIntToPy */
         static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
     const long neg_one = (long) -1, const_zero = (long) 0;
@@ -3502,27 +3696,194 @@ bad:
     }
 }
 
-/* CIntFromPyVerify */
-        #define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)\
-    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 0)
-#define __PYX_VERIFY_RETURN_INT_EXC(target_type, func_type, func_value)\
-    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 1)
-#define __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, exc)\
-    {\
-        func_type value = func_value;\
-        if (sizeof(target_type) < sizeof(func_type)) {\
-            if (unlikely(value != (func_type) (target_type) value)) {\
-                func_type zero = 0;\
-                if (exc && unlikely(value == (func_type)-1 && PyErr_Occurred()))\
-                    return (target_type) -1;\
-                if (is_unsigned && unlikely(value < zero))\
-                    goto raise_neg_overflow;\
-                else\
-                    goto raise_overflow;\
-            }\
-        }\
-        return (target_type) value;\
+/* CIntFromPy */
+        static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *x) {
+    const char neg_one = (char) -1, const_zero = (char) 0;
+    const int is_unsigned = neg_one > const_zero;
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(char) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(char, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (char) val;
+        }
+    } else
+#endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (char) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(char, digit, digits[0])
+                case 2:
+                    if (8 * sizeof(char) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) >= 2 * PyLong_SHIFT) {
+                            return (char) (((((char)digits[1]) << PyLong_SHIFT) | (char)digits[0]));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(char) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) >= 3 * PyLong_SHIFT) {
+                            return (char) (((((((char)digits[2]) << PyLong_SHIFT) | (char)digits[1]) << PyLong_SHIFT) | (char)digits[0]));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(char) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) >= 4 * PyLong_SHIFT) {
+                            return (char) (((((((((char)digits[3]) << PyLong_SHIFT) | (char)digits[2]) << PyLong_SHIFT) | (char)digits[1]) << PyLong_SHIFT) | (char)digits[0]));
+                        }
+                    }
+                    break;
+            }
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+#else
+            {
+                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
+                if (unlikely(result < 0))
+                    return (char) -1;
+                if (unlikely(result == 1))
+                    goto raise_neg_overflow;
+            }
+#endif
+            if (sizeof(char) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(char, unsigned long, PyLong_AsUnsignedLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(char) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(char, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+#endif
+            }
+        } else {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (char) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(char, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(char,  digit, +digits[0])
+                case -2:
+                    if (8 * sizeof(char) - 1 > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) - 1 > 2 * PyLong_SHIFT) {
+                            return (char) (((char)-1)*(((((char)digits[1]) << PyLong_SHIFT) | (char)digits[0])));
+                        }
+                    }
+                    break;
+                case 2:
+                    if (8 * sizeof(char) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) - 1 > 2 * PyLong_SHIFT) {
+                            return (char) ((((((char)digits[1]) << PyLong_SHIFT) | (char)digits[0])));
+                        }
+                    }
+                    break;
+                case -3:
+                    if (8 * sizeof(char) - 1 > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) - 1 > 3 * PyLong_SHIFT) {
+                            return (char) (((char)-1)*(((((((char)digits[2]) << PyLong_SHIFT) | (char)digits[1]) << PyLong_SHIFT) | (char)digits[0])));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(char) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) - 1 > 3 * PyLong_SHIFT) {
+                            return (char) ((((((((char)digits[2]) << PyLong_SHIFT) | (char)digits[1]) << PyLong_SHIFT) | (char)digits[0])));
+                        }
+                    }
+                    break;
+                case -4:
+                    if (8 * sizeof(char) - 1 > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) - 1 > 4 * PyLong_SHIFT) {
+                            return (char) (((char)-1)*(((((((((char)digits[3]) << PyLong_SHIFT) | (char)digits[2]) << PyLong_SHIFT) | (char)digits[1]) << PyLong_SHIFT) | (char)digits[0])));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(char) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(char, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(char) - 1 > 4 * PyLong_SHIFT) {
+                            return (char) ((((((((((char)digits[3]) << PyLong_SHIFT) | (char)digits[2]) << PyLong_SHIFT) | (char)digits[1]) << PyLong_SHIFT) | (char)digits[0])));
+                        }
+                    }
+                    break;
+            }
+#endif
+            if (sizeof(char) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(char, long, PyLong_AsLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(char) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(char, PY_LONG_LONG, PyLong_AsLongLong(x))
+#endif
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            char val;
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (char) -1;
+        }
+    } else {
+        char val;
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
+        if (!tmp) return (char) -1;
+        val = __Pyx_PyInt_As_char(tmp);
+        Py_DECREF(tmp);
+        return val;
     }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to char");
+    return (char) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to char");
+    return (char) -1;
+}
 
 /* CIntFromPy */
         static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *x) {
