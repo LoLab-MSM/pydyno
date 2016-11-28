@@ -22,10 +22,10 @@ from tropical import choose_max
 
 
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
-                       epsilon=1, find_passengers_by='imp_nodes', sp_to_visualize=None, plot_imposed_trace=False,
-                       verbose=False):
+                       epsilon=1, find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None,
+                       plot_imposed_trace=False, verbose=False):
     if tropical_object.is_setup is False:
-        tropical_object.setup_tropical(tspan, type_sign, find_passengers_by)
+        tropical_object.setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
 
     if find_passengers_by == 'qssa':
         if plot_imposed_trace:
@@ -62,9 +62,12 @@ class Tropical:
         self.type_sign = ''
 
     def tropicalize(self, tspan=None, param_values=None, type_sign='production', diff_par=1, ignore=1, epsilon=1,
-                    find_passengers_by='imp_nodes', sp_to_visualize=None, plot_imposed_trace=False, verbose=False):
+                    find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None, plot_imposed_trace=False,
+                    verbose=False):
         """
         tropicalization of driver species
+        :param sp_to_visualize:
+        :param max_comb:
         :param type_sign: Type of max-plus signature. This is to see the way a species is being produced or consumed
         :param diff_par: Parameter that defines when a monomial or combination of monomials is larger than the others
         :param find_passengers_by: Option to find passenger species. 'imp_nodes' finds the nodes that only have one edge.
@@ -78,40 +81,51 @@ class Tropical:
         :param verbose: Verbose
         :return:
         """
-        all_signatures = dynamic_signatures(param_values, self, tspan=tspan, type_sign=type_sign,
-                                            diff_par=diff_par,
+        all_signatures = dynamic_signatures(param_values, self, tspan=tspan, type_sign=type_sign, diff_par=diff_par,
                                             ignore=ignore, epsilon=epsilon, find_passengers_by=find_passengers_by,
-                                            sp_to_visualize=sp_to_visualize, plot_imposed_trace=plot_imposed_trace,
-                                            verbose=False)
+                                            max_comb=max_comb, sp_to_visualize=sp_to_visualize,
+                                            plot_imposed_trace=plot_imposed_trace, verbose=verbose)
 
         return all_signatures
 
-    def setup_tropical(self, tspan, type_sign, find_passengers_by):
+    def setup_tropical(self, tspan, type_sign, find_passengers_by, max_comb, verbose):
         """
 
+        :param max_comb:
+        :param verbose:
         :param tspan: time of simulation
         :param type_sign: type of dynamical signature. It can either 'production' or 'consumption
         :param find_passengers_by: Method to find non important species
         :return:
         """
+        if verbose:
+            print('setting up time span')
         if tspan is not None:
             self.tspan = tspan
         else:
             raise SimulatorException("'tspan' must be defined.")
 
+        if verbose:
+            print('setting up type signature')
         if type_sign not in ['production', 'consumption']:
             raise Exception('Wrong type_sign')
         else:
             self.type_sign = type_sign
 
+        if verbose:
+            print('setting up the simulator class')
         self.sim = ScipyOdeSimulator(self.model, self.tspan)
 
+        if verbose:
+            print('setting up the important nodes')
         if find_passengers_by is 'imp_nodes':
             self.find_nonimportant_nodes()
             self.equations_to_tropicalize()
 
+        if verbose:
+            print('setting up combinations of reactions')
         if not self.all_comb:
-            self.set_combinations_sm()
+            self.set_combinations_sm(max_comb=max_comb)
 
         self.is_setup = True
         return
@@ -291,6 +305,11 @@ class Tropical:
         """
 
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
+        if self.model.has_synth_deg():
+            for i, j in enumerate(self.model.species):
+                if str(j) == '__sink()' or str(j) == '__source()':
+                    idx.remove(i)
+
         eqs = {i: self.model.odes[i] for i in idx}
         self.eqs_for_tropicalization = eqs
         return
@@ -338,11 +357,15 @@ class Tropical:
             mons_dict = {}
             for mon_p in monomials:
                 mon_p_values = mon_p.subs(param_values)
-                var_prod = [atom for atom in mon_p_values.atoms(sympy.Symbol)]  # Variables of monomial
-                arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
-                f_prod = sympy.lambdify(var_prod, mon_p_values)
-                prod_values = f_prod(*arg_prod)
-                mons_dict[mon_p] = prod_values
+                # TODO Figure out a way that doesnt require an if statement here
+                if mon_p_values == 0:
+                    mons_dict[mon_p] = [0] * self.tspan
+                else:
+                    var_prod = [atom for atom in mon_p_values.atoms(sympy.Symbol)]  # Variables of monomial
+                    arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
+                    f_prod = sympy.lambdify(var_prod, mon_p_values)
+                    prod_values = f_prod(*arg_prod)
+                    mons_dict[mon_p] = prod_values
 
             # Dataframe whose rownames are the monomials and the columns contain their values at each time point
             mons_df = pd.DataFrame(mons_dict).T
@@ -358,7 +381,7 @@ class Tropical:
 
         return all_signatures
 
-    def set_combinations_sm(self, create_sm=False):
+    def set_combinations_sm(self, max_comb=None, create_sm=False):
         if self.type_sign == 'production':
             mon_type = 'products'
         elif self.type_sign == 'consumption':
@@ -367,7 +390,6 @@ class Tropical:
             raise Exception("type sign must be 'production' or 'consumption'")
 
         for sp in self.eqs_for_tropicalization:
-
             # reaction terms
             monomials = []
 
@@ -377,38 +399,43 @@ class Tropical:
                 elif sp in term[mon_type]:
                     monomials.append(term['rate'])
 
+            if max_comb:
+                combs = max_comb
+            else:
+                combs = len(monomials) + 1
+
             mon_comb = OrderedDict()
             prod_idx = 0
 
-            for L in range(1, len(monomials) + 1):
+            for L in range(1, combs):
                 prod_comb_names = {}
                 for subset in itertools.combinations(monomials, L):
                     prod_comb_names['M{0}{1}'.format(L, prod_idx)] = subset
                     prod_idx += 1
                 mon_comb[L] = prod_comb_names
             self.all_comb[sp] = mon_comb
-
-            merged_mon_comb = self.merge_dicts(*mon_comb.values())
-            merged_mon_comb.update({'ND': 'N'})
-            # Substitution matrix
-            len_ND = len(max(merged_mon_comb.values(), key=len)) + 1
-            sm = numpy.zeros((len(merged_mon_comb.keys()), len(merged_mon_comb.keys())))
-            for i, a in enumerate(merged_mon_comb):
-                for j, b in enumerate(merged_mon_comb):
-                    if a == 'ND' and b == 'ND':
-                        sm[i, j] = 0
-                    elif a == 'ND':
-                        sm[i, j] = 2 * len_ND - len(merged_mon_comb[b])
-                    elif b == 'ND':
-                        sm[i, j] = 2 * len_ND - len(merged_mon_comb[a])
-                    else:
-                        sm[i, j] = self.sub_value(merged_mon_comb[a], merged_mon_comb[b])
-                        # max(len(self.all_comb[sp][a]), len(self.all_comb[sp][b])) - len(
-                        #             set(self.all_comb[sp][a]).intersection(self.all_comb[sp][b]))
-
-            if create_sm:
-                sm_df = pd.DataFrame(data=sm, index=merged_mon_comb.keys(), columns=merged_mon_comb.keys())
-                sm_df.to_csv('/home/oscar/Documents/tropical_earm/subs_matrix_consumption/sm_{0}.{1}'.format(sp, 'csv'))
+            #
+            # merged_mon_comb = self.merge_dicts(*mon_comb.values())
+            # merged_mon_comb.update({'ND': 'N'})
+            # # Substitution matrix
+            # len_ND = len(max(merged_mon_comb.values(), key=len)) + 1
+            # sm = numpy.zeros((len(merged_mon_comb.keys()), len(merged_mon_comb.keys())))
+            # for i, a in enumerate(merged_mon_comb):
+            #     for j, b in enumerate(merged_mon_comb):
+            #         if a == 'ND' and b == 'ND':
+            #             sm[i, j] = 0
+            #         elif a == 'ND':
+            #             sm[i, j] = 2 * len_ND - len(merged_mon_comb[b])
+            #         elif b == 'ND':
+            #             sm[i, j] = 2 * len_ND - len(merged_mon_comb[a])
+            #         else:
+            #             sm[i, j] = self.sub_value(merged_mon_comb[a], merged_mon_comb[b])
+            #             # max(len(self.all_comb[sp][a]), len(self.all_comb[sp][b])) - len(
+            #             #             set(self.all_comb[sp][a]).intersection(self.all_comb[sp][b]))
+            #
+            # if create_sm:
+            #     sm_df = pd.DataFrame(data=sm, index=merged_mon_comb.keys(), columns=merged_mon_comb.keys())
+            #     sm_df.to_csv('/home/oscar/Documents/tropical_earm/subs_matrix_consumption/sm_{0}.{1}'.format(sp, 'csv'))
 
     @staticmethod
     def sub_value(a, b):
@@ -486,9 +513,12 @@ class Tropical:
         return self.passengers
 
 
-def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='production', sp_visualize=None):
+def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='production', max_comb=None, sp_visualize=None,
+                 verbose=False):
     """
 
+    :param max_comb:
+    :param verbose:
     :param type_sign:
     :param diff_par:
     :param model: PySB model of a biological system
@@ -499,7 +529,8 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='productio
     """
     tr = Tropical(model)
     signatures = tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par, type_sign=type_sign,
-                                sp_to_visualize=sp_visualize)
+                                max_comb=max_comb,
+                                sp_to_visualize=sp_visualize, verbose=verbose)
     return signatures
     # return tr.get_species_signatures()
 
