@@ -4,9 +4,10 @@ import math
 
 import numpy as np
 from numpy.random import lognormal
-
 from pysb.examples.earm_1_3 import model
+from tropical.max_plus_multiprocessing import run_tropical_multiprocessing
 
+model.enable_synth_deg()
 
 def normal_mu_sigma(log_mean, cv):
     sigma_normal = math.sqrt(math.log((cv ** 2)+1))
@@ -49,5 +50,5 @@ repeated_parameter_values = np.tile(pso_pars, (samples, 1))
 for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
 
-# t = np.linspace(0, 20000, 100)
-# run_tropical_multiprocessing(model, t, repeated_parameter_values)
+t = np.linspace(0, 20000, 100)
+a = run_tropical_multiprocessing(model, t, repeated_parameter_values)
