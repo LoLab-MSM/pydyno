@@ -1,7 +1,7 @@
 import math
 import pandas as pd
 
-cpdef char choose_max3(pd_series, float diff_par, dict mon_comb, char type_sign):
+def choose_max3(pd_series, diff_par, mon_comb, type_sign):
     """
 
     :param type_sign: Type of signature. It can be 'consumption' or 'consumption'
@@ -11,7 +11,6 @@ cpdef char choose_max3(pd_series, float diff_par, dict mon_comb, char type_sign)
     :param diff_par: Parameter to define when a monomial is larger
     :return: monomial or combination of monomials that dominate at certain time point
     """
-
     if type_sign == 'production':
         monomials = pd_series[pd_series > 0]
         value_to_add = 1e-100
