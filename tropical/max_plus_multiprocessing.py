@@ -370,7 +370,7 @@ class Tropical:
             # Dataframe whose rownames are the monomials and the columns contain their values at each time point
             mons_df = pd.DataFrame(mons_dict).T
 
-            signature_species = mons_df.apply(choose_max.choose_max3,
+            signature_species = mons_df.apply(choose_max.choose_max3, axis=0,
                                               args=(diff_par, self.all_comb[sp], self.type_sign))
             all_signatures[sp] = list(signature_species)
 
@@ -536,10 +536,10 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='productio
 
 
 def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, type_sign='production', sp_visualize=None,
-                                 to_data_frame=False, dir_path=None):
+                                 to_data_frame=False, dir_path=None, verbose=False):
     tr = Tropical(model)
     dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
-                                                   type_sign=type_sign)
+                                                   type_sign=type_sign, verbose=verbose)
     p = Pool(cpu_count() - 1)
     all_drivers = p.map(dynamic_signatures_partial, parameters)
     if to_data_frame:
