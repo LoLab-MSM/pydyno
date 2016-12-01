@@ -9,6 +9,7 @@ from tropical.max_plus_multiprocessing import run_tropical_multiprocessing
 
 model.enable_synth_deg()
 
+
 def normal_mu_sigma(log_mean, cv):
     sigma_normal = math.sqrt(math.log((cv ** 2)+1))
     mu_normal = math.log(log_mean) - 0.5*(sigma_normal ** 2)
@@ -51,4 +52,4 @@ for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
 
 t = np.linspace(0, 20000, 100)
-a = run_tropical_multiprocessing(model, t, repeated_parameter_values)
+a = run_tropical_multiprocessing(model, t, repeated_parameter_values, verbose=False)

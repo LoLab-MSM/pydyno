@@ -1,20 +1,19 @@
 from __future__ import print_function
-
+from collections import OrderedDict
+from multiprocessing import Pool, cpu_count
+from pysb.simulator import ScipyOdeSimulator, SimulatorException
+from tropical import choose_max
 import functools
 import itertools
 import math
-from collections import OrderedDict
-from multiprocessing import Pool, cpu_count
-import matplotlib
-matplotlib.use('AGG')
-import matplotlib.pylab as plt
 import numpy
 import pandas as pd
 import sympy
-
+import time
 import helper_functions as hf
-from pysb.simulator import ScipyOdeSimulator, SimulatorException
-from tropical import choose_max
+import matplotlib
+matplotlib.use('AGG')
+import matplotlib.pylab as plt
 
 
 # This is a global function that takes the class object as a parameter to compute the dynamical signature.
@@ -356,7 +355,7 @@ class Tropical:
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
-                mon_p_values = mon_p.subs(param_values)
+                mon_p_values = mon_p.subs(param_values, simultaneous=True)
                 # TODO Figure out a way that doesnt require an if statement here
                 if mon_p_values == 0:
                     mons_dict[mon_p] = [0] * self.tspan
@@ -541,7 +540,13 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, type
     dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
                                                    type_sign=type_sign, verbose=verbose)
     p = Pool(cpu_count() - 1)
-    all_drivers = p.map(dynamic_signatures_partial, parameters)
+    all_drivers = p.map_async(dynamic_signatures_partial, parameters)
+    while not all_drivers.ready():
+        remaining = all_drivers._number_left
+        if remaining % 10 == 0:
+            print ("Waiting for", remaining, "tasks to complete...")
+        time.sleep(5)
+
     if to_data_frame:
         hf.array_to_dataframe(all_drivers, dir_path, tspan, parameters)
     return all_drivers

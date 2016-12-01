@@ -1,6 +1,6 @@
 import os
 
-import helper_functions as hf
+import tropical.helper_functions as hf
 import numpy as np
 
 from earm.lopez_embedded import model
@@ -11,4 +11,4 @@ pars_path = os.path.join(directory, 'parameters_5000')
 pars = hf.listdir_fullpath(pars_path)
 t = np.linspace(0, 20000, 100)
 
-run_tropical_multiprocessing(model, t, pars[:5])
+run_tropical_multiprocessing(model, t, pars[:10])
