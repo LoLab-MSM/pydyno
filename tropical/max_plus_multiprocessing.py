@@ -1,20 +1,22 @@
 from __future__ import print_function
-from collections import OrderedDict
-from multiprocessing import Pool, cpu_count
-from pysb.simulator import ScipyOdeSimulator, SimulatorException
-from tropical import choose_max
+
 import functools
 import itertools
 import math
+import time
+from collections import OrderedDict
+from multiprocessing import Pool, cpu_count
+
+import matplotlib
 import numpy
 import pandas as pd
 import sympy
-import time
+import choose_max
 import helper_functions as hf
-import matplotlib
-matplotlib.use('AGG')
-import matplotlib.pylab as plt
+from pysb.simulator import ScipyOdeSimulator, SimulatorException
 
+matplotlib.use('AGG')
+import matplotlib.pyplot as plt
 
 # This is a global function that takes the class object as a parameter to compute the dynamical signature.
 # This global function is necessary to use the multiprocessing module.
@@ -23,21 +25,33 @@ import matplotlib.pylab as plt
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
                        epsilon=1, find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None,
                        plot_imposed_trace=False, verbose=False):
+    """
+
+    :param param_values: Parameter values needed to simulate the PySB model
+    :param tropical_object: Instance of Tropical class
+    :param tspan: Time of simulation
+    :param type_sign: Type of signature. It can be 'consumption' or 'production'
+    :param diff_par: Magnitude difference that defines that a reaction is dominant over others
+    :param ignore: Number of time points to ignore in simulation (related to equilibration)
+    :param epsilon:
+    :param find_passengers_by: str, it can be 'imp_nodes' or 'qssa' is the way to find the passenger species
+    :param max_comb: int, maximum number of combination of monomials to find dominant monomials
+    :param sp_to_visualize: Molecular species to visualize its signature
+    :param plot_imposed_trace: Boolean, to see the imposed trace in the QSSA approach
+    :param verbose: Boolean
+    :return: Dynamical signatures of all driver species
+    """
     if tropical_object.is_setup is False:
-        tropical_object.setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
+        tropical_object._setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
 
     if find_passengers_by == 'qssa':
-        if plot_imposed_trace:
-            tropical_object.find_passengers(tropical_object.y[ignore:], epsilon, plot=plot_imposed_trace)
-        else:
-            tropical_object.find_passengers(tropical_object.y[ignore:], epsilon)
-        tropical_object.equations_to_tropicalize()
+        all_signatures = tropical_object.qssa_signal_signature(param_values, diff_par, epsilon, ignore,
+                                                               plot_imposed_trace, sp_to_visualize)
 
-    if verbose:
-        print("Getting signatures")
-    all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par,
-                                                      sp_to_visualize=sp_to_visualize)
-
+    elif find_passengers_by == 'imp_nodes':
+        all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par, sp_to_visualize=sp_to_visualize)
+    else:
+        raise Exception('A valid way to get the signatures must be provided')
     return all_signatures
 
 
@@ -51,10 +65,8 @@ class Tropical:
         """
         self.model = model
         self.tspan = None
-        # self.y = None
         self.passengers = []
         self.eqs_for_tropicalization = {}
-        # self.all_sp_signatures = {}
         self.all_comb = {}
         self.sim = None
         self.is_setup = False
@@ -65,18 +77,18 @@ class Tropical:
                     verbose=False):
         """
         tropicalization of driver species
-        :param sp_to_visualize:
-        :param max_comb:
-        :param type_sign: Type of max-plus signature. This is to see the way a species is being produced or consumed
-        :param diff_par: Parameter that defines when a monomial or combination of monomials is larger than the others
-        :param find_passengers_by: Option to find passenger species. 'imp_nodes' finds the nodes that only have one edge.
-        'qssa' finds passenger species using the quasi steady state approach
-        :param plot_imposed_trace: Option to plot imposed trace
         :param tspan: Time span
         :param param_values: PySB model parameter values
+        :param type_sign: Type of max-plus signature. This is to see the way a species is being produced or consumed
+        :param diff_par: Parameter that defines when a monomial or combination of monomials is larger than the others
         :param ignore: Initial time points to ignore
         :param epsilon: Order of magnitude difference between solution of ODE and imposed trace to consider species as
          passenger
+        :param find_passengers_by: Option to find passenger species. 'imp_nodes' finds the nodes that only have one edge
+        'qssa' finds passenger species using the quasi steady state approach
+        :param max_comb:
+        :param sp_to_visualize:
+        :param plot_imposed_trace: Option to plot imposed trace
         :param verbose: Verbose
         :return:
         """
@@ -87,7 +99,7 @@ class Tropical:
 
         return all_signatures
 
-    def setup_tropical(self, tspan, type_sign, find_passengers_by, max_comb, verbose):
+    def _setup_tropical(self, tspan, type_sign, find_passengers_by, max_comb, verbose):
         """
 
         :param max_comb:
@@ -107,7 +119,7 @@ class Tropical:
         if verbose:
             print('setting up type signature')
         if type_sign not in ['production', 'consumption']:
-            raise Exception('Wrong type_sign')
+            raise ValueError('Wrong type_sign')
         else:
             self.type_sign = type_sign
 
@@ -120,11 +132,8 @@ class Tropical:
         if find_passengers_by is 'imp_nodes':
             self.find_nonimportant_nodes()
             self.equations_to_tropicalize()
-
-        if verbose:
-            print('setting up combinations of reactions')
-        if not self.all_comb:
-            self.set_combinations_sm(max_comb=max_comb)
+            if not self.all_comb:
+                self.set_combinations_sm(max_comb=max_comb)
 
         self.is_setup = True
         return
@@ -151,7 +160,6 @@ class Tropical:
         :param diff_par: Parameter to define when a monomial is larger
         :return: monomial or combination of monomials that dominate at certain time point
         """
-
         if type_sign == 'production':
             monomials = pd_series[pd_series > 0]
             value_to_add = 1e-100
@@ -215,16 +223,17 @@ class Tropical:
         self.passengers = idx
         return self.passengers
 
-    def find_passengers(self, y, epsilon=None, plot=False, verbose=False):
+    def find_passengers(self, y, params_ready, epsilon=1, ignore=1, plot=False, verbose=False):
         """
         Finds passenger species based in the Quasi Steady State Approach (QSSA) in the model
+        :param params_ready:
         :param verbose: Verbose
         :param y: Solution of the differential equations
         :param epsilon: Minimum difference between the imposed trace and the dynamic solution to be considered passenger
+        :param ignore:
         :param plot: Boolean, True to plot the dynamic solution and the imposed trace.
         :return: The passenger species
         """
-        # TODO fix this function
         sp_imposed_trace = []
         assert not self.passengers
 
@@ -238,18 +247,17 @@ class Tropical:
             for idx, solu in enumerate(trace_soln):
                 # Check is solution is time independent
                 if solu.is_real:
-                    imp_trace_values = [float(solu) + self.mach_eps] * (len(self.tspan) - 1)
+                    imp_trace_values = [float(solu) + self.mach_eps] * (len(self.tspan) - ignore)
                 else:
                     # If the imposed trace depends on the value of other species, then we replace species and parameter
                     # values to get the imposed trace
-                    for p in self.param_values:
-                        solu = solu.subs(p, self.param_values[p])
+                    solu = solu.subs(params_ready)
 
                     # After replacing parameter for its values, then we get the species in the equation and pass
                     # their dynamic solution
                     variables = [atom for atom in solu.atoms(sympy.Symbol)]
                     f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-                    args = [y[str(l)] for l in variables]  # arguments to put in the lambdify function
+                    args = [y[str(l)][ignore:] for l in variables]  # arguments to put in the lambdify function
                     imp_trace_values = f(*args)
 
                 if any(isinstance(n, complex) for n in imp_trace_values):
@@ -260,20 +268,20 @@ class Tropical:
                     if verbose:
                         print("solution {0} from equation {1} is negative".format(idx, sp_idx))
                     continue
-                diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % sp_idx]))
+                diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % sp_idx][ignore:]))
                 if max(diff_trace_ode) < distance_imposed:
                     distance_imposed = max(diff_trace_ode)
 
                 if plot:
-                    self.plot_imposed_trace(y=y, tspan=self.tspan[1:], imp_trace_values=imp_trace_values,
-                                            sp_idx=sp_idx, diff_trace_ode=diff_trace_ode, epsilon=epsilon)
+                    self.plot_imposed_trace(y=y, tspan=self.tspan, imp_trace_values=imp_trace_values,
+                                            sp_idx=sp_idx, diff_trace_ode=diff_trace_ode, ignore=ignore, epsilon=epsilon)
 
             if distance_imposed < epsilon:
                 self.passengers.append(sp_idx)
 
         return self.passengers
 
-    def plot_imposed_trace(self, y, tspan, imp_trace_values, sp_idx, diff_trace_ode, epsilon):
+    def plot_imposed_trace(self, y, tspan, imp_trace_values, sp_idx, diff_trace_ode, ignore, epsilon):
         """
 
         :param y: Solution of the differential equations
@@ -287,7 +295,7 @@ class Tropical:
         """
         plt.figure()
         plt.semilogy(tspan, imp_trace_values, 'r--', linewidth=5, label='imposed')
-        plt.semilogy(tspan, y['__s{0}'.format(sp_idx)], label='full')
+        plt.semilogy(tspan[ignore:], y['__s{0}'.format(sp_idx)][ignore:], label='full')
         plt.legend(loc=0)
         plt.xlabel('time', fontsize=20)
         plt.ylabel('population', fontsize=20)
@@ -306,85 +314,113 @@ class Tropical:
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
         if self.model.has_synth_deg():
             for i, j in enumerate(self.model.species):
-                if str(j) == '__sink()' or str(j) == '__source()':
+                if str(j) == '__sink()' or str(j) == '__source()' and i in idx:
                     idx.remove(i)
 
         eqs = {i: self.model.odes[i] for i in idx}
         self.eqs_for_tropicalization = eqs
         return
 
-    def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
+    def _check_param_values(self, param_values):
         if param_values is not None:
             if type(param_values) is str:
-                param_values = hf.read_pars(param_values)
+                pars_to_check = hf.read_pars(param_values)
+            else:
+                pars_to_check = param_values
             # accept vector of parameter values as an argument
-            if len(param_values) != len(self.model.parameters):
-                print(param_values)
+            if len(pars_to_check) != len(self.model.parameters):
                 raise Exception("param_values must be the same length as model.parameters")
-            if not isinstance(param_values, numpy.ndarray):
-                param_values = numpy.array(param_values)
+            # convert model parameters into dictionary
+            pars_checked = dict((p.name, pars_to_check[i]) for i, p in enumerate(self.model.parameters))
         else:
             # create parameter vector from the values in the model
-            param_values = numpy.array([p.value for p in self.model.parameters])
+            pars_checked = dict((p.name, p.value) for i, p in enumerate(self.model.parameters))
+        return pars_checked
 
-        # convert model parameters into dictionary
-        param_values = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
-
-        y = self.sim.run(param_values=param_values).dataframe
-        # Dictionary whose keys are species and values are the monomial signatures
+    def _signature(self, y, eqs_for_analysis, pars_ready, diff_par=1):
         all_signatures = {}
 
         if self.type_sign == 'production':
             mon_type = 'products'
+            mon_sign = 1
         elif self.type_sign == 'consumption':
             mon_type = 'reactants'
+            mon_sign = -1
         else:
             raise Exception("type sign must be 'production' or 'consumption'")
 
-        for sp in self.eqs_for_tropicalization:
+        for sp in eqs_for_analysis:
 
             # reaction terms
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term['reactants'] and term['reversible'] is True:
-                    monomials.append((-1) * term['rate'])
-                elif sp in term[mon_type]:
-                    monomials.append(term['rate'])
-
+                if sp in term[mon_type] and term['reversible'] is True:
+                    monomials.append(mon_sign * term['rate'])
+                elif sp in term[mon_type] and term['reversible'] is False:
+                    monomials.append(mon_sign * term['rate'])
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
-                mon_p_values = mon_p.subs(param_values, simultaneous=True)
+                mon_p_values = mon_p
                 # TODO Figure out a way that doesnt require an if statement here
                 if mon_p_values == 0:
                     mons_dict[mon_p] = [0] * self.tspan
                 else:
                     var_prod = [atom for atom in mon_p_values.atoms(sympy.Symbol)]  # Variables of monomial
-                    arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
+                    arg_prod = [0]*len(var_prod)
+                    for idx, va in enumerate(var_prod):
+                        if str(va).startswith('__'):
+                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)])
+                        else:
+                            arg_prod[idx] = pars_ready[str(va)]
+                    # arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
                     f_prod = sympy.lambdify(var_prod, mon_p_values)
+
                     prod_values = f_prod(*arg_prod)
                     mons_dict[mon_p] = prod_values
 
             # Dataframe whose rownames are the monomials and the columns contain their values at each time point
             mons_df = pd.DataFrame(mons_dict).T
 
-            signature_species = mons_df.apply(choose_max.choose_max3, axis=0,
+            signature_species = mons_df.apply(self.choose_max2, axis=0, reduce=True,
                                               args=(diff_par, self.all_comb[sp], self.type_sign))
             all_signatures[sp] = list(signature_species)
+        return all_signatures
 
-        # self.all_sp_signatures = all_signatures
+    def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
+        pars_ready = self._check_param_values(param_values)
+        y = self.sim.run(param_values=pars_ready).dataframe
+        all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
 
         if sp_to_visualize:
-            self.visualization2(y, all_signatures, param_values, sp_to_visualize)
+            self.visualization2(y, all_signatures, pars_ready, sp_to_visualize)
+
+        return all_signatures
+
+    def qssa_signal_signature(self, param_values, diff_par=1, epsilon=1, ignore=1, plot_imposed_trace=False,
+                              sp_to_visualize=None):
+        pars_ready = self._check_param_values(param_values)
+        y = self.sim.run(param_values=pars_ready).dataframe
+
+        self.find_passengers(y, pars_ready, epsilon, ignore=ignore, plot=plot_imposed_trace)
+        self.equations_to_tropicalize()
+        self.set_combinations_sm()
+
+        all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
+
+        if sp_to_visualize:
+            self.visualization2(y, all_signatures, pars_ready, sp_to_visualize)
 
         return all_signatures
 
     def set_combinations_sm(self, max_comb=None, create_sm=False):
         if self.type_sign == 'production':
             mon_type = 'products'
+            mon_sign = 1
         elif self.type_sign == 'consumption':
             mon_type = 'reactants'
+            mon_sign = -1
         else:
             raise Exception("type sign must be 'production' or 'consumption'")
 
@@ -393,10 +429,10 @@ class Tropical:
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term['reactants'] and term['reversible'] is True:
-                    monomials.append((-1) * term['rate'])
-                elif sp in term[mon_type]:
-                    monomials.append(term['rate'])
+                if sp in term[mon_type] and term['reversible'] is True:
+                    monomials.append(mon_sign * term['rate'])
+                elif sp in term[mon_type] and term['reversible'] is False:
+                    monomials.append(mon_sign * term['rate'])
 
             if max_comb:
                 combs = max_comb
@@ -484,9 +520,14 @@ class Tropical:
             plt.subplot(312)
             for name in self.model.odes[sp].as_coefficients_dict():
                 mon = name
-                mon = mon.subs(param_values)
                 var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
-                arg_f1 = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_to_study]
+                arg_f1 = [0] * len(var_to_study)
+                for idx, va in enumerate(var_to_study):
+                    if str(va).startswith('__'):
+                        arg_f1[idx] = numpy.maximum(self.mach_eps, y[str(va)])
+                    else:
+                        arg_f1[idx] = param_values[str(va)]
+
                 f1 = sympy.lambdify(var_to_study, mon)
                 mon_values = f1(*arg_f1)
                 mon_name = str(name).partition('__')[2]
@@ -512,39 +553,52 @@ class Tropical:
         return self.passengers
 
 
-def run_tropical(model, tspan, parameters=None, diff_par=1, type_sign='production', max_comb=None, sp_visualize=None,
+def run_tropical(model, tspan, parameters=None, diff_par=1, find_passengers_by='imp_nodes', type_sign='production', max_comb=None, sp_visualize=None,
                  verbose=False):
     """
 
-    :param max_comb:
-    :param verbose:
-    :param type_sign:
-    :param diff_par:
     :param model: PySB model of a biological system
     :param tspan: Time of the simulation
     :param parameters: Parameter values of the PySB model
+    :param diff_par:
+    :param find_passengers_by:
+    :param type_sign:
+    :param max_comb:
     :param sp_visualize: Species to visualize
+    :param verbose:
     :return: The tropical signatures of all non-passenger species
     """
     tr = Tropical(model)
     signatures = tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par, type_sign=type_sign,
-                                max_comb=max_comb,
+                                find_passengers_by=find_passengers_by,max_comb=max_comb,
                                 sp_to_visualize=sp_visualize, verbose=verbose)
     return signatures
     # return tr.get_species_signatures()
 
 
-def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, type_sign='production', sp_visualize=None,
+def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find_passengers_by='imp_nodes', type_sign='production',
                                  to_data_frame=False, dir_path=None, verbose=False):
+    """
+
+    :param model:
+    :param tspan:
+    :param parameters:
+    :param diff_par:
+    :param find_passengers_by:
+    :param type_sign:
+    :param to_data_frame:
+    :param dir_path:
+    :param verbose:
+    :return:
+    """
     tr = Tropical(model)
     dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
-                                                   type_sign=type_sign, verbose=verbose)
+                                                   type_sign=type_sign, diff_par=diff_par, find_passengers_by=find_passengers_by ,verbose=verbose)
     p = Pool(cpu_count() - 1)
     all_drivers = p.map_async(dynamic_signatures_partial, parameters)
     while not all_drivers.ready():
         remaining = all_drivers._number_left
-        if remaining % 10 == 0:
-            print ("Waiting for", remaining, "tasks to complete...")
+        print ("Waiting for", remaining, "tasks to complete...")
         time.sleep(5)
 
     if to_data_frame:
