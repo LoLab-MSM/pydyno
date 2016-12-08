@@ -1,17 +1,14 @@
 from __future__ import print_function
-
 import functools
 import itertools
 import math
 import time
 from collections import OrderedDict
 from multiprocessing import Pool, cpu_count
-
 import matplotlib
 import numpy
 import pandas as pd
 import sympy
-import choose_max
 import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 
