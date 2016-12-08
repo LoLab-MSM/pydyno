@@ -4,7 +4,8 @@ import math
 
 import numpy as np
 from numpy.random import lognormal
-from pysb.examples.earm_1_3 import model
+from earm.lopez_embedded import model
+# from pysb.examples.earm_1_3 import model
 from tropical.max_plus_multiprocessing import run_tropical_multiprocessing
 
 model.enable_synth_deg()
@@ -40,7 +41,7 @@ def sample_lognormal(parameter_ic, size, cv=0.25):
     return lognormal(mean_normal, mu_normal, size)
 
 parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.parameters_initial_conditions()[1:]}
-samples = 2
+samples = 5
 
 pso_pars = [par.value for par in model.parameters]
 
