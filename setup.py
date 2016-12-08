@@ -1,5 +1,4 @@
 from distutils.core import setup
-from Cython.Build import cythonize
 
 
 def main():
@@ -11,7 +10,6 @@ def main():
           packages=['tropical'],
           requires=['pysb'],
           keywords=['systems', 'biology', 'model'],
-          ext_modules=cythonize("tropical/choose_max.pyx")
           )
 
 if __name__ == '__main__':
