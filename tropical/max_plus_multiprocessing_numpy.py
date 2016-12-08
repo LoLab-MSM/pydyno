@@ -599,5 +599,5 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
         time.sleep(5)
 
     if to_data_frame:
-        hf.array_to_dataframe(all_drivers, dir_path, tspan, parameters)
+        hf.array_to_dataframe(all_drivers.get(), dir_path, tspan, parameters)
     return all_drivers
