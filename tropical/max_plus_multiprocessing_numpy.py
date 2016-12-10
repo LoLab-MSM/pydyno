@@ -11,11 +11,8 @@ import sympy
 import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
-
-
 matplotlib.use('AGG')
 import matplotlib.pyplot as plt
-
 
 # This is a global function that takes the class object as a parameter to compute the dynamical signature.
 # This global function is necessary to use the multiprocessing module.
@@ -129,7 +126,7 @@ class Tropical:
 
         if verbose:
             print('setting up the important nodes')
-        if find_passengers_by is 'imp_nodes':
+        if find_passengers_by == 'imp_nodes':
             self.find_nonimportant_nodes()
             self.equations_to_tropicalize()
             if not self.all_comb:
@@ -548,8 +545,7 @@ class Tropical:
 
 
 def run_tropical(model, tspan, parameters=None, diff_par=1, find_passengers_by='imp_nodes', type_sign='production',
-                 max_comb=None, sp_visualize=None,
-                 verbose=False):
+                 max_comb=None, sp_visualize=None, verbose=False):
     """
 
     :param model: PySB model of a biological system
@@ -572,8 +568,7 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, find_passengers_by='
 
 
 def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find_passengers_by='imp_nodes',
-                                 type_sign='production',
-                                 to_data_frame=False, dir_path=None, verbose=False):
+                                 type_sign='production', to_data_frame=False, dir_path=None, verbose=False):
     """
 
     :param model:
@@ -590,7 +585,7 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
     tr = Tropical(model)
     dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
                                                    type_sign=type_sign, diff_par=diff_par,
-                                                   find_passengers_by=find_passengers_by, verbose=verbose)
+                                                   verbose=verbose, find_passengers_by=find_passengers_by)
     p = Pool(cpu_count() - 1)
     all_drivers = p.map_async(dynamic_signatures_partial, parameters)
     while not all_drivers.ready():
