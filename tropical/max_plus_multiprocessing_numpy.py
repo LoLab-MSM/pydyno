@@ -320,7 +320,7 @@ class Tropical:
                                     sign * cm[1])) > diff_par and value_prod_largest > -5:
                         largest_prod = foo2[0][0]
                         break
-            if largest_prod != 'ND':
+            if largest_prod != 'NoDoms':
                 break
         return largest_prod
 
@@ -493,7 +493,7 @@ class Tropical:
                 continue
 
             merged_mon_comb = self.merge_dicts(*self.all_comb[sp].values())
-            merged_mon_comb.update({'ND': 'N'})
+            # merged_mon_comb.update({'ND': 'N'})
 
             for idx, mon in enumerate(list(set(signature))):
                 mon_val[merged_mon_comb[mon]] = idx
