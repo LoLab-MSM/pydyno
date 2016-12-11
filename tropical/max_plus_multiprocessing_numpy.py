@@ -294,7 +294,7 @@ class Tropical:
 
         largest_prod = 'ND'
         for comb in sorted(mon_comb.keys()):
-
+            # comb is an integer that represents the number of monomials in a combination
             if len(mon_comb[comb].keys()) == 1:
                 largest_prod = mon_comb[comb].keys()[0]
                 break
@@ -435,9 +435,12 @@ class Tropical:
 
             for L in range(1, combs):
                 prod_comb_names = {}
-                for subset in itertools.combinations(monomials, L):
-                    prod_comb_names['M{0}{1}'.format(L, prod_idx)] = subset
-                    prod_idx += 1
+                if L == combs - 1:
+                    prod_comb_names['NoDoms'] = 'No_Dominants'
+                else:
+                    for subset in itertools.combinations(monomials, L):
+                        prod_comb_names['M{0}{1}'.format(L, prod_idx)] = subset
+                        prod_idx += 1
                 mon_comb[L] = prod_comb_names
             self.all_comb[sp] = mon_comb
             #
