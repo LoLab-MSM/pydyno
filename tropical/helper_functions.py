@@ -128,12 +128,12 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
     if col_index is not None:
         cindex = col_index
     else:
-        cindex = range(tropical_data.shape[1])
+        cindex = range(len(tropical_data[0].values()[0]))
 
     if row_index is not None:
         rindex = row_index
     else:
-        rindex = range(tropical_data.shape[0])
+        rindex = range(len(tropical_data))
 
     drivers_all = [set(dr.keys()) for dr in tropical_data]
     drivers_over_pars = set.intersection(*drivers_all)
