@@ -5,9 +5,9 @@ import math
 import numpy as np
 from numpy.random import lognormal
 from earm.lopez_embedded import model
-# from pysb.examples.earm_1_3 import model
 from tropical.max_plus_multiprocessing_numpy import run_tropical_multiprocessing
-
+import os
+import tropical.helper_functions as hf
 model.enable_synth_deg()
 
 
@@ -43,14 +43,18 @@ def sample_lognormal(parameter_ic, size, cv=0.25):
 parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.parameters_initial_conditions()[1:]}
 samples = 2
 
-pso_pars = [par.value for par in model.parameters]
+directory = os.path.dirname(__file__)
+parameters_path = os.path.join(directory, "parameters_5000")
+all_parameters = hf.listdir_fullpath(parameters_path)
+parameters = hf.read_pars(all_parameters[0])
 
 all_pars_ic = np.zeros((samples, len(model.parameters)))
 
 
-repeated_parameter_values = np.tile(pso_pars, (samples, 1))
+repeated_parameter_values = np.tile(parameters, (samples, 1))
 for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
 
 t = np.linspace(0, 20000, 100)
-a = run_tropical_multiprocessing(model, t, repeated_parameter_values, verbose=False)
+a = run_tropical_multiprocessing(model, t, repeated_parameter_values, type_sign='consumption',
+                                 find_passengers_by='imp_nodes', verbose=False)
