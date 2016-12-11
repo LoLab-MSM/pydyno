@@ -292,7 +292,7 @@ class Tropical:
 
         mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in monomials_idx]
 
-        largest_prod = 'ND'
+        largest_prod = 'NoDoms'
         for comb in sorted(mon_comb.keys()):
             # comb is an integer that represents the number of monomials in a combination
             if len(mon_comb[comb].keys()) == 1:
@@ -596,6 +596,7 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
         print("Waiting for", remaining, "tasks to complete...")
         time.sleep(5)
 
+    all_drivers = all_drivers.get()
     if to_data_frame:
-        hf.array_to_dataframe(all_drivers.get(), dir_path, tspan, parameters)
+        hf.array_to_dataframe(all_drivers, dir_path, tspan, parameters)
     return all_drivers
