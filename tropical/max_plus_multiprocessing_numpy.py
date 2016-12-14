@@ -527,7 +527,7 @@ class Tropical:
                 mon_name = str(name).partition('__')[2]
                 plt.plot(self.tspan, mon_values, label=mon_name)
             plt.ylabel('Rate(m/sec)', fontsize=16)
-            plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=3)
+            plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=3)
 
             plt.subplot(311)
             plt.plot(self.tspan, y['__s%d' % sp], label=hf.parse_name(self.model.species[sp]))
