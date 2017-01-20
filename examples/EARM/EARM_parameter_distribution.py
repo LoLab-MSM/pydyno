@@ -1,4 +1,4 @@
-import helper_functions as hf
+import tropical.helper_functions as hf
 
 from earm.lopez_embedded import model
 from tropical.miscellaneous_analysis import parameter_distribution
