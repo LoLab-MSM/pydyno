@@ -8,6 +8,13 @@ import colorsys
 class AnalysisCluster:
 
     def __init__(self, model, tspan, parameters, clusters):
+        """
+
+        :param model: PySB model
+        :param tspan: time range for the simulation
+        :param parameters: model parameters
+        :param clusters: clusters from TroPy
+        """
         self.model = model
         self.tspan = tspan
         self.sim = ScipyOdeSimulator(self.model, self.tspan)
@@ -17,6 +24,8 @@ class AnalysisCluster:
             self.all_parameters = parameters
         else:
             raise Exception('Is this the right exception?')
+        if len(self.all_parameters) != len(self.model.parameters):
+            raise Exception("param_values must be the same length as model.parameters")
         if type(clusters) == list:
             clus_values = [0]*len(clusters)
             for i, clus in enumerate(clusters):
@@ -28,22 +37,37 @@ class AnalysisCluster:
         else:
             raise Exception('wrong type')
 
-    def plot_dynamics_cluster_types(self, species, save_path, ic_species=None):
-        if ic_species:
-            norm_values = ic_species
-        else:
-            norm_values = [1]*len(species)
+    def plot_dynamics_cluster_types(self, species, save_path, ic_idx=None):
+        """
+
+        :param species: Species to plot their dynamics
+        :param save_path: path to file
+        :param ic_idx: indices in model.parameters of initial conditions species
+        :return: plot of the dynamics of the species in each cluster
+        """
         plots_dict = {}
         for sp in species:
             for clus in range(len(self.clusters)):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)] = plt.subplots()
-        for idx, clus in enumerate(self.clusters):
-            for par_idx in clus:
-                parameters = self.all_parameters[par_idx]
-                y = self.sim.run(param_values=parameters).all
-                for i_sp, sp in enumerate(species):
-                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, y['__s{0}'.format(sp)] /
-                                                                                ic_species[i_sp])
+
+        if ic_idx:
+            if len(species) != len(ic_idx):
+                raise Exception("length of 'species' must be the same as of 'ic_idx'")
+            for idx, clus in enumerate(self.clusters):
+                for par_idx in clus:
+                    parameters = self.all_parameters[par_idx]
+                    y = self.sim.run(param_values=parameters).all
+                    for i_sp, sp in enumerate(species):
+                        sp_0 = parameters[ic_idx[i_sp]]
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, y['__s{0}'.format(sp)] /
+                                                                                    sp_0)
+        else:
+            for idx, clus in enumerate(self.clusters):
+                for par_idx in clus:
+                    parameters = self.all_parameters[par_idx]
+                    y = self.sim.run(param_values=parameters).all
+                    for i_sp, sp in enumerate(species):
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, y['__s{0}'.format(sp)])
 
         for sp in species:
             for clus in range(len(self.clusters)):
