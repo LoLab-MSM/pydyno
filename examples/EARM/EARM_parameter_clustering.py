@@ -7,7 +7,8 @@ from parameter_clustering import dbscan
 def listdir_fullpath(d):
     return [os.path.join(d, fi) for fi in os.listdir(d)]
 
-parameters_path = listdir_fullpath('/home/oscar/Documents/tropical_project/parameters_5000')
+directory = os.path.dirname(__file__)
+parameters_path = listdir_fullpath(os.path.join(directory, "parameters_5000"))
 
 parameters_data = np.zeros((len(parameters_path), 126))
 
