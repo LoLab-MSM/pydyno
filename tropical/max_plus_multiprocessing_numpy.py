@@ -53,7 +53,7 @@ def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='pro
 
 
 class Tropical:
-    mach_eps = numpy.finfo(float).eps
+    mach_eps = 1e-11 # numpy.finfo(float).eps
 
     def __init__(self, model):
         """
@@ -182,7 +182,7 @@ class Tropical:
         for sp_idx, trace_soln in enumerate(sp_imposed_trace):
             distance_imposed = 999
             for idx, solu in enumerate(trace_soln):
-                # Check is solution is time independent
+                # Check if solution is time independent
                 if solu.is_real:
                     imp_trace_values = [float(solu) + self.mach_eps] * (len(self.tspan) - ignore)
                 else:
@@ -194,8 +194,8 @@ class Tropical:
                     # their dynamic solution
                     variables = [atom for atom in solu.atoms(sympy.Symbol)]
                     f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-                    args = [y[str(l)][ignore:] for l in variables]  # arguments to put in the lambdify function
-                    imp_trace_values = f(*args)
+                    args = [y[str(l)].iloc[ignore:] for l in variables]  # arguments to put in the lambdify function
+                    imp_trace_values = f(*args) + self.mach_eps
 
                 if any(isinstance(n, complex) for n in imp_trace_values):
                     if verbose:
@@ -205,7 +205,8 @@ class Tropical:
                     if verbose:
                         print("solution {0} from equation {1} is negative".format(idx, sp_idx))
                     continue
-                diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % sp_idx][ignore:]))
+                diff_trace_ode = abs(numpy.log10(imp_trace_values) - numpy.log10(y['__s%d' % sp_idx].iloc[ignore:] +
+                                                                                 self.mach_eps))
                 if max(diff_trace_ode) < distance_imposed:
                     distance_imposed = max(diff_trace_ode)
 
@@ -232,8 +233,8 @@ class Tropical:
         :return: Plot of the imposed trace and the dnamic solution
         """
         plt.figure()
-        plt.semilogy(tspan, imp_trace_values, 'r--', linewidth=5, label='imposed')
-        plt.semilogy(tspan[ignore:], y['__s{0}'.format(sp_idx)][ignore:], label='full')
+        plt.semilogy(tspan[ignore:], imp_trace_values, 'r--', linewidth=5, label='imposed')
+        plt.semilogy(tspan[ignore:], y['__s{0}'.format(sp_idx)].iloc[ignore:]+self.mach_eps, nonposy='clip', label='full')
         plt.legend(loc=0)
         plt.xlabel('time', fontsize=20)
         plt.ylabel('population', fontsize=20)
@@ -536,7 +537,7 @@ class Tropical:
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
             # plt.show()
-            plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
+            plt.savefig('s%d' % sp + '.jpg', bbox_inches='tight', dpi=400)
             plt.clf()
 
     def get_passenger(self):
@@ -548,9 +549,10 @@ class Tropical:
 
 
 def run_tropical(model, tspan, parameters=None, diff_par=1, find_passengers_by='imp_nodes', type_sign='production',
-                 max_comb=None, sp_visualize=None, verbose=False):
+                 max_comb=None, sp_visualize=None, plot_imposed_trace=False, verbose=False):
     """
 
+    :param plot_imposed_trace:
     :param model: PySB model of a biological system
     :param tspan: Time of the simulation
     :param parameters: Parameter values of the PySB model
@@ -565,7 +567,7 @@ def run_tropical(model, tspan, parameters=None, diff_par=1, find_passengers_by='
     tr = Tropical(model)
     signatures = tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par, type_sign=type_sign,
                                 find_passengers_by=find_passengers_by, max_comb=max_comb,
-                                sp_to_visualize=sp_visualize, verbose=verbose)
+                                sp_to_visualize=sp_visualize, plot_imposed_trace=plot_imposed_trace, verbose=verbose)
     return signatures
     # return tr.get_species_signatures()
 
