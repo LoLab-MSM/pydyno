@@ -24,7 +24,7 @@ class AnalysisCluster:
             self.all_parameters = parameters
         else:
             raise Exception('Is this the right exception?')
-        if len(self.all_parameters) != len(self.model.parameters):
+        if self.all_parameters.shape[1] != len(self.model.parameters):
             raise Exception("param_values must be the same length as model.parameters")
         if type(clusters) == list:
             clus_values = [0]*len(clusters)
