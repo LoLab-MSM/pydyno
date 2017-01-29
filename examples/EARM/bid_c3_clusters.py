@@ -1,9 +1,7 @@
-from multiprocessing import Pool, cpu_count
-
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
+from multiprocessing import Pool, cpu_count
 from earm.lopez_embedded import model
 from pysb.simulator import ScipyOdeSimulator
 from tropical import helper_functions as hf
