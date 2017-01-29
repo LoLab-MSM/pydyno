@@ -105,6 +105,18 @@ def _find_nearest_zero(array):
     return array[idx]
 
 
+def sig_apop(t, f, td, ts):
+    """Return the amount of substrate cleaved at time t.
+
+    Keyword arguments:
+    t -- time
+    f -- is the fraction cleaved at the end of the reaction
+    td -- is the delay period between TRAIL addition and half-maximal substrate cleavage
+    ts -- is the switching time between initial and complete effector substrate  cleavage
+    """
+    return f - f / (1 + np.exp((t - td) / (4 * ts)))
+
+
 def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
     """
 
