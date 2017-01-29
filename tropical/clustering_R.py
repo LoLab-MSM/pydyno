@@ -22,7 +22,8 @@ directory = os.path.dirname(__file__)
 r_cluster_function_path = os.path.join(directory, 'clustering_sequences.R')
 cluster_function = base.dget(r_cluster_function_path)
 
-df_list = '/home/oscar/Documents/tropical_earm/earm_dataframes_consumption/data_frame37.csv'
+df_list = '/home/oscar/Documents/tropical_earm_IC/dataframes_IC/data_frame37.csv'
 sm_df = '/home/oscar/Documents/tropical_earm/subs_matrix_consumption/sm_37.csv'
 
-cluster_function(df_list, sm='CONSTANT', nclusters=4, clusterMethod='PAM', clustered_pars_path='/home/oscar/Documents/tropical_earm/clustered_parameters_bid_consumption/')
+cluster_function(df_list, sm='CONSTANT', nclusters=4, clusterMethod='ward',
+                 clustered_pars_path='')
