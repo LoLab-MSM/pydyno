@@ -6,11 +6,11 @@ Model()
 V = 10.
 #######
 Parameter('kf1',   1./V)
-Parameter('kr1',   1000.)
-Parameter('kcat1', 10.)
+Parameter('kr1',   10.)
+Parameter('kcat1', 100.)
 Parameter('kf2',   1./V)
 Parameter('kr2',   1000.)
-Parameter('kcat2', 100.)
+Parameter('kcat2', 10.)
 
 
 Monomer('E', ['s'])
