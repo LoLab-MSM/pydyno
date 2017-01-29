@@ -1,22 +1,19 @@
 import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.optimize import curve_fit
-
 import pysb.integrate
 from earm.lopez_embedded import model
 from tropical import helper_functions as hf
+import csv
 
 # List of model observables and corresponding data file columns for
 # point-by-point fitting
 obs_names = ['mBid', 'cPARP']
 data_names = ['norm_ICRP', 'norm_ECRP']
 var_names = ['nrm_var_ICRP', 'nrm_var_ECRP']
-# Total starting amounts of proteins in obs_names, for normalizing simulations
-obs_totals = [model.parameters['Bid_0'].value,
-              model.parameters['PARP_0'].value]
+
 
 # Load experimental data file
 earm_path = '/home/oscar/PycharmProjects/earm'
@@ -79,7 +76,7 @@ def display_observables(params_estimated):
     var_norm = exp_data[var_names].view(float).reshape(len(exp_data), -1).T
     std_norm = var_norm ** 0.5
     obs_names_disp = obs_names + ['aSmac']
-    totals = obs_totals + [momp_obs_total]
+
 
     cparp_info = [0] * len(params_estimated)
     cparp_info_fraction = [0] * len(params_estimated)
@@ -87,7 +84,7 @@ def display_observables(params_estimated):
     # Plot experimental data and simulation on the same axes
     colors = ('r', 'b')
     obs_range = [0, 1]
-    axApop.vlines(momp_data[0], -0.05, 1.05, color='g', linestyle=':', label='aSmac')
+    axApop.vlines(9810.0, -0.05, 1.05, color='g', linestyle=':', label='aSmac')
     for exp, exp_err, obs, c in zip(exp_obs_norm, std_norm, obs_range, colors):
 
         axApop.plot(exp_data['Time'], exp, color=c, marker='.', linestyle=':', label=obs_names[obs])
@@ -95,8 +92,17 @@ def display_observables(params_estimated):
                         elinewidth=0.5, capsize=0, fmt=None)
 
         for idx, par in enumerate(params_estimated):
-            params = hf.read_pars(par)
-            params[73] -= params[73] * 0.89
+            if type(par) == str:
+                params = hf.read_pars(par)
+            else:
+                params = par
+
+            # Total starting amounts of proteins in obs_names, for normalizing simulations
+            obs_totals = [params[55],
+                          params[23]]
+            totals = obs_totals + [params[62]]
+
+            # params[73] -= params[73] * 0.89
             solver.run(params)
             sim_obs = solver.yobs[obs_names_disp].view(float).reshape(len(solver.yobs), -1)
             sim_obs_norm = (sim_obs / totals).T
@@ -129,7 +135,7 @@ def display_observables(params_estimated):
                  weights=weightsy)
     axHistx.hist(column(cparp_info, 1), bins=np.arange(min(tspan), max(tspan) + binwidthx, binwidthx),
                  weights=weightsx)
-    axHistx.vlines(momp_data[0], 0, 1, color='g', linestyle=':', label='aSmac')
+    axHistx.vlines(9810.0, 0, 1, color='g', linestyle=':', label='aSmac')
 
     # axHistx.axis["bottom"].major_ticklabels.set_visible(False)
     for tl in axHistx.get_xticklabels():
@@ -139,17 +145,24 @@ def display_observables(params_estimated):
     for tl in axHisty.get_yticklabels():
         tl.set_visible(False)
     axHisty.set_xticks([0, 0.5, 1])
-    axApop.legend(loc=0)
-    fig.savefig('/home/oscar/Desktop/tropical_earm_results/clusterBid1_earm.jpg', format='jpg', dpi=400)
+    # axApop.legend(loc=0)
+    fig.savefig('/home/oscar/Desktop/clusterBid1_earm.png', format='png', dpi=400)
     return
 
 # Gets the parameter files and display the observables of the EARM model with the experimental values
-all_parameters_path = hf.listdir_fullpath('/home/oscar/home/oscar/tropical_project_new/parameters_5000')
-new_path = '/home/oscar/Documents/tropical_earm/parameters_5000'
-cluster2_pars = hf.list_pars_infile('/home/oscar/Documents/tropical_earm/clustered_parameters_bid_consumption/data_frame37_Type2',
-                                    new_path=new_path)
+# all_parameters_path = hf.listdir_fullpath('/home/oscar/home/oscar/tropical_project_new/parameters_5000')
+# new_path = '/home/oscar/Documents/tropical_earm/parameters_5000'
+# cluster2_pars = hf.list_pars_infile('/home/oscar/Documents/tropical_earm/clustered_parameters_bid_consumption/data_frame37_Type2',
+#                                     new_path=new_path)
 
-display_observables(all_parameters_path )
+all_parameters = np.load('/home/oscar/Documents/tropical_earm_IC/IC_10000_parameters_consumption.npy')
+
+path_cluster_type = '/home/oscar/Documents/tropical_earm_IC/bid_clusteredPAM_pars_consumption/data_frame37_Type1'
+f = open(path_cluster_type)
+data = csv.reader(f)
+pars_idx = [int(d[0]) for d in data]
+
+display_observables(all_parameters[pars_idx])
 
 
 
