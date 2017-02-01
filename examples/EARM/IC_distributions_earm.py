@@ -1,17 +1,20 @@
 from __future__ import print_function
-
 import math
-
 import numpy as np
 from numpy.random import lognormal
 from earm.lopez_embedded import model
 from tropical.max_plus_multiprocessing_numpy import run_tropical_multiprocessing
 import os
 import tropical.helper_functions as hf
-model.enable_synth_deg()
 
 
 def normal_mu_sigma(log_mean, cv):
+    """
+
+    :param log_mean:
+    :param cv:
+    :return:
+    """
     sigma_normal = math.sqrt(math.log((cv ** 2)+1))
     mu_normal = math.log(log_mean) - 0.5*(sigma_normal ** 2)
     return mu_normal, sigma_normal
