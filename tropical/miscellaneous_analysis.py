@@ -2,10 +2,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pysb.integrate
 import helper_functions as hf
+from pysb.integrate import ScipyOdeSimulator
 
 
 # CHANGES IN PARAMETER VALUE AT CERTAIN TIME POINT
 def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_change, fold_change, param_values=None):
+    """
+
+    :param model:
+    :param tspan:
+    :param time_change:
+    :param specie:
+    :param parameters_to_change:
+    :param fold_change:
+    :param param_values:
+    :return:
+    """
     if param_values is not None:
         # accept vector of parameter values as an argument
         if len(param_values) != len(model.parameters):
@@ -20,16 +32,16 @@ def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_ch
 
     for idx, par in enumerate(parameters_to_change):
         plt.figure()
-        solver = pysb.integrate.Solver(model, tspan, integrator='vode')
-        solver.run(new_pars)
-        nummol = np.copy(solver.y[time_change:time_change+1].T.reshape(6))
-        sp_before = solver.y[:, specie]
+        solver = ScipyOdeSimulator(model=model, tspan=tspan)
+        y = solver.run(param_values=new_pars).species
+        nummol = np.copy(y[time_change:time_change+1])#.T.reshape(len(model.species)))
+        sp_before = y[:, specie]
         plt.plot(tspan, sp_before, 'o-', label='before')
-        for i in np.linspace(0.1, fold_change, 6):
+        for i in np.linspace(0.1, fold_change, len(model.species)):
             params = new_pars
             params[par] *= i
-            solver.run(params, y0=nummol)
-            sp_after = solver.y[:-time_change, specie]
+            y1 = solver.run(initials=nummol, param_values=params).species
+            sp_after = y1[:-time_change, specie]
             plt.plot(tspan[time_change:], sp_after, 'x-', label=str(i))
             plt.legend(loc=0)
             plt.tight_layout()
