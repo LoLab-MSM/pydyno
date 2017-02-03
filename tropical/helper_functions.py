@@ -55,14 +55,20 @@ def read_all_pars(pars_path, new_path=None):
         par_sets = listdir_fullpath(pars_path)
     else:
         raise Exception("Not valid parameter file or path")
+    pars_0 = read_pars(par_sets[0])
+    all_pars = np.zeros((len(par_sets), len(pars_0)))
+    all_pars[0] = pars_0
+    for idx in range(1, len(par_sets)):
+        all_pars[idx] = read_pars(par_sets[idx])
+    return all_pars
 
-    all_pars = pd.DataFrame()
-    for i, pat in enumerate(par_sets):
-        var = pd.read_table(pat, sep=',', names=['parameters', 'val'])
-        all_pars['par%d' % i] = var.val
-    all_pars.set_index(var.parameters, inplace=True)
-    all_pars_t = all_pars.transpose()
-    return all_pars_t
+    # all_pars = pd.DataFrame()
+    # for i, pat in enumerate(par_sets):
+    #     var = pd.read_table(pat, sep=',', names=['parameters', 'val'])
+    #     all_pars['par%d' % i] = var.val
+    # all_pars.set_index(var.parameters, inplace=True)
+    # all_pars_t = all_pars.transpose()
+    # return all_pars_t
 
 
 def parse_name(spec):
