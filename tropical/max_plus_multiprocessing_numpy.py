@@ -11,7 +11,7 @@ import sympy
 import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
-matplotlib.use('AGG')
+# matplotlib.use('AGG')
 import matplotlib.pyplot as plt
 
 # This is a global function that takes the class object as a parameter to compute the dynamical signature.
@@ -537,7 +537,7 @@ class Tropical:
             plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
 
             # plt.show()
-            plt.savefig('s%d' % sp + '.jpg', bbox_inches='tight', dpi=400)
+            plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
             plt.clf()
 
     def get_passenger(self):
@@ -600,5 +600,5 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
 
     all_drivers = all_drivers.get()
     if to_data_frame:
-        hf.array_to_dataframe(all_drivers, dir_path, tspan, parameters)
+        hf.array_to_dataframe(all_drivers, dir_path, tspan)
     return all_drivers
