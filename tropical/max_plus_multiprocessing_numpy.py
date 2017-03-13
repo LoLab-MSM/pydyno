@@ -42,7 +42,7 @@ def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='pro
 
     if find_passengers_by == 'qssa':
         all_signatures = tropical_object.qssa_signal_signature(param_values, diff_par, epsilon, ignore,
-                                                               plot_imposed_trace, sp_to_visualize)
+                                                               plot_imposed_trace, sp_to_visualize, verbose=verbose)
 
     elif find_passengers_by == 'imp_nodes':
         all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par,
@@ -196,7 +196,6 @@ class Tropical:
                     f = sympy.lambdify(variables, solu, modules=dict(sqrt=numpy.lib.scimath.sqrt))
                     args = [y[str(l)].iloc[ignore:] for l in variables]  # arguments to put in the lambdify function
                     imp_trace_values = f(*args) + self.mach_eps
-
                 if any(isinstance(n, complex) for n in imp_trace_values):
                     if verbose:
                         print("solution {0} from equation {1} is complex".format(idx, sp_idx))
@@ -391,11 +390,11 @@ class Tropical:
         return all_signatures
 
     def qssa_signal_signature(self, param_values, diff_par=1, epsilon=1, ignore=1, plot_imposed_trace=False,
-                              sp_to_visualize=None):
+                              sp_to_visualize=None, verbose=False):
         pars_ready = self._check_param_values(param_values)
         y = self.sim.run(param_values=pars_ready).dataframe
 
-        self.find_passengers(y, pars_ready, epsilon, ignore=ignore, plot=plot_imposed_trace)
+        self.find_passengers(y, pars_ready, epsilon, ignore=ignore, plot=plot_imposed_trace, verbose=verbose)
         self.equations_to_tropicalize()
         self.set_combinations_sm()
 
