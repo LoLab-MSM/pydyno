@@ -148,7 +148,7 @@ class Tropical:
 
     def find_nonimportant_nodes(self):
         """
-
+        This function looks a the reactions and finds the nodes that only have one incoming and outgoing reaction (edge)
         :return: a list of non-important nodes
         """
         rcts_sp = list(sum([i['reactants'] for i in self.model.reactions_bidirectional], ()))
@@ -385,7 +385,7 @@ class Tropical:
         all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
 
         if sp_to_visualize:
-            self.visualization2(y, all_signatures, pars_ready, sp_to_visualize)
+            self.visualization(y, all_signatures, pars_ready, sp_to_visualize)
 
         return all_signatures
 
@@ -401,7 +401,7 @@ class Tropical:
         all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
 
         if sp_to_visualize:
-            self.visualization2(y, all_signatures, pars_ready, sp_to_visualize)
+            self.visualization(y, all_signatures, pars_ready, sp_to_visualize)
 
         return all_signatures
 
@@ -471,7 +471,7 @@ class Tropical:
         value = 2 * len(max(a, b, key=len)) - len(min(a, b, key=len)) - len(set(a).intersection(b))
         return value
 
-    def visualization2(self, y, all_signatures, param_values, sp_to_vis=None):
+    def visualization(self, y, all_signatures, param_values, sp_to_vis=None):
         if sp_to_vis:
             species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
         else:
