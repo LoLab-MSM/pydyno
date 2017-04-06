@@ -5,13 +5,11 @@ import math
 import time
 from collections import OrderedDict
 from multiprocessing import Pool, cpu_count
-import matplotlib
 import numpy
 import sympy
 import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
-# matplotlib.use('AGG')
 import matplotlib.pyplot as plt
 
 
