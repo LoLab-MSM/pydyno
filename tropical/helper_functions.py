@@ -123,10 +123,10 @@ def sig_apop(t, f, td, ts):
     return f - f / (1 + np.exp((t - td) / (4 * ts)))
 
 
-def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
+def sps_signature_to_df(signatures, dir_path, global_signature=False, col_index=None, row_index=None):
     """
 
-    :param array: array or path to npy file to convert to data frame
+    :param signatures: array or path to npy file to convert to data frame
     :param dir_path: Path to the directory where the data frames are saved
     :param col_index: usually tspan
     :param row_index: usually the name or idx of parameter set
@@ -138,10 +138,10 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
     else:
         raise Exception("'dir_path' must be given.")
 
-    if isinstance(array, str):
-        tropical_data = np.load(array)
+    if isinstance(signatures, str):
+        tropical_data = np.load(signatures)
     else:
-        tropical_data = array
+        tropical_data = signatures
 
     if col_index is not None:
         cindex = col_index
@@ -153,16 +153,20 @@ def array_to_dataframe(array, dir_path, col_index=None, row_index=None):
     else:
         rindex = range(len(tropical_data))
 
-    drivers_all = [set(dr.keys()) for dr in tropical_data]
-    drivers_over_pars = set.intersection(*drivers_all)
-    drivers_to_df = {}
-    for sp in drivers_over_pars:
-        tmp = [0] * len(drivers_all)
-        for idx, tro in enumerate(tropical_data):
-            tmp[idx] = tro[sp]
-        drivers_to_df[sp] = tmp
+    if global_signature:
+        pd.DataFrame(np.array(signatures), index=rindex, columns=cindex).to_csv(
+            path + '/data_frame_global_signature' + '.csv')
+    else:
+        drivers_all_ic = [set(dr.keys()) for dr in tropical_data]
+        drivers_over_pars = set.intersection(*drivers_all_ic)
+        drivers_to_df = {}
+        for sp in drivers_over_pars:
+            tmp = [0] * len(drivers_all_ic)
+            for idx, tro in enumerate(tropical_data):
+                tmp[idx] = tro[sp]
+            drivers_to_df[sp] = tmp
 
-    for sp in drivers_to_df.keys():
-        pd.DataFrame(np.array(drivers_to_df[sp]), index=rindex, columns=cindex).to_csv(
-            path + '/data_frame%d' % sp + '.csv')
+        for sp in drivers_to_df.keys():
+            pd.DataFrame(np.array(drivers_to_df[sp]), index=rindex, columns=cindex).to_csv(
+                path + '/data_frame%d' % sp + '.csv')
     return
