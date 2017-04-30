@@ -5,11 +5,14 @@ import matplotlib.pyplot as plt
 import colorsys
 from scipy.optimize import curve_fit
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 plt.ioff()
 
 
 class AnalysisCluster:
-
+    """
+    Class to create images of the clusters
+    """
     def __init__(self, model, tspan, parameters, clusters, sim_results=None):
         """
 
@@ -34,7 +37,7 @@ class AnalysisCluster:
             raise Exception("param_values must be the same length as model.parameters")
 
         if type(clusters) == list:
-            clus_values = [0]*len(clusters)
+            clus_values = [0] * len(clusters)
             for i, clus in enumerate(clusters):
                 f = open(clus)
                 data = csv.reader(f)
@@ -59,7 +62,7 @@ class AnalysisCluster:
             functions = [functions]
         if isinstance(species, int):
             species = [species]
-        results = [0]*len(species)
+        results = [0] * len(species)
         for i, j in enumerate(species):
             results[i] = curve_fit(functions[i], xdata, ydata['__s{0}'.format(j)], p0=kwargs['p0'])[0]
         return results[0]
@@ -101,7 +104,7 @@ class AnalysisCluster:
                 if not sp_overlap:
                     raise Exception('species_dist must be in species')
                 for idx, clus in enumerate(self.clusters):
-                    ftn_result = [0]*len(clus)
+                    ftn_result = [0] * len(clus)
                     for i, par_idx in enumerate(clus):
                         parameters = self.all_parameters[par_idx]
                         y = self.all_simulations[par_idx]
@@ -116,7 +119,8 @@ class AnalysisCluster:
                         divider = make_axes_locatable(ax)
                         axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
                         # axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
-                        plt.setp(axHistx.get_xticklabels(), visible=False) #+ axHisty.get_yticklabels(), visible=False)
+                        plt.setp(axHistx.get_xticklabels(),
+                                 visible=False)  # + axHisty.get_yticklabels(), visible=False)
 
                         hist_data = self.column(ftn_result, 1)
                         hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
@@ -143,8 +147,23 @@ class AnalysisCluster:
                     for i_sp, sp in enumerate(species):
                         plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, y['__s{0}'.format(sp)],
                                                                                     color='blue')
-        for sp in species:
+        for ii, sp in enumerate(species):
             for clus in range(len(self.clusters)):
+                ax = plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1]
+                divider = make_axes_locatable(ax)
+                # axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
+                axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
+                plt.setp(axHisty.get_yticklabels(), visible=False)
+
+                hist_data = self.column(self.all_simulations[self.clusters[clus]]['__s{0}'.format(sp)], -1) / \
+                            self.column(self.all_parameters[self.clusters[clus]], ic_idx[ii])
+                hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
+                weightsy = np.ones_like(hist_data_filt) / len(hist_data_filt)
+                # weightsy = np.ones_like(cparp_info_fraction) / len(cparp_info_fraction)
+                axHisty.hist(hist_data_filt, weights=weightsy, orientation='horizontal')
+                for tl in axHisty.get_yticklabels():
+                    tl.set_visible(False)
+                axHisty.set_xticks([0, 0.5, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlabel('Time')
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_ylabel('Concentration')
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].suptitle('Species {0} cluster {1}'.
@@ -164,7 +183,7 @@ class AnalysisCluster:
                 plt.hist(sp_ic_values, weights=sp_ic_weights, alpha=0.4, color=colors[idx], label=str(ic_par_idxs))
             plt.xlabel('Concentration')
             plt.ylabel('Percentage')
-            plt.savefig(save_path+'/plot_ic_type{0}'.format(c_idx))
+            plt.savefig(save_path + '/plot_ic_type{0}'.format(c_idx))
             plt.clf()
         return
 
@@ -177,4 +196,3 @@ class AnalysisCluster:
             saturation = (90 + np.random.rand() * 10) / 100.
             colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
         return colors
-
