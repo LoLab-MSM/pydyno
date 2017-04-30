@@ -342,10 +342,10 @@ class Tropical:
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term[mon_type] and term['reversible'] is True:
+                if sp in term[mon_type]:# and term['reversible'] is True:
                     monomials.append(mon_sign * term['rate'])
-                elif sp in term[mon_type] and term['reversible'] is False:
-                    monomials.append(mon_sign * term['rate'])
+                # elif sp in term[mon_type] and term['reversible'] is False:
+                #     monomials.append(mon_sign * term['rate'])
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
@@ -546,6 +546,13 @@ class Tropical:
         """
         return self.passengers
 
+    def get_comb_dict(self):
+        """
+
+        :return: Combination of monomials for each species
+        """
+        return self.all_comb
+
 
 def run_tropical(model, tspan, parameters=None, diff_par=1, find_passengers_by='imp_nodes', type_sign='production',
                  max_comb=None, sp_visualize=None, plot_imposed_trace=False, verbose=False):
@@ -599,5 +606,5 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
 
     all_drivers = all_drivers.get()
     if to_data_frame:
-        hf.array_to_dataframe(all_drivers, dir_path, tspan)
+        hf.sps_signature_to_df(all_drivers, dir_path, tspan)
     return all_drivers
