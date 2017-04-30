@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import colorsys
 from scipy.optimize import curve_fit
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import os
 
 plt.ioff()
 
@@ -77,7 +78,7 @@ class AnalysisCluster:
         """
         return np.array([row[i] for row in matrix])
 
-    def plot_dynamics_cluster_types(self, species, save_path, species_to_fit=None, fit_ftn=None, ic_idx=None, **kwargs):
+    def plot_dynamics_cluster_types(self, species, save_path='', species_to_fit=None, fit_ftn=None, ic_idx=None, **kwargs):
         """
 
         :param species: Species that will be plotted
@@ -168,11 +169,11 @@ class AnalysisCluster:
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_ylabel('Concentration')
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].suptitle('Species {0} cluster {1}'.
                                                                                  format(sp, clus))
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].savefig(save_path + '/plot_sp{0}_cluster{1}'.
-                                                                                format(sp, clus))
+                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, clus))
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].savefig(final_save_path)
         return
 
-    def plot_sp_IC_distributions(self, ic_par_idxs, save_path):
+    def plot_sp_IC_distributions(self, ic_par_idxs, save_path=''):
         colors = self._get_colors(len(ic_par_idxs))
         for c_idx, clus in enumerate(self.clusters):
             cluster_pars = self.all_parameters[clus]
@@ -183,7 +184,8 @@ class AnalysisCluster:
                 plt.hist(sp_ic_values, weights=sp_ic_weights, alpha=0.4, color=colors[idx], label=str(ic_par_idxs))
             plt.xlabel('Concentration')
             plt.ylabel('Percentage')
-            plt.savefig(save_path + '/plot_ic_type{0}'.format(c_idx))
+            final_save_path = os.path.join(save_path, 'plot_ic_type{0}'.format(c_idx))
+            plt.savefig(final_save_path)
             plt.clf()
         return
 
