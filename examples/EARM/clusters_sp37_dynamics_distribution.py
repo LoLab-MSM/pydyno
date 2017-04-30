@@ -19,7 +19,7 @@ clusters = [clusters_path+'/data_frame37_Type1.csv',
             ]
 simulations_result = np.load(all_simulations_path)
 a = AnalysisCluster(model, t, all_parameters, clusters, sim_results=simulations_result)
-a.plot_sp_IC_distributions([55, 56, 57], save_path=directory)
+a.plot_sp_IC_distributions([55, 56, 57])
 # a.plot_dynamics_cluster_types([39], save_path='/Users/dionisio/Documents/', species_to_fit=[39], fit_ftn=sig_apop, ic_idx=[23],
 #                               **{'p0': [100, 100, 100]})
 # a.plot_dynamics_cluster_types([33],  save_path='/Users/dionisio/Documents/', ic_idx=[19])
