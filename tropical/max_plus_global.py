@@ -376,7 +376,7 @@ class Tropical:
                         if str(va).startswith('__'):
                             arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)].values)
                         else:
-                            arg_prod[idx] = pars_ready[str(va)]
+                            arg_prod[idx] = pars_ready[va.name]
                     # arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
                     f_prod = sympy.lambdify(var_prod, mon_p_values)
 
@@ -564,7 +564,7 @@ class Tropical:
                     if str(va).startswith('__'):
                         arg_f1[idx] = numpy.maximum(self.mach_eps, y[str(va)])
                     else:
-                        arg_f1[idx] = param_values[str(va)]
+                        arg_f1[idx] = param_values[va.name]
 
                 f1 = sympy.lambdify(var_to_study, mon)
                 mon_values = f1(*arg_f1)
