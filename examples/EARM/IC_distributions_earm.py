@@ -16,7 +16,7 @@ def normal_mu_sigma(log_mean, cv):
     :return:
     """
     sigma_normal = math.sqrt(math.log((cv ** 2)+1))
-    mu_normal = math.log(log_mean) - 0.5*(sigma_normal ** 2)
+    mu_normal = math.log(log_mean)  # - 0.5*(sigma_normal ** 2)
     return mu_normal, sigma_normal
 
 
@@ -44,15 +44,12 @@ def sample_lognormal(parameter_ic, size, cv=0.25):
     return lognormal(mean_normal, mu_normal, size)
 
 parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.parameters_initial_conditions()[1:]}
-samples = 10000
+samples = 10
 
 directory = os.path.dirname(__file__)
 parameters_path = os.path.join(directory, "parameters_5000")
 all_parameters = hf.listdir_fullpath(parameters_path)
 parameters = hf.read_pars(all_parameters[541])
-
-all_pars_ic = np.zeros((samples, len(model.parameters)))
-
 
 repeated_parameter_values = np.tile(parameters, (samples, 1))
 for idx, par in parameters_ic.items():
@@ -60,4 +57,4 @@ for idx, par in parameters_ic.items():
 
 t = np.linspace(0, 20000, 100)
 a = run_tropical_multiprocessing(model, t, repeated_parameter_values, type_sign='consumption',
-                                 find_passengers_by='imp_nodes', global_signature=True, dir_path=directory)
+                                 find_passengers_by='imp_nodes', to_data_frame=True, dir_path=directory)
