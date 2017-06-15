@@ -4,6 +4,8 @@ import pandas as pd
 import re
 import numpy as np
 from collections import OrderedDict
+from pysb.bng import generate_equations
+import pysb
 
 
 def listdir_fullpath(d):
@@ -170,3 +172,24 @@ def sps_signature_to_df(signatures, dir_path, global_signature=False, col_index=
             pd.DataFrame(np.array(drivers_to_df[sp]), index=rindex, columns=cindex).to_csv(
                 path + '/data_frame%d' % sp + '.csv')
     return
+
+
+def get_species_initial(model, sp):
+    if not model.species:
+        generate_equations(model)
+
+    if type(sp) == int:
+        species = model.species[sp]
+    elif type(sp) == pysb.ComplexPattern:
+        species = sp
+    else:
+        raise Exception('species type is invalid')
+
+    initial_value = 0
+    for i in model.initial_conditions:
+        if species.is_equivalent_to(i[0]):
+            initial_value = i[1].value
+    return initial_value
+
+
+
