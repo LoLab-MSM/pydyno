@@ -9,7 +9,7 @@ import matplotlib
 import numpy
 import pandas as pd
 import sympy
-import helper_functions as hf
+import tropical.helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 
 matplotlib.use('AGG')
@@ -599,5 +599,5 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
         time.sleep(5)
 
     if to_data_frame:
-        hf.array_to_dataframe(all_drivers, dir_path, tspan, parameters)
+        hf.sps_signature_to_df(all_drivers, dir_path, tspan, parameters)
     return all_drivers

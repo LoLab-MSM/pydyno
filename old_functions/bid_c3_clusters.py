@@ -5,6 +5,10 @@ from multiprocessing import Pool, cpu_count
 from earm.lopez_embedded import model
 from pysb.simulator import ScipyOdeSimulator
 from tropical import helper_functions as hf
+import os
+
+directory = os.path.dirname(__file__)
+pars_path = os.path.join(directory, 'parameters_5000')
 
 tspan = np.linspace(0, 20000, 100)
 sim = ScipyOdeSimulator(model, tspan)

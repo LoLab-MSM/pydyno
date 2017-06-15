@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from pysb.integrate import odesolve
 import matplotlib.pyplot as plt
 import csv
-
+import os
 
 def sig_apop(t, f, td, ts):
     """Return the amount of substrate cleaved at time t.
@@ -46,7 +46,9 @@ parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.
 
 samples = 10
 
-f = open('/home/oscar/home/oscar/Documents/tropical_project/parameters_5000/pars_embedded_5400.txt')
+directory = os.path.dirname(__file__)
+pars_path = os.path.join(directory, 'parameters_5000')
+f = open(pars_path+'/pars_embedded_5400.txt')
 data = csv.reader(f)
 parames = [float(i[1]) for i in data]
 # parames[0] = 10
