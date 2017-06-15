@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import csv
 from pysb.integrate import ScipyOdeSimulator
@@ -7,6 +8,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import lognorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import os
+from matplotlib.offsetbox import AnchoredText
 
 plt.ioff()
 
@@ -27,10 +29,8 @@ class AnalysisCluster:
         self.model = model
         self.tspan = tspan
         self.sim = ScipyOdeSimulator(self.model, self.tspan)
-        if sim_results is not None:
-            self.all_simulations = sim_results
-            if len(self.tspan) != self.all_simulations.shape[1]:
-                raise Exception("'tspan' must be the same length as sim_results")
+
+        # check parameters
         if type(parameters) == str:
             self.all_parameters = np.load(parameters)
         elif type(parameters) == np.ndarray:
@@ -40,16 +40,20 @@ class AnalysisCluster:
         if self.all_parameters.shape[1] != len(self.model.parameters):
             raise Exception("param_values must be the same length as model.parameters")
 
+        # check if clusters is a list of files containing the indices of the IC that belong to that cluster
         if type(clusters) == list:
             clus_values = {}
+            number_pars = 0
             for i, clus in enumerate(clusters):
                 f = open(clus)
                 data = csv.reader(f)
                 pars_idx = [int(d[0]) for d in data]
                 clus_values[i] = pars_idx
+                number_pars += len(pars_idx)
             # self.clusters is a list of lists that contains the index of the parameter values that belong to different
             # clusters
             self.clusters = clus_values
+            self.number_pars = number_pars
         elif type(clusters) == str:
             f = open(clusters)
             data = csv.reader(f)
@@ -60,8 +64,18 @@ class AnalysisCluster:
                 item_index = np.where(pars_clusters == j)
                 clus_values[j] = item_index[0]
             self.clusters = clus_values
+            self.number_pars = len(pars_clusters)
         else:
             raise Exception('wrong type')
+
+        if sim_results is not None:
+            self.all_simulations = sim_results
+            if len(self.tspan) != self.all_simulations.shape[1]:
+                raise Exception("'tspan' must be the same length as sim_results")
+            if self.number_pars != self.all_simulations.shape[0]:
+                raise Exception("The number of simulations must be the same as the number of parameters provided")
+        else:
+            self.all_simulations = self.sim.run(param_values=self.all_parameters).all
 
     @staticmethod
     def curve_fit_ftn(functions, species, xdata, ydata, **kwargs):
@@ -93,19 +107,17 @@ class AnalysisCluster:
         """
         return np.array([row[i] for row in matrix])
 
-    def plot_dynamics_cluster_types(self, species, save_path='', species_to_fit=None, fit_ftn=None, ic_idx=False, **kwargs):
+    def plot_dynamics_cluster_types(self, species, save_path='', species_to_fit=None, fit_ftn=None, norm=False, **kwargs):
         """
 
         :param species: Species that will be plotted
         :param save_path: path to file to save figures
         :param species_to_fit: index of species whose trajectory would be fitted to a function (fit_ftn)
         :param fit_ftn: Functions that will be used to fit the simulation results
-        :param ic_idx: Optional, index in model.parameters to normalize species
+        :param norm: Optional, index in model.parameters to normalize species
         :param kwargs:
         :return:
         """
-        if self.all_simulations is None:
-            self.all_simulations = self.sim.run(param_values=self.all_parameters).all
 
         # creates a dictionary to store the different figures by cluster
         plots_dict = {}
@@ -113,12 +125,12 @@ class AnalysisCluster:
             for clus in self.clusters:
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)] = plt.subplots()
 
-        if ic_idx:
+        if norm:
             if species_to_fit:
                 # checking if species_to_fit are present in the species of the model
                 sp_overlap = [ii for ii in species_to_fit if ii in species]
                 if not sp_overlap:
-                    raise Exception('species_to_fit must be in species')
+                    raise Exception('species_to_fit must be in model.species')
 
                 for idx, clus in self.clusters.items():
                     ftn_result = [0] * len(clus)
@@ -141,14 +153,23 @@ class AnalysisCluster:
 
                         hist_data = self.column(ftn_result, 1)
                         hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
-                        # lognorm_fit = lognorm.fit(hist_data_filt)
-                        # print (lognorm_fit)
-                        # ax.text(7, 0.8, str(lognorm_fit))
-                        weightsx = np.ones_like(hist_data_filt) / len(hist_data_filt)
-                        axHistx.hist(hist_data_filt, weights=weightsx, bins=20)
+
+                        shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
+                        pdf = lognorm.pdf(np.sort(hist_data_filt), shape, loc, scale)
+                        # plt.figure()
+                        # plt.plot(np.sort(hist_data_filt), pdf)
+                        # plt.hist(hist_data_filt, normed=True, bins=20)
+                        pdf_pars = 'sigma = '+str(round(shape, 2))+'\nmu = '+str(round(scale, 2))
+                        anchored_text = AnchoredText(pdf_pars, loc=1)
+                        axHistx.add_artist(anchored_text)
+                        # weightsx = np.ones_like(hist_data_filt) / len(hist_data_filt)
+                        axHistx.hist(hist_data_filt, normed=True, bins=20)
+                        axHistx.plot(np.sort(hist_data_filt), pdf)
                         for tl in axHistx.get_xticklabels():
                             tl.set_visible(False)
-                        axHistx.set_yticks([0, 0.5, 1])
+                        yticks = [v for v in np.linspace(0, pdf.max(), 3)]
+                        axHistx.set_yticks(yticks)
+                        axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
             else:
                 for idx, clus in self.clusters.items():
                     y = self.all_simulations[clus]
@@ -192,9 +213,16 @@ class AnalysisCluster:
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].savefig(final_save_path)
         return
 
-    def plot_sp_IC_distributions(self, ic_par_idxs, save_path=''):
+    def plot_sp_ic_distributions(self, ic_par_idxs, save_path=''):
+        """
+        Creates a histogram for each cluster of the initial conditions provided
+
+        :param ic_par_idxs: index of the initial condition in model.parameters
+        :param save_path: path to save the file
+        :return:
+        """
         colors = self._get_colors(len(ic_par_idxs))
-        for c_idx, clus in enumerate(self.clusters):
+        for c_idx, clus in self.clusters.items():
             cluster_pars = self.all_parameters[clus]
             plt.figure(1)
             for idx, sp_ic in enumerate(ic_par_idxs):
@@ -204,13 +232,53 @@ class AnalysisCluster:
                          label=self.model.parameters[sp_ic].name)
             plt.xlabel('Concentration')
             plt.ylabel('Percentage')
-            plt.ylim([0, 0.4])
-            plt.xlim([0, 100000])
+            # plt.ylim([0, 0.4])
+            # plt.xlim([0, 100000])
             plt.legend(loc=0)
             final_save_path = os.path.join(save_path, 'plot_ic_type{0}'.format(c_idx))
             plt.savefig(final_save_path)
             plt.clf()
         return
+
+    def plot_sp_ic_overlap(self, ic_par_idxs, save_path=''):
+        """
+        Creates a stacked histogram with the distributions of each of the clusters for each initial condition provided
+
+        :param ic_par_idxs: list, index of the initial conditions in model.parameters
+        :param save_path: path to save the file
+        :return:
+        """
+        if type(ic_par_idxs) == int:
+            ic_par_idxs = [ic_par_idxs]
+
+        for ic in ic_par_idxs:
+            plt.figure()
+            sp_ic_values_all = self.all_parameters[:, ic]
+            sp_ic_weights_all = np.ones_like(sp_ic_values_all) / len(sp_ic_values_all)
+            n, bins, patches = plt.hist(sp_ic_values_all, weights=sp_ic_weights_all, bins=30, fill=False)
+
+            cluster_ic_values = []
+            cluster_ic_weights = []
+            for c_idx, clus in self.clusters.items():
+                cluster_pars = self.all_parameters[clus]
+                sp_ic_values = cluster_pars[:, ic]
+                sp_ic_weights = np.ones_like(sp_ic_values) / len(sp_ic_values_all)
+                cluster_ic_values.append(sp_ic_values)
+                cluster_ic_weights.append(sp_ic_weights)
+
+            label = ['cluster_{0}, {1}%'.format(cl, (len(self.clusters[cl])/self.number_pars)*100)
+                     for cl in self.clusters.keys()]
+            plt.hist(cluster_ic_values, bins=bins, weights=cluster_ic_weights, stacked=True, label=label,
+                     histtype='bar', ec='black')
+            plt.xlabel('Concentration')
+            plt.ylabel('Percentage')
+            plt.title(self.model.parameters[ic].name)
+            plt.legend(loc=0)
+
+            final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
+            plt.savefig(final_save_path)
+
+            # plt.clf()
 
     @staticmethod
     def _get_colors(num_colors):
