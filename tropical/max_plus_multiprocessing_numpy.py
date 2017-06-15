@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 import matplotlib
 import numpy
 import sympy
-import helper_functions as hf
+import tropical.helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
 # matplotlib.use('AGG')
@@ -606,5 +606,5 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
 
     all_drivers = all_drivers.get()
     if to_data_frame:
-        hf.sps_signature_to_df(all_drivers, dir_path, tspan)
+        hf.sps_signature_to_df(signatures=all_drivers, dir_path=dir_path, col_index=tspan)
     return all_drivers
