@@ -13,6 +13,7 @@ from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
 # matplotlib.use('AGG')
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # This is a global function that takes the class object as a parameter to compute the dynamical signature.
 # This global function is necessary to use the multiprocessing module.
@@ -358,7 +359,7 @@ class Tropical:
                     arg_prod = [0] * len(var_prod)
                     for idx, va in enumerate(var_prod):
                         if str(va).startswith('__'):
-                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)].values)
+                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)])
                         else:
                             arg_prod[idx] = pars_ready[va.name]
                     # arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
@@ -381,13 +382,13 @@ class Tropical:
 
     def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
         pars_ready = self._check_param_values(param_values)
-        y = self.sim.run(param_values=pars_ready).dataframe
+        y = self.sim.run(param_values=pars_ready).all
         all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
 
         if sp_to_visualize:
             self.visualization(y, all_signatures, pars_ready, sp_to_visualize)
 
-        return all_signatures
+        return all_signatures, y
 
     def qssa_signal_signature(self, param_values, diff_par=1, epsilon=1, ignore=1, plot_imposed_trace=False,
                               sp_to_visualize=None, verbose=False):
@@ -605,6 +606,15 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
         time.sleep(5)
 
     all_drivers = all_drivers.get()
+    signatures = [0]*len(parameters)
+    simulations = [0]*len(parameters)
+    for i, j in enumerate(all_drivers):
+        signatures[i] = j[0]
+        simulations[i] = j[1]
+    simulations = numpy.asarray(simulations)
+
     if to_data_frame:
-        hf.sps_signature_to_df(signatures=all_drivers, dir_path=dir_path, col_index=tspan)
-    return all_drivers
+        hf.sps_signature_to_df(signatures=signatures, dir_path=dir_path, col_index=tspan)
+    numpy.save(dir_path+'/simulations', simulations)
+
+    return signatures, simulations
