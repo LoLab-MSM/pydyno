@@ -392,7 +392,7 @@ class Tropical:
             signature_species = numpy.apply_along_axis(self.choose_max_numpy, 0, mons_array,
                                                        *(mons_names, diff_par, self.all_comb[sp], self.type_sign))
 
-            all_signatures[sp] = list(signature_species)
+            all_signatures[sp] = signature_species
         return all_signatures
 
     def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
@@ -480,7 +480,7 @@ class Tropical:
             for L in range(1, combs):
                 prod_comb_names = {}
                 if L == combs - 1:
-                    prod_comb_names['NoDoms'] = 'No_Dominants'
+                    prod_comb_names['NoDominants'] = 'No_Dominants'
                 else:
                     for subset in itertools.combinations(monomials, L):
                         prod_comb_names['{0}_M{1}{2}'.format(sp, L, prod_idx)] = subset
