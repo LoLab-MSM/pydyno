@@ -8,21 +8,18 @@ from multiprocessing import Pool, cpu_count
 import matplotlib
 import numpy
 import sympy
-import tropical.helper_functions as hf
+import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
-# matplotlib.use('AGG')
 import matplotlib.pyplot as plt
-import pandas as pd
-
-# This is a global function that takes the class object as a parameter to compute the dynamical signature.
-# This global function is necessary to use the multiprocessing module.
 
 
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
                        epsilon=1, find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None,
                        plot_imposed_trace=False, verbose=False):
     """
+    This is a global function that takes the class object as a parameter to compute the dynamical signature.
+    This global function is necessary to use the multiprocessing module.
 
     :param param_values: Parameter values needed to simulate the PySB model
     :param tropical_object: Instance of Tropical class
@@ -39,7 +36,7 @@ def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='pro
     :return: Dynamical signatures of all driver species
     """
     if tropical_object.is_setup is False:
-        tropical_object._setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
+        tropical_object.setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
 
     if find_passengers_by == 'qssa':
         all_signatures = tropical_object.qssa_signal_signature(param_values, diff_par, epsilon, ignore,
@@ -88,7 +85,7 @@ class Tropical:
         :param sp_to_visualize:
         :param plot_imposed_trace: Option to plot imposed trace
         :param verbose: Verbose
-        :return:
+        :return: a dictionary whose keys are the important species and the values are the tropical signatures
         """
         all_signatures = dynamic_signatures(param_values, self, tspan=tspan, type_sign=type_sign, diff_par=diff_par,
                                             ignore=ignore, epsilon=epsilon, find_passengers_by=find_passengers_by,
@@ -99,6 +96,7 @@ class Tropical:
 
     def _setup_tropical(self, tspan, type_sign, find_passengers_by, max_comb, verbose):
         """
+        A function to set up the parameters of the Tropical class
 
         :param max_comb:
         :param verbose:
@@ -149,7 +147,8 @@ class Tropical:
 
     def find_nonimportant_nodes(self):
         """
-        This function looks a the reactions and finds the nodes that only have one incoming and outgoing reaction (edge)
+        This function looks a the bidirectional reactions and finds the nodes that only have one incoming and outgoing
+        reaction (edge)
         :return: a list of non-important nodes
         """
         rcts_sp = list(sum([i['reactants'] for i in self.model.reactions_bidirectional], ()))
@@ -278,6 +277,15 @@ class Tropical:
 
     @staticmethod
     def choose_max_numpy(array, mon_names, diff_par, mon_comb, type_sign):
+        """
+
+        :param array:
+        :param mon_names:
+        :param diff_par:
+        :param mon_comb:
+        :param type_sign:
+        :return:
+        """
         if type_sign == 'production':
             monomials_idx = numpy.where(array > 0)[0]
             value_to_add = 1e-100
@@ -293,7 +301,7 @@ class Tropical:
 
         mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in monomials_idx]
 
-        largest_prod = 'NoDoms'
+        largest_prod = 'NoDominants'
         for comb in sorted(mon_comb.keys()):
             # comb is an integer that represents the number of monomials in a combination
             if len(mon_comb[comb].keys()) == 1:
@@ -321,11 +329,19 @@ class Tropical:
                                     sign * cm[1])) > diff_par and value_prod_largest > -5:
                         largest_prod = foo2[0][0]
                         break
-            if largest_prod != 'NoDoms':
+            if largest_prod != 'NoDominants':
                 break
         return largest_prod
 
     def _signature(self, y, eqs_for_analysis, pars_ready, diff_par=1):
+        """
+
+        :param y:
+        :param eqs_for_analysis:
+        :param pars_ready:
+        :param diff_par:
+        :return:
+        """
         all_signatures = {}
 
         if self.type_sign == 'production':
@@ -343,10 +359,9 @@ class Tropical:
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term[mon_type]:# and term['reversible'] is True:
+                if sp in term[mon_type]:
                     monomials.append(mon_sign * term['rate'])
-                # elif sp in term[mon_type] and term['reversible'] is False:
-                #     monomials.append(mon_sign * term['rate'])
+
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
@@ -377,7 +392,7 @@ class Tropical:
             signature_species = numpy.apply_along_axis(self.choose_max_numpy, 0, mons_array,
                                                        *(mons_names, diff_par, self.all_comb[sp], self.type_sign))
 
-            all_signatures[sp] = list(signature_species)
+            all_signatures[sp] = signature_species
         return all_signatures
 
     def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
@@ -387,7 +402,6 @@ class Tropical:
 
         if sp_to_visualize:
             self.visualization(y, all_signatures, pars_ready, sp_to_visualize)
-
         return all_signatures, y
 
     def qssa_signal_signature(self, param_values, diff_par=1, epsilon=1, ignore=1, plot_imposed_trace=False,
@@ -407,6 +421,12 @@ class Tropical:
         return all_signatures
 
     def set_combinations_sm(self, max_comb=None, create_sm=False):
+        """
+
+        :param max_comb: int, the maximum number of combinations
+        :param create_sm: boolean, to create a sustition matrix to use in the clustering analysis
+        :return:
+        """
         if self.type_sign == 'production':
             mon_type = 'products'
             mon_sign = 1
@@ -437,7 +457,7 @@ class Tropical:
             for L in range(1, combs):
                 prod_comb_names = {}
                 if L == combs - 1:
-                    prod_comb_names['NoDoms'] = 'No_Dominants'
+                    prod_comb_names['NoDominants'] = 'No_Dominants'
                 else:
                     for subset in itertools.combinations(monomials, L):
                         prod_comb_names['M{0}{1}'.format(L, prod_idx)] = subset
@@ -490,8 +510,8 @@ class Tropical:
             mon_val = OrderedDict()
             signature = all_signatures[sp]
 
-            if not signature:
-                continue
+            # if not signature:
+            #     continue
 
             merged_mon_comb = self.merge_dicts(*self.all_comb[sp].values())
             # merged_mon_comb.update({'ND': 'N'})
@@ -583,16 +603,16 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, diff_par=1, find
                                  type_sign='production', to_data_frame=False, dir_path=None, verbose=False):
     """
 
-    :param model:
-    :param tspan:
-    :param parameters:
-    :param diff_par:
-    :param find_passengers_by:
-    :param type_sign:
-    :param to_data_frame:
-    :param dir_path:
-    :param verbose:
-    :return:
+    :param model: A PySB model
+    :param tspan: time span of the simulation
+    :param parameters: Parameters of the model
+    :param diff_par: Magnitude difference that defines that a reaction is dominant over others
+    :param find_passengers_by: str, it can be 'imp_nodes' or 'qssa' is the way to find the passenger species
+    :param type_sign: Type of signature. It can be 'consumption' or 'production'
+    :param to_data_frame: boolean, convert array into data frame
+    :param dir_path: Path to save the data frames
+    :param verbose: Verbose
+    :return: A list of all the signatures and species for each parameter set.
     """
     tr = Tropical(model)
     dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
