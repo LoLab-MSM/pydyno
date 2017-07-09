@@ -3,7 +3,7 @@ from nose.tools import *
 from pysb.examples.tyson_oscillator import model
 from pysb.simulator import ScipyOdeSimulator
 from pysb.simulator.base import SimulatorException
-from tropical.max_plus_multiprocessing_numpy import Tropical, run_tropical
+from tropical.max_plus_global import Tropical, run_tropical, run_tropical_multiprocessing
 
 
 class TestFluxVisualization(object):
@@ -43,9 +43,9 @@ class TestFluxVisualization(object):
         tropical_find_passengers_imp = Tropical(self.model)
         tropical_find_passengers_imp.tropicalize(tspan=self.time, find_passengers_by='imp_nodes')
 
-    def test_find_passengers_qssa(self):
-        tropical_find_passengers_qssa = Tropical(self.model)
-        tropical_find_passengers_qssa.tropicalize(tspan=self.time, find_passengers_by='qssa')
+    # def test_find_passengers_qssa(self):
+    #     tropical_find_passengers_qssa = Tropical(self.model)
+    #     tropical_find_passengers_qssa.tropicalize(tspan=self.time, find_passengers_by='qssa')
 
     @raises(Exception)
     def test_find_passenger_wrong_type(self):
@@ -65,6 +65,9 @@ class TestFluxVisualization(object):
     def test_run_tropical(self):
         run_tropical(self.model, self.time)
 
+    def test_run_tropical_global(self):
+        run_tropical(self.model, self.time, global_signature=True)
+
     def test_plot_imposed_trace(self):
         tropical_trace = Tropical(self.model)
         tropical_trace.tropicalize(tspan=self.time, plot_imposed_trace=True)
@@ -79,6 +82,23 @@ class TestFluxVisualization(object):
         tropical_pars = Tropical(self.model)
         tropical_pars.tropicalize(tspan=self.time, param_values=[1, 2])
 
+    def test_param_values_str(self):
+        tropical_pars_str = Tropical(self.model)
+        tropical_pars_str.tropicalize(tspan=self.time, param_values='pars_tyson.npy')
+
+    def test_global_signature(self):
+        tropical_global = Tropical(self.model)
+        signatures = tropical_global.tropicalize(tspan=self.time)
+        tropical_global.get_global_signature(signatures[0], self.time)
+
+    def test_visualization(self):
+        tropical_visual = Tropical(self.model)
+        tropical_visual.tropicalize(tspan=self.time, sp_to_visualize=[3])
+
+    @raises(Exception)
+    def test_no_species_visualization(self):
+        tropical_visual = Tropical(self.model)
+        tropical_visual.tropicalize(tspan=self.time, sp_to_visualize=[10])
 
 
 
