@@ -8,6 +8,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import lognorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import os
+import helper_functions as hf
 from matplotlib.offsetbox import AnchoredText
 
 plt.ioff()
@@ -97,16 +98,6 @@ class AnalysisCluster:
             results[i] = curve_fit(functions[i], xdata, ydata['__s{0}'.format(j)], p0=kwargs['p0'])[0]
         return results[0]
 
-    @staticmethod
-    def column(matrix, i):
-        """Return the i column of a matrix
-
-        Keyword arguments:
-        matrix -- matrix to get the column from
-        i -- column to get fro the matrix
-        """
-        return np.array([row[i] for row in matrix])
-
     def plot_dynamics_cluster_types(self, species, save_path='', species_to_fit=None, fit_ftn=None, norm=False, **kwargs):
         """
 
@@ -133,11 +124,15 @@ class AnalysisCluster:
                     raise Exception('species_to_fit must be in model.species')
 
                 for idx, clus in self.clusters.items():
-                    ftn_result = [0] * len(clus)
+                    ftn_result = []
                     for i, par_idx in enumerate(clus):
                         y = self.all_simulations[par_idx]
-                        ftn_result[i] = (self.curve_fit_ftn(functions=fit_ftn, species=species_to_fit, xdata=self.tspan,
-                                                            ydata=y, **kwargs))
+                        try:
+                            result = (self.curve_fit_ftn(functions=fit_ftn, species=species_to_fit, xdata=self.tspan,
+                                                         ydata=y, **kwargs))
+                        except:
+                            print "Trajectory {0} can't be fitted".format(par_idx)
+                        ftn_result.append(result)
                         for i_sp, sp in enumerate(species):
                             sp_max = y['__s{0}'.format(sp)].max()
                             plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
@@ -151,7 +146,7 @@ class AnalysisCluster:
                         plt.setp(axHistx.get_xticklabels(),
                                  visible=False)  # + axHisty.get_yticklabels(), visible=False)
 
-                        hist_data = self.column(ftn_result, 1)
+                        hist_data = hf.column(ftn_result, 1)
                         hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
 
                         shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
@@ -277,8 +272,24 @@ class AnalysisCluster:
 
             final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
             plt.savefig(final_save_path)
+        return
 
-            # plt.clf()
+    def scatter_plot_pars(self, ic_par_idxs, cluster,  save_path=''):
+
+        if type(cluster) == int:
+            cluster_idxs = self.clusters[cluster]
+
+        sp_ic_values1 = self.all_parameters[cluster_idxs, ic_par_idxs[0]]
+        sp_ic_values2 = self.all_parameters[cluster_idxs, ic_par_idxs[1]]
+        plt.figure()
+        plt.scatter(sp_ic_values1, sp_ic_values2)
+        ic_name0 = self.model.parameters[ic_par_idxs[0]].name
+        ic_name1 = self.model.parameters[ic_par_idxs[1]].name
+        plt.xlabel(ic_name0)
+        plt.ylabel(ic_name1)
+        final_save_path = os.path.join(save_path, 'scatter plot {0} and {1}, cluster {2}'.format(ic_name0, ic_name1,
+                                                                                                 cluster))
+        plt.savefig(final_save_path)
 
     @staticmethod
     def _get_colors(num_colors):
