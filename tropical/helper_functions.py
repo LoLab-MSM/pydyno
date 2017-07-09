@@ -36,10 +36,31 @@ def read_pars(par_path):
     :param par_path: path to parameter file
     :return: Return a list of parameter values from csv file
     """
-    f = open(par_path)
-    data = csv.reader(f)
-    param = [float(d[1]) for d in data]
-    return param
+    if par_path.endswith('.txt') or par_path.endswith('.csv'):
+        data = np.genfromtxt(par_path, delimiter=',', dtype=None)
+        if len(data.dtype) == 0:
+            pars = data
+        elif len(data.dtype) == 2:
+            pars = data['f1']
+        else:
+            raise Exception('structure of the file is not supported')
+    elif par_path.endswith('.npy'):
+        pars = np.load(par_path)
+    else:
+        raise ValueError('format not supported')
+
+    return pars
+
+
+def merge_dicts(*dict_args):
+    """
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
 
 
 def read_all_pars(pars_path, new_path=None):
@@ -101,6 +122,16 @@ def parse_name(spec):
         else:
             parsed_name += str(counts) + sp + '_'
     return parsed_name[:len(parsed_name) - 1]
+
+
+def column(matrix, i):
+    """Return the i column of a matrix
+
+    Keyword arguments:
+    matrix -- matrix to get the column from
+    i -- column to get fro the matrix
+    """
+    return np.array([row[i] for row in matrix])
 
 
 def _find_nearest_zero(array):
