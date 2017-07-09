@@ -35,7 +35,7 @@ def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='pro
     :return: Dynamical signatures of all driver species
     """
     if tropical_object.is_setup is False:
-        tropical_object._setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
+        tropical_object.setup_tropical(tspan, type_sign, find_passengers_by, max_comb, verbose)
 
     if find_passengers_by == 'qssa':
         all_signatures = tropical_object.qssa_signal_signature(param_values, diff_par, epsilon, ignore,
@@ -65,6 +65,10 @@ class Tropical:
         self.sim = None
         self.is_setup = False
         self.type_sign = ''
+        self.value_to_add = None
+        self.sign = None
+        self.ascending = None
+        self.mon_type = None
 
     def tropicalize(self, tspan=None, param_values=None, type_sign='production', diff_par=1, ignore=1, epsilon=1,
                     find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None, plot_imposed_trace=False,
@@ -93,7 +97,7 @@ class Tropical:
 
         return all_signatures
 
-    def _setup_tropical(self, tspan, type_sign, find_passengers_by, max_comb, verbose):
+    def setup_tropical(self, tspan, type_sign, find_passengers_by, max_comb, verbose):
         """
         A function to set up the parameters of the Tropical class
 
@@ -113,10 +117,22 @@ class Tropical:
 
         if verbose:
             print('setting up type signature')
-        if type_sign not in ['production', 'consumption']:
-            raise ValueError('Wrong type_sign')
-        else:
+
+        if type_sign == 'production':
             self.type_sign = type_sign
+            self.value_to_add = 1e-100
+            self.sign = 1
+            self.ascending = False
+            self.mon_type = 'products'
+
+        elif type_sign == 'consumption':
+            self.type_sign = type_sign
+            self.value_to_add = -1e-100
+            self.sign = -1
+            self.ascending = True
+            self.mon_type = 'reactants'
+        else:
+            raise ValueError('Wrong type_sign value')
 
         if verbose:
             print('setting up the simulator class')
@@ -133,33 +149,23 @@ class Tropical:
         self.is_setup = True
         return
 
-    @staticmethod
-    def merge_dicts(*dict_args):
-        """
-        Given any number of dicts, shallow copy and merge into a new dict,
-        precedence goes to key value pairs in latter dicts.
-        """
-        result = {}
-        for dictionary in dict_args:
-            result.update(dictionary)
-        return result
-
     def find_nonimportant_nodes(self):
         """
-        This function looks a the bidireactional reactions and finds the nodes that only have one incoming and outgoing
+        This function looks a the bidirectional reactions and finds the nodes that only have one incoming and outgoing
         reaction (edge)
         :return: a list of non-important nodes
         """
-        rcts_sp = list(sum([i['reactants'] for i in self.model.reactions_bidirectional], ()))
-        pdts_sp = list(sum([i['products'] for i in self.model.reactions_bidirectional], ()))
-        imp_rcts = set([x for x in rcts_sp if rcts_sp.count(x) > 1])
-        imp_pdts = set([x for x in pdts_sp if pdts_sp.count(x) > 1])
-        imp_nodes = set.union(imp_pdts, imp_rcts)
-        idx = list(set(range(len(self.model.odes))) - set(imp_nodes))
-        self.passengers = idx
+        # gets the reactant and product species in the reactions
+        rcts_sp = sum([i['reactants'] for i in self.model.reactions_bidirectional], ())
+        pdts_sp = sum([i['products'] for i in self.model.reactions_bidirectional], ())
+        # find the reactants and products that are only used once
+        non_imp_rcts = set([x for x in range(len(self.model.species)) if rcts_sp.count(x) < 2])
+        non_imp_pdts = set([x for x in range(len(self.model.species)) if pdts_sp.count(x) < 2])
+        non_imp_nodes = set.intersection(non_imp_pdts, non_imp_rcts)
+        self.passengers = non_imp_nodes
         return self.passengers
 
-    def find_passengers(self, y, params_ready, epsilon=1, ignore=1, plot=False, verbose=False):
+    def find_passengers_qssa(self, y, params_ready, epsilon=1, ignore=1, plot=False, verbose=False):
         """
         Finds passenger species based in the Quasi Steady State Approach (QSSA) in the model
         :param params_ready:
@@ -249,6 +255,7 @@ class Tropical:
         """
 
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
+        # removing source and sink species
         if self.model.has_synth_deg():
             for i, j in enumerate(self.model.species):
                 if str(j) == '__sink()' or str(j) == '__source()' and i in idx:
@@ -274,8 +281,15 @@ class Tropical:
             pars_checked = dict((p.name, p.value) for i, p in enumerate(self.model.parameters))
         return pars_checked
 
-    @staticmethod
-    def choose_max_numpy(array, mon_names, diff_par, mon_comb, type_sign):
+    def get_monomials_idx(self, array):
+        if self.type_sign == 'production':
+            monomials_idx = numpy.where(array > 0)[0]
+            return monomials_idx
+        else:
+            monomials_idx = numpy.where(array < 0)[0]
+            return monomials_idx
+
+    def choose_max_numpy(self, array, mon_names, diff_par, mon_comb):
         """
 
         :param array:
@@ -285,22 +299,12 @@ class Tropical:
         :param type_sign:
         :return:
         """
-        if type_sign == 'production':
-            monomials_idx = numpy.where(array > 0)[0]
-            value_to_add = 1e-100
-            sign = 1
-            ascending = False
-        elif type_sign == 'consumption':
-            monomials_idx = numpy.where(array < 0)[0]
-            value_to_add = -1e-100
-            sign = -1
-            ascending = True
-        else:
-            raise ValueError('Wrong type_sign value')
-
+        monomials_idx = self.get_monomials_idx(array)
+        # choosing the monomials that are of consumption or production depending of par type
         mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in monomials_idx]
-
-        largest_prod = 'NoDoms'
+        largest_prod = 'NoDominants'
+        # we are going to loop through all possible combinations of reactions rate
+        # to find the combination that is largest than the others
         for comb in sorted(mon_comb.keys()):
             # comb is an integer that represents the number of monomials in a combination
             if len(mon_comb[comb].keys()) == 1:
@@ -310,58 +314,46 @@ class Tropical:
             monomials_values = {}
             for idx in mon_comb[comb].keys():
                 value = 0
-                for j in mon_comb[comb][idx]:
-                    if j not in mon_names_ready:
-                        value += value_to_add
+                for rr in mon_comb[comb][idx]:
+                    if rr not in mon_names_ready:
+                        value += self.value_to_add
                     else:
-                        value += array[mon_names[j]]
+                        value += array[mon_names[rr]]
                 monomials_values[idx] = value
-            foo2 = sorted(monomials_values.items(), key=operator.itemgetter(1), reverse=ascending)
+            foo2 = sorted(monomials_values.items(), key=operator.itemgetter(1), reverse=self.ascending)
             # foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
             comb_largest = mon_comb[comb][foo2[0][0]]
             for cm in foo2:
                 # Compares the largest combination of monomials to other combinations whose monomials that are not
                 # present in comb_largest
                 if len(set(comb_largest) - set(mon_comb[comb][cm[0]])) == len(comb_largest):
-                    value_prod_largest = math.log10(sign * foo2[0][1])
-                    if abs(value_prod_largest - math.log10(
-                                    sign * cm[1])) > diff_par and value_prod_largest > -5:
+                    value_prod_largest = math.log10(self.sign * foo2[0][1])
+                    if abs(value_prod_largest - math.log10(self.sign * cm[1])) > diff_par and value_prod_largest > -5:
                         largest_prod = foo2[0][0]
                         break
-            if largest_prod != 'NoDoms':
+            if largest_prod != 'NoDominants':
                 break
         return largest_prod
 
-    def _signature(self, y, eqs_for_analysis, pars_ready, diff_par=1):
+    def _signature(self, y, pars_ready, diff_par=1):
         """
 
         :param y:
-        :param eqs_for_analysis:
         :param pars_ready:
         :param diff_par:
         :return:
         """
         all_signatures = {}
 
-        if self.type_sign == 'production':
-            mon_type = 'products'
-            mon_sign = 1
-        elif self.type_sign == 'consumption':
-            mon_type = 'reactants'
-            mon_sign = -1
-        else:
-            raise Exception("type sign must be 'production' or 'consumption'")
-
-        for sp in eqs_for_analysis:
+        for sp in self.eqs_for_tropicalization:
 
             # reaction terms
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term[mon_type] and term['reversible'] is True:
-                    monomials.append(mon_sign * term['rate'])
-                elif sp in term[mon_type] and term['reversible'] is False:
-                    monomials.append(mon_sign * term['rate'])
+                if sp in term[self.mon_type]:
+                    monomials.append(self.sign * term['rate'])
+
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
@@ -374,7 +366,7 @@ class Tropical:
                     arg_prod = [0] * len(var_prod)
                     for idx, va in enumerate(var_prod):
                         if str(va).startswith('__'):
-                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)].values)
+                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)])
                         else:
                             arg_prod[idx] = pars_ready[va.name]
                     # arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
@@ -390,26 +382,26 @@ class Tropical:
                 mons_names[name] = idx
 
             signature_species = numpy.apply_along_axis(self.choose_max_numpy, 0, mons_array,
-                                                       *(mons_names, diff_par, self.all_comb[sp], self.type_sign))
+                                                       *(mons_names, diff_par, self.all_comb[sp]))
 
             all_signatures[sp] = signature_species
         return all_signatures
 
     def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
         pars_ready = self._check_param_values(param_values)
-        y = self.sim.run(param_values=pars_ready).dataframe
-        all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
+        y = self.sim.run(param_values=pars_ready).all
+        all_signatures = self._signature(y, pars_ready, diff_par)
 
         if sp_to_visualize:
             self.visualization(y, all_signatures, pars_ready, sp_to_visualize)
-        return all_signatures
+        return all_signatures, y
 
     def qssa_signal_signature(self, param_values, diff_par=1, epsilon=1, ignore=1, plot_imposed_trace=False,
                               sp_to_visualize=None, verbose=False):
         pars_ready = self._check_param_values(param_values)
         y = self.sim.run(param_values=pars_ready).dataframe
 
-        self.find_passengers(y, pars_ready, epsilon, ignore=ignore, plot=plot_imposed_trace, verbose=verbose)
+        self.find_passengers_qssa(y, pars_ready, epsilon, ignore=ignore, plot=plot_imposed_trace, verbose=verbose)
         self.equations_to_tropicalize()
         self.set_combinations_sm()
 
@@ -450,24 +442,16 @@ class Tropical:
         :param create_sm: boolean, to create a sustition matrix to use in the clustering analysis
         :return:
         """
-        if self.type_sign == 'production':
-            mon_type = 'products'
-            mon_sign = 1
-        elif self.type_sign == 'consumption':
-            mon_type = 'reactants'
-            mon_sign = -1
-        else:
-            raise Exception("type sign must be 'production' or 'consumption'")
 
         for sp in self.eqs_for_tropicalization:
             # reaction terms
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term[mon_type] and term['reversible'] is True:
-                    monomials.append(mon_sign * term['rate'])
-                elif sp in term[mon_type] and term['reversible'] is False:
-                    monomials.append(mon_sign * term['rate'])
+                if sp in term[self.mon_type] and term['reversible'] is True:
+                    monomials.append(self.sign * term['rate'])
+                elif sp in term[self.mon_type] and term['reversible'] is False:
+                    monomials.append(self.sign * term['rate'])
 
             if max_comb:
                 combs = max_comb
@@ -488,7 +472,7 @@ class Tropical:
                 mon_comb[L] = prod_comb_names
             self.all_comb[sp] = mon_comb
             #
-            # merged_mon_comb = self.merge_dicts(*mon_comb.values())
+            # merged_mon_comb = hf.merge_dicts(*mon_comb.values())
             # merged_mon_comb.update({'ND': 'N'})
             # # Substitution matrix
             # len_ND = len(max(merged_mon_comb.values(), key=len)) + 1
@@ -516,10 +500,8 @@ class Tropical:
         return value
 
     def visualization(self, y, all_signatures, param_values, sp_to_vis=None):
-        if sp_to_vis:
-            species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
-        else:
-            raise Exception('list of driver species must be defined')
+
+        species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
 
         if not species_ready:
             raise Exception('None of the input species is a driver')
@@ -533,10 +515,10 @@ class Tropical:
             mon_val = OrderedDict()
             signature = all_signatures[sp]
 
-            if not signature:
-                continue
+            # if not signature:
+            #     continue
 
-            merged_mon_comb = self.merge_dicts(*self.all_comb[sp].values())
+            merged_mon_comb = hf.merge_dicts(*self.all_comb[sp].values())
             # merged_mon_comb.update({'ND': 'N'})
 
             for idx, mon in enumerate(list(set(signature))):
@@ -590,6 +572,13 @@ class Tropical:
         """
         return self.passengers
 
+    def get_comb_dict(self):
+        """
+
+        :return: Combination of monomials for each species
+        """
+        return self.all_comb
+
 
 def run_tropical(model, tspan, parameters=None, global_signature=False, diff_par=1, find_passengers_by='imp_nodes',
                  type_sign='production', max_comb=None, sp_visualize=None, plot_imposed_trace=False, verbose=False):
@@ -612,10 +601,10 @@ def run_tropical(model, tspan, parameters=None, global_signature=False, diff_par
                                 find_passengers_by=find_passengers_by, max_comb=max_comb,
                                 sp_to_visualize=sp_visualize, plot_imposed_trace=plot_imposed_trace, verbose=verbose)
     if global_signature:
-        whole_signature = tr.get_global_signature(signatures, tspan)
-        return signatures, whole_signature
+        whole_signature = tr.get_global_signature(signatures[0], tspan)
+        return signatures[0], whole_signature
     else:
-        return signatures
+        return signatures[0]
     # return tr.get_species_signatures()
 
 
@@ -646,9 +635,18 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, global_signature
         time.sleep(5)
 
     all_drivers = all_drivers.get()
+    signatures = [0]*len(parameters)
+    simulations = [0]*len(parameters)
+    for i, j in enumerate(all_drivers):
+        signatures[i] = j[0]
+        simulations[i] = j[1]
+    simulations = numpy.asarray(simulations)
+
     if to_data_frame:
-        hf.sps_signature_to_df(all_drivers, dir_path, col_index=tspan)
+        hf.sps_signature_to_df(signatures=signatures, dir_path=dir_path, col_index=tspan)
     if global_signature:
-        whole_signature = tr.get_global_signature(all_drivers, tspan)
-        hf.sps_signature_to_df(whole_signature, dir_path, global_signature=True, col_index=tspan)
-    return all_drivers
+        whole_signature = tr.get_global_signature(signatures, tspan)
+        hf.sps_signature_to_df(signatures=whole_signature, dir_path=dir_path, global_signature=True, col_index=tspan)
+    numpy.save(dir_path + '/simulations', simulations)
+
+    return signatures, simulations
