@@ -308,21 +308,23 @@ class Tropical:
                 value = 0
                 for rr in mon_comb[comb][idx]:
                     if rr not in mon_names_ready:
-                        value += self.value_to_add
+                        value += self.value_to_add  # TODO check if this is correct.
                     else:
                         value += array[mon_names[rr]]
                 monomials_values[idx] = value
             foo2 = sorted(monomials_values.items(), key=operator.itemgetter(1), reverse=self.ascending)
+
             # foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
             comb_largest = mon_comb[comb][foo2[0][0]]
-            for cm in foo2:
-                # Compares the largest combination of monomials to other combinations whose monomials that are not
-                # present in comb_largest
-                if len(set(comb_largest) - set(mon_comb[comb][cm[0]])) == len(comb_largest):
-                    value_prod_largest = math.log10(self.sign * foo2[0][1])
-                    if abs(value_prod_largest - math.log10(self.sign * cm[1])) > diff_par and value_prod_largest > -5:
-                        largest_prod = foo2[0][0]
-                        break
+
+            # Compares the largest combination of monomials to other combinations whose monomials that are not
+            # present in comb_largest
+            value_prod_largest = math.log10(self.sign * foo2[0][1])
+
+            if abs(value_prod_largest - math.log10(self.sign * foo2[1][1])) > diff_par and value_prod_largest > -5:
+                largest_prod = foo2[0][0]
+
+                break
             if largest_prod != 'NoDominants':
                 break
         return largest_prod
