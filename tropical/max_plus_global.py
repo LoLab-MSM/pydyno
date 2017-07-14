@@ -11,10 +11,11 @@ import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import operator
 import matplotlib.pyplot as plt
+from pysb import Parameter
 
 
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
-                       epsilon=1, find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None,
+                       epsilon=1, find_passengers_by='imp_nodes', pre_equilibrate=False, max_comb=None, sp_to_visualize=None,
                        plot_imposed_trace=False, verbose=False):
     """
     This is a global function that takes the class object as a parameter to compute the dynamical signature.
@@ -42,7 +43,7 @@ def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='pro
                                                                plot_imposed_trace, sp_to_visualize, verbose=verbose)
 
     elif find_passengers_by == 'imp_nodes':
-        all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par,
+        all_signatures = tropical_object.signal_signature(param_values, diff_par=diff_par, pre_equilibrate=pre_equilibrate,
                                                           sp_to_visualize=sp_to_visualize)
     else:
         raise Exception('A valid way to get the signatures must be provided')
@@ -71,7 +72,7 @@ class Tropical:
         self.mon_type = None
 
     def tropicalize(self, tspan=None, param_values=None, type_sign='production', diff_par=1, ignore=1, epsilon=1,
-                    find_passengers_by='imp_nodes', max_comb=None, sp_to_visualize=None, plot_imposed_trace=False,
+                    find_passengers_by='imp_nodes', pre_equilibrate=False, max_comb=None, sp_to_visualize=None, plot_imposed_trace=False,
                     verbose=False):
         """
         tropicalization of driver species
@@ -92,7 +93,7 @@ class Tropical:
         """
         all_signatures = dynamic_signatures(param_values, self, tspan=tspan, type_sign=type_sign, diff_par=diff_par,
                                             ignore=ignore, epsilon=epsilon, find_passengers_by=find_passengers_by,
-                                            max_comb=max_comb, sp_to_visualize=sp_to_visualize,
+                                            max_comb=max_comb, pre_equilibrate=pre_equilibrate, sp_to_visualize=sp_to_visualize,
                                             plot_imposed_trace=plot_imposed_trace, verbose=verbose)
 
         return all_signatures
@@ -122,14 +123,14 @@ class Tropical:
             self.type_sign = type_sign
             self.value_to_add = 1e-100
             self.sign = 1
-            self.ascending = False
+            self.ascending = True
             self.mon_type = 'products'
 
         elif type_sign == 'consumption':
             self.type_sign = type_sign
             self.value_to_add = -1e-100
             self.sign = -1
-            self.ascending = True
+            self.ascending = False
             self.mon_type = 'reactants'
         else:
             raise ValueError('Wrong type_sign value')
@@ -179,8 +180,15 @@ class Tropical:
         sp_imposed_trace = []
         assert not self.passengers
 
+        odes = []
+        for ode in self.model.odes:
+            for symbol in ode.atoms():
+                if isinstance(symbol, Parameter):
+                    ode = ode.subs(symbol, sympy.Symbol(symbol.name))
+            odes.append(ode)
+
         # Loop through all equations
-        for i, eq in enumerate(self.model.odes):
+        for i, eq in enumerate(odes):
             # Solve equation of imposed trace. It can have more than one solution (Quadratic solutions)
             sol = sympy.solve(eq, sympy.Symbol('__s%d' % i))
             sp_imposed_trace.append(sol)
@@ -264,22 +272,6 @@ class Tropical:
         eqs = {i: self.model.odes[i] for i in idx}
         self.eqs_for_tropicalization = eqs
         return
-
-    def _check_param_values(self, param_values):
-        if param_values is not None:
-            if type(param_values) is str:
-                pars_to_check = hf.read_pars(param_values)
-            else:
-                pars_to_check = param_values
-            # accept vector of parameter values as an argument
-            if len(pars_to_check) != len(self.model.parameters):
-                raise Exception("param_values must be the same length as model.parameters")
-            # convert model parameters into dictionary
-            pars_checked = dict((p.name, pars_to_check[i]) for i, p in enumerate(self.model.parameters))
-        else:
-            # create parameter vector from the values in the model
-            pars_checked = dict((p.name, p.value) for i, p in enumerate(self.model.parameters))
-        return pars_checked
 
     def get_monomials_idx(self, array):
         if self.type_sign == 'production':
@@ -387,9 +379,14 @@ class Tropical:
             all_signatures[sp] = signature_species
         return all_signatures
 
-    def signal_signature(self, param_values, diff_par=1, sp_to_visualize=None):
-        pars_ready = self._check_param_values(param_values)
-        y = self.sim.run(param_values=pars_ready).all
+    def signal_signature(self, param_values, diff_par=1, pre_equilibrate=False, sp_to_visualize=None):
+        pars_ready = hf.check_param_values(self.model, param_values)
+        if pre_equilibrate:
+            eq_ic = hf.pre_equilibration(self.model, self.tspan, ligand_par_name='L_0', ligand_idx=0,
+                                         ligand_value=0, parameters=pars_ready)[1]
+            y = self.sim.run(initials=eq_ic, param_values=pars_ready).all
+        else:
+            y = self.sim.run(param_values=pars_ready).all
         all_signatures = self._signature(y, pars_ready, diff_par)
 
         if sp_to_visualize:
@@ -398,14 +395,14 @@ class Tropical:
 
     def qssa_signal_signature(self, param_values, diff_par=1, epsilon=1, ignore=1, plot_imposed_trace=False,
                               sp_to_visualize=None, verbose=False):
-        pars_ready = self._check_param_values(param_values)
+        pars_ready = hf.check_param_values(self.model, param_values)
         y = self.sim.run(param_values=pars_ready).dataframe
 
         self.find_passengers_qssa(y, pars_ready, epsilon, ignore=ignore, plot=plot_imposed_trace, verbose=verbose)
         self.equations_to_tropicalize()
         self.set_combinations_sm()
 
-        all_signatures = self._signature(y, self.eqs_for_tropicalization, pars_ready, diff_par)
+        all_signatures = self._signature(y, pars_ready, diff_par)
 
         if sp_to_visualize:
             self.visualization(y, all_signatures, pars_ready, sp_to_visualize)
@@ -502,7 +499,6 @@ class Tropical:
     def visualization(self, y, all_signatures, param_values, sp_to_vis=None):
 
         species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
-
         if not species_ready:
             raise Exception('None of the input species is a driver')
 
@@ -534,12 +530,12 @@ class Tropical:
             plt.yticks(y_pos, mon_val.keys())
             plt.ylabel('Monomials', fontsize=16)
             plt.xlabel('Time(s)', fontsize=16)
-            plt.xlim(0, self.tspan[-1])
+            # plt.xlim(0, self.tspan[-1])
             plt.ylim(0, max(y_pos))
 
             plt.subplot(312)
-            for name in self.model.odes[sp].as_coefficients_dict():
-                mon = name
+            for rr in self.all_comb[sp][1].values():
+                mon = rr[0].as_coefficients_dict().keys()[0]
                 var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
                 arg_f1 = [0] * len(var_to_study)
                 for idx, va in enumerate(var_to_study):
@@ -547,10 +543,9 @@ class Tropical:
                         arg_f1[idx] = numpy.maximum(self.mach_eps, y[str(va)])
                     else:
                         arg_f1[idx] = param_values[va.name]
-
                 f1 = sympy.lambdify(var_to_study, mon)
                 mon_values = f1(*arg_f1)
-                mon_name = str(name).partition('__')[2]
+                mon_name = str(rr[0]).partition('__')[2]
                 plt.plot(self.tspan, mon_values, label=mon_name)
             plt.ylabel('Rate(m/sec)', fontsize=16)
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=3)
@@ -581,7 +576,7 @@ class Tropical:
 
 
 def run_tropical(model, tspan, parameters=None, global_signature=False, diff_par=1, find_passengers_by='imp_nodes',
-                 type_sign='production', max_comb=None, sp_visualize=None, plot_imposed_trace=False, verbose=False):
+                 type_sign='production', pre_equilibrate=False, max_comb=None, sp_visualize=None, plot_imposed_trace=False, verbose=False):
     """
 
     :param plot_imposed_trace:
@@ -598,7 +593,7 @@ def run_tropical(model, tspan, parameters=None, global_signature=False, diff_par
     """
     tr = Tropical(model)
     signatures = tr.tropicalize(tspan=tspan, param_values=parameters, diff_par=diff_par, type_sign=type_sign,
-                                find_passengers_by=find_passengers_by, max_comb=max_comb,
+                                find_passengers_by=find_passengers_by, max_comb=max_comb, pre_equilibrate=pre_equilibrate,
                                 sp_to_visualize=sp_visualize, plot_imposed_trace=plot_imposed_trace, verbose=verbose)
     if global_signature:
         whole_signature = tr.get_global_signature(signatures[0], tspan)
@@ -609,7 +604,7 @@ def run_tropical(model, tspan, parameters=None, global_signature=False, diff_par
 
 
 def run_tropical_multiprocessing(model, tspan, parameters=None, global_signature=False, diff_par=1, find_passengers_by='imp_nodes',
-                                 type_sign='production', to_data_frame=False, dir_path=None, verbose=False):
+                                 type_sign='production', pre_equilibrate=False, to_data_frame=False, dir_path=None, verbose=False):
     """
 
     :param model: A PySB model
@@ -625,7 +620,7 @@ def run_tropical_multiprocessing(model, tspan, parameters=None, global_signature
     """
     tr = Tropical(model)
     dynamic_signatures_partial = functools.partial(dynamic_signatures, tropical_object=tr, tspan=tspan,
-                                                   type_sign=type_sign, diff_par=diff_par,
+                                                   type_sign=type_sign, diff_par=diff_par, pre_equilibrate=pre_equilibrate,
                                                    verbose=verbose, find_passengers_by=find_passengers_by)
     p = Pool(cpu_count() - 1)
     all_drivers = p.map_async(dynamic_signatures_partial, parameters)
