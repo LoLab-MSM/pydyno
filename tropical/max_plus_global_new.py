@@ -295,14 +295,18 @@ class Tropical:
 
         monomials_idx = self.get_monomials_idx(array)
         if len(monomials_idx) == 0:
-            largest_prod = 'None'
+            largest_prod = 'No_Monomials'
         else:
             monomials_values = {mon_names[idx]: numpy.log10(numpy.abs(array[idx])) for idx in monomials_idx}
             max_val = numpy.amax(monomials_values.values())
-            rr_monomials = [n for n, i in monomials_values.items() if i >= (max_val - diff_par)]
-            rr_monomials.sort(key=default_sort_key)
-            rr_monomials = tuple(rr_monomials)
-            largest_prod = mon_comb[len(rr_monomials)].keys()[mon_comb[len(rr_monomials)].values().index(rr_monomials)]
+            rr_monomials = [n for n, i in monomials_values.items() if i > (max_val - diff_par) and max_val > -5]
+
+            if not rr_monomials or len(rr_monomials) == mon_comb.keys()[-1]:
+                largest_prod = 'NoDominants'
+            else:
+                rr_monomials.sort(key=default_sort_key)
+                rr_monomials = tuple(rr_monomials)
+                largest_prod = mon_comb[len(rr_monomials)].keys()[mon_comb[len(rr_monomials)].values().index(rr_monomials)]
 
         return largest_prod
 
@@ -433,20 +437,23 @@ class Tropical:
             else:
                 combs = len(monomials) + 1
 
-            mon_comb = {}
-
+            mon_comb = OrderedDict()
 
             for L in range(1, combs):
                 prod_idx = 0
                 prod_comb_names = {}
-                for subset in itertools.combinations(monomials, L):
-                    subset = list(subset)
-                    subset.sort(key=default_sort_key)
-                    subset = tuple(subset)
-                    prod_comb_names['{0}_M{1}{2}'.format(sp, L, prod_idx)] = subset
-                    prod_idx += 1
+                if L == combs - 1:
+                    prod_comb_names['NoDominants'] = 'No_Dominants'
+                else:
+                    for subset in itertools.combinations(monomials, L):
+                        subset = list(subset)
+                        subset.sort(key=default_sort_key)
+                        subset = tuple(subset)
+                        prod_comb_names['{0}_M{1}{2}'.format(sp, L, prod_idx)] = subset
+                        prod_idx += 1
                 mon_comb[L] = prod_comb_names
             self.all_comb[sp] = mon_comb
+
             #
             # merged_mon_comb = hf.merge_dicts(*mon_comb.values())
             # merged_mon_comb.update({'ND': 'N'})
@@ -497,8 +504,6 @@ class Tropical:
             # merged_mon_comb.update({'ND': 'N'})
 
             for idx, mon in enumerate(list(set(signature))):
-                print(idx, mon)
-                print(merged_mon_comb[mon])
                 mon_val[merged_mon_comb[mon]] = idx
 
             mon_rep = [0] * len(signature)
