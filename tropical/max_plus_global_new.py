@@ -1,7 +1,6 @@
 from __future__ import print_function
 import functools
 import itertools
-import math
 import time
 from collections import OrderedDict
 from multiprocessing import Pool, cpu_count
@@ -10,7 +9,6 @@ import sympy
 from sympy import default_sort_key
 import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
-import operator
 import matplotlib.pyplot as plt
 from pysb import Parameter
 
