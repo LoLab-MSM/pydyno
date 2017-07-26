@@ -297,7 +297,8 @@ class Tropical:
         if len(monomials_idx) == 0:
             largest_prod = 'No_Monomials'
         else:
-            monomials_values = {mon_names[idx]: numpy.log10(numpy.abs(array[idx])) for idx in monomials_idx}
+            monomials_values = {mon_names[idx]:
+                                numpy.around(numpy.log10(numpy.abs(array[idx]))) for idx in monomials_idx}
             max_val = numpy.amax(monomials_values.values())
             rr_monomials = [n for n, i in monomials_values.items() if i > (max_val - diff_par) and max_val > -5]
 
@@ -492,7 +493,7 @@ class Tropical:
 
             # Setting up figure
             plt.figure(1)
-            plt.subplot(313)
+            ax3 = plt.subplot(313)
 
             mon_val = OrderedDict()
             signature = all_signatures[sp]
@@ -500,26 +501,26 @@ class Tropical:
             # if not signature:
             #     continue
 
-            merged_mon_comb = hf.merge_dicts(*self.all_comb[sp].values())
+            # merged_mon_comb = hf.merge_dicts(*self.all_comb[sp].values())
             # merged_mon_comb.update({'ND': 'N'})
 
             for idx, mon in enumerate(list(set(signature))):
-                mon_val[merged_mon_comb[mon]] = idx
+                mon_val[mon] = idx
 
             mon_rep = [0] * len(signature)
             for i, m in enumerate(signature):
-                mon_rep[i] = mon_val[merged_mon_comb[m]]
+                mon_rep[i] = mon_val[m]
             # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
 
             y_pos = numpy.arange(len(mon_val.keys()))
             plt.scatter(self.tspan, mon_rep)
             plt.yticks(y_pos, mon_val.keys())
-            plt.ylabel('Monomials', fontsize=16)
+            plt.ylabel('Monomials', fontsize=14)
             plt.xlabel('Time(s)', fontsize=16)
             # plt.xlim(0, self.tspan[-1])
             plt.ylim(0, max(y_pos))
 
-            plt.subplot(312)
+            ax2 = plt.subplot(312, sharex=ax3)
             for rr in self.all_comb[sp][1].values():
                 mon = rr[0].as_coefficients_dict().keys()[0]
                 var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
@@ -533,18 +534,20 @@ class Tropical:
                 mon_values = f1(*arg_f1)
                 mon_name = str(rr[0]).partition('__')[2]
                 plt.plot(self.tspan, mon_values, label=mon_name)
-            plt.ylabel('Rate(m/sec)', fontsize=16)
-            plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=3)
+            plt.ylabel('Rate(m/sec)', fontsize=14)
+            plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=2)
+            plt.setp(ax2.get_xticklabels(), visible=False)
 
-            plt.subplot(311)
+            ax1 = plt.subplot(311, sharex=ax3)
             plt.plot(self.tspan, y['__s%d' % sp], label=hf.parse_name(self.model.species[sp]))
-            plt.ylabel('Molecules', fontsize=16)
+            plt.ylabel('Molecules', fontsize=14)
             plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
-            plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
+            plt.setp(ax1.get_xticklabels(), visible=False)
 
-            # plt.show()
+            plt.suptitle('Tropicalization' + ' ' + str(self.model.species[sp]))
+            plt.show()
             plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
-            plt.clf()
+            # plt.clf()
 
     def get_passenger(self):
         """
