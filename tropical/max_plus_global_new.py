@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 import functools
 import itertools
 import time
@@ -11,7 +12,7 @@ import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import matplotlib.pyplot as plt
 from pysb import Parameter
-
+import pandas as pd
 
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
                        epsilon=1, find_passengers_by='imp_nodes', pre_equilibrate=False, max_comb=None, sp_to_visualize=None,
@@ -290,18 +291,18 @@ class Tropical:
         :param type_sign:
         :return:
         """
-
         monomials_idx = self.get_monomials_idx(array)
+
         if len(monomials_idx) == 0:
-            largest_prod = 'No_Monomials'
+            largest_prod = mon_comb.values()[-1].keys()[0] + 1
         else:
             monomials_values = {mon_names[idx]:
-                                numpy.around(numpy.log10(numpy.abs(array[idx]))) for idx in monomials_idx}
+                                numpy.log10(numpy.abs(array[idx])) for idx in monomials_idx}
             max_val = numpy.amax(monomials_values.values())
             rr_monomials = [n for n, i in monomials_values.items() if i > (max_val - diff_par) and max_val > -5]
 
             if not rr_monomials or len(rr_monomials) == mon_comb.keys()[-1]:
-                largest_prod = 'NoDominants'
+                largest_prod = mon_comb.values()[-1].keys()[0]
             else:
                 rr_monomials.sort(key=default_sort_key)
                 rr_monomials = tuple(rr_monomials)
@@ -413,7 +414,7 @@ class Tropical:
             global_signature[idx] = global_signature_ic
         return global_signature
 
-    def set_combinations_sm(self, max_comb=None, create_sm=False):
+    def set_combinations_sm(self, max_comb=None, create_sm=True):
         """
 
         :param max_comb: int, the maximum number of combinations
@@ -437,35 +438,34 @@ class Tropical:
                 combs = len(monomials) + 1
 
             mon_comb = OrderedDict()
-
+            comb_counter = 0
             for L in range(1, combs):
-                prod_idx = 0
+
                 prod_comb_names = {}
-                if L == combs - 1:
-                    prod_comb_names['NoDominants'] = 'No_Dominants'
-                else:
-                    for subset in itertools.combinations(monomials, L):
-                        subset = list(subset)
-                        subset.sort(key=default_sort_key)
-                        subset = tuple(subset)
-                        prod_comb_names['{0}_M{1}{2}'.format(sp, L, prod_idx)] = subset
-                        prod_idx += 1
+
+                for subset in itertools.combinations(monomials, L):
+                    subset = list(subset)
+                    subset.sort(key=default_sort_key)
+                    subset = tuple(subset)
+                    rr_label = comb_counter
+                    prod_comb_names[rr_label] = subset
+                    comb_counter += 1
+
                 mon_comb[L] = prod_comb_names
+
             self.all_comb[sp] = mon_comb
 
-            #
             # merged_mon_comb = hf.merge_dicts(*mon_comb.values())
-            # merged_mon_comb.update({'ND': 'N'})
             # # Substitution matrix
             # len_ND = len(max(merged_mon_comb.values(), key=len)) + 1
             # sm = numpy.zeros((len(merged_mon_comb.keys()), len(merged_mon_comb.keys())))
             # for i, a in enumerate(merged_mon_comb):
             #     for j, b in enumerate(merged_mon_comb):
-            #         if a == 'ND' and b == 'ND':
+            #         if a == 'NoDominants' and b == 'NoDominants':
             #             sm[i, j] = 0
-            #         elif a == 'ND':
+            #         elif a == 'NoDominants':
             #             sm[i, j] = 2 * len_ND - len(merged_mon_comb[b])
-            #         elif b == 'ND':
+            #         elif b == 'NoDominants':
             #             sm[i, j] = 2 * len_ND - len(merged_mon_comb[a])
             #         else:
             #             sm[i, j] = self.sub_value(merged_mon_comb[a], merged_mon_comb[b])
@@ -474,7 +474,8 @@ class Tropical:
             #
             # if create_sm:
             #     sm_df = pd.DataFrame(data=sm, index=merged_mon_comb.keys(), columns=merged_mon_comb.keys())
-            #     sm_df.to_csv('/home/oscar/Documents/tropical_earm/subs_matrix_consumption/sm_{0}.{1}'.format(sp, 'csv'))
+            #     sm_df.to_csv('/Users/dionisio/Documents/sm_{0}.{1}'.format(sp, 'csv'))
+        return
 
     @staticmethod
     def sub_value(a, b):
