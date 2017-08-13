@@ -15,6 +15,8 @@ import random
 import hdbscan
 from scipy import stats
 from distinct_colors import distinct_colors
+import matplotlib.patches as mpatches
+from tropical import helper_functions as hf
 
 signatures_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
                   'signatures_all_kpars_consumption_nums/data_frame37_copy.csv'
@@ -33,7 +35,7 @@ def lcs_distance(seq1, seq2):
 diss = pairwise_distances(unique_sequences, metric=lcs_distance, n_jobs=1)
 
 ## HDBSCAN
-hdb = hdbscan.HDBSCAN(min_cluster_size=50, min_samples=15, metric='precomputed').fit(diss)
+hdb = hdbscan.HDBSCAN(min_cluster_size=50, min_samples=5, metric='precomputed').fit(diss)
 
 
 ## PAM
@@ -65,7 +67,22 @@ cmap = ListedColormap(states_color_map.values())
 bounds = states_color_map.keys()
 norm = BoundaryNorm(bounds, cmap.N)
 
-import matplotlib.patches as mpatches
+# TEMPORAL DICTIONARY OF REACTION RATES
+# from tropical.max_plus_global_new import Tropical
+# from earm.lopez_embedded import model
+# from pysb import Parameter
+#
+# tro = Tropical(model)
+# tro.setup_tropical(tspan=[1,2,3], type_sign='consumption', find_passengers_by='imp_nodes', max_comb=None, verbose=False)
+# comb_dict =tro.get_comb_dict()
+# flat_comb = hf.merge_dicts(*comb_dict[37].values())
+#
+# parsed_comb = {}
+# for item in flat_comb:
+#     for rr in flat_comb[item]:
+#         bla = [n.name for n in rr.atoms() if type(n) is Parameter and n.name.endswith(('kf', 'kc'))]
+time = np.linspace(0, 20000, 100)/3600
+
 
 def plot_sequences(all_sequences, cluster_labels, type_plot='all'):
     """
@@ -77,8 +94,11 @@ def plot_sequences(all_sequences, cluster_labels, type_plot='all'):
     """
     sil_samples = metrics.silhouette_samples(X=diss, labels=cluster_labels, metric='precomputed')
     if type_plot == 'mode':
+        # plt.figure(1)
+        f, axs = plt.subplots(4, 3, sharex=True, sharey=True)
+        axs = axs.reshape(12)
+        axs[-1].axis('off')
         for i in set(cluster_labels):
-            plt.figure()
             clus_seqs = all_sequences[cluster_labels == i]
             seqs_in_cluster = clus_seqs.shape[0]
             modal_states, mode_counts = stats.mode(clus_seqs, axis=0)
@@ -87,8 +107,16 @@ def plot_sequences(all_sequences, cluster_labels, type_plot='all'):
 
             colors = [states_color_map[c] for c in modal_states[0]]
             legend_patches = [mpatches.Patch(color=states_color_map[c], label=c) for c in set(modal_states[0])]
-            plt.bar(ind, mc_norm, color=colors, label=modal_states[0], width=1)
-            plt.legend(handles=legend_patches)
+            axs[i+1].bar(ind, mc_norm, color=colors, width=1)
+            axs[i+1].legend(handles=legend_patches)
+            axs[i+1].set_ylabel('State frequency (n={0})'.format(len(clus_seqs)))
+        plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+        # plt.title('Cluster {0}'.format(i))
+        # plt.xlabel('Time')
+        # plt.ylabel('Sequences')
+        # plt.xlim(ind.min(), ind.max())
+        # plt.ylim(0, 1)
+        # plt.show()
 
     else:
         for i in set(cluster_labels):
@@ -117,8 +145,8 @@ def plot_sequences(all_sequences, cluster_labels, type_plot='all'):
             plt.ylim(0, len(clus_seqs))
             plt.show()
 
-# plot_sequences(unique_sequences, hdb.labels_, type_plot='mode')
-plot_sequences(unique_sequences, pam1_labels)
+plot_sequences(unique_sequences, hdb.labels_, type_plot='mode')
+# plot_sequences(unique_sequences, pam1_labels)
 # plot_sequences(unique_sequences, pam2_labels)
 
 
