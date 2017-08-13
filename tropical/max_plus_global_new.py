@@ -427,10 +427,10 @@ class Tropical:
             monomials = []
 
             for term in self.model.reactions_bidirectional:
-                if sp in term[self.mon_type] and term['reversible'] is True:
+                if sp in term[self.mon_type]:
                     monomials.append(self.sign * term['rate'])
-                elif sp in term[self.mon_type] and term['reversible'] is False:
-                    monomials.append(self.sign * term['rate'])
+                # elif sp in term[self.mon_type] and term['reversible'] is False:
+                #     monomials.append(self.sign * term['rate'])
 
             if max_comb:
                 combs = max_comb
