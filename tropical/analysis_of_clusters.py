@@ -66,6 +66,10 @@ class AnalysisCluster:
                 clus_values[j] = item_index[0]
             self.clusters = clus_values
             self.number_pars = len(pars_clusters)
+        elif clusters is None:
+            no_clusters = {0: range(len(self.all_parameters))}
+            self.clusters = no_clusters
+            self.number_pars = len(self.all_parameters)
         else:
             raise Exception('wrong type')
 
@@ -105,7 +109,7 @@ class AnalysisCluster:
         :param save_path: path to file to save figures
         :param species_to_fit: index of species whose trajectory would be fitted to a function (fit_ftn)
         :param fit_ftn: Functions that will be used to fit the simulation results
-        :param norm: Optional, index in model.parameters to normalize species
+        :param norm: Optional, boolean to normalize species by max value in simulation
         :param kwargs:
         :return:
         """
@@ -131,7 +135,7 @@ class AnalysisCluster:
                             result = (self.curve_fit_ftn(functions=fit_ftn, species=species_to_fit, xdata=self.tspan,
                                                          ydata=y, **kwargs))
                         except:
-                            print "Trajectory {0} can't be fitted".format(par_idx)
+                            print ("Trajectory {0} can't be fitted".format(par_idx))
                         ftn_result.append(result)
                         for i_sp, sp in enumerate(species):
                             sp_max = y['__s{0}'.format(sp)].max()
@@ -163,7 +167,7 @@ class AnalysisCluster:
                         for tl in axHistx.get_xticklabels():
                             tl.set_visible(False)
                         yticks = [v for v in np.linspace(0, pdf.max(), 3)]
-                        axHistx.set_yticks(yticks)
+                        axHistx.set_ylim(0, 1.5e-3)
                         axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
             else:
                 for idx, clus in self.clusters.items():
@@ -231,6 +235,27 @@ class AnalysisCluster:
             # plt.xlim([0, 100000])
             plt.legend(loc=0)
             final_save_path = os.path.join(save_path, 'plot_ic_type{0}'.format(c_idx))
+            plt.savefig(final_save_path)
+            plt.clf()
+        return
+
+    def plot_clusters_ic_distributions(self, ic_par_idxs, save_path=''):
+        colors = self._get_colors(len(ic_par_idxs))
+
+        for idx, sp_ic in enumerate(ic_par_idxs):
+            plt.figure(1)
+            for c_idx, clus in self.clusters.items():
+                cluster_pars = self.all_parameters[clus]
+                sp_ic_values = cluster_pars[:, sp_ic]
+                sp_ic_weights = np.ones_like(sp_ic_values) / len(sp_ic_values)
+                plt.hist(sp_ic_values, weights=sp_ic_weights, alpha=0.4,
+                         label=str(c_idx))
+            plt.xlabel('Concentration')
+            plt.ylabel('Percentage')
+            # plt.ylim([0, 0.4])
+            # plt.xlim([0, 100000])
+            plt.legend(loc=0)
+            final_save_path = os.path.join(save_path, 'plot_sp_{0}'.format(self.model.parameters[sp_ic].name))
             plt.savefig(final_save_path)
             plt.clf()
         return
