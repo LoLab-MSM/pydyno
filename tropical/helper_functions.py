@@ -248,7 +248,7 @@ def truncate_signature_death(simulations, signatures, species_to_fit):
         except:
             print "Trajectory {0} can't be fitted".format(i)
         idx_death = min(enumerate(tspan), key=lambda x: abs(x[1]-td))[0]
-        snts.loc[i][idx_death:len(tspan)] = 'dead'
+        snts.loc[i][idx_death:len(tspan)] = 100
 
     snts.to_csv(signatures)
 
