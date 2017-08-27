@@ -111,10 +111,8 @@ class PlotSequences(object):
     def modal_plot(self, title=''):
         clusters = set(self.cluster_labels)
         n_rows = int(math.ceil(len(clusters)/3))
-        print (clusters)
-        print (len(clusters))
-        print (n_rows)
-        f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True)
+        f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True, figsize=(8, 6))
+        f.subplots_adjust(hspace=.5)
         axs = axs.reshape(n_rows * 3)
 
         plots_off = (n_rows * 3) - len(clusters)
@@ -131,7 +129,7 @@ class PlotSequences(object):
             legend_patches = [mpatches.Patch(color=self.states_color_dict[c], label=c) for c in set(modal_states[0])]
             axs[clus + 1].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
             axs[clus + 1].legend(handles=legend_patches, fontsize='x-small')
-            axs[clus + 1].set_ylabel('State frequency (n={0})'.format(len(clus_seqs)))
+            axs[clus + 1].set_ylabel('State frequency (n={0})'.format(len(clus_seqs)), fontsize='x-small')
             axs[clus + 1].set_title('Cluster {0}'.format(clus))
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
