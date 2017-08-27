@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import pandas as pd
 import numpy as np
@@ -25,17 +26,15 @@ class ClusterSequences(object):
             data_seqs = pd.read_csv(data, header=0, index_col=0)
             # convert column names into float numbers
             data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
-            # data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().reset_index().rename(columns={0:'count'})
         elif type(data) is np.ndarray:
             data_seqs = data
             data_seqs = pd.DataFrame(data=data_seqs)
         else:
             raise Exception('data not valid')
-
-        if truncate_seq is int:
+        if isinstance(truncate_seq, int):
             data_seqs = data_seqs[data_seqs.columns.tolist()[:truncate_seq]]
         if unique_sequences:
-            data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().reset_index().rename(columns={0: 'count'})
+            data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().rename('count').reset_index()
             data_seqs.set_index([range(len(data_seqs)), 'count'], inplace=True)
             self.sequences = data_seqs
             self.unique = True
@@ -57,17 +56,17 @@ class ClusterSequences(object):
     @staticmethod
     def lcs_dist_same_length(seq1, seq2):
         seq_len = len(seq1)
-        d_1_2 = 2 + seq_len - 2 * mlpy.lcs_std(seq1, seq2)[0]
+        d_1_2 = 2 * seq_len - 2 * mlpy.lcs_std(seq1, seq2)[0]
         return d_1_2
 
     def diss_matrix(self, metric='LCS', n_jobs=1):
         # TODO check if ndarray have sequences of different lengths
         if metric in distance_metrics().keys():
-            diss = pairwise_distances(self.sequences, metric=metric, n_jobs=n_jobs)
+            diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         elif metric == 'LCS':
-            diss = pairwise_distances(self.sequences, metric=self.lcs_dist_same_length, n_jobs=n_jobs)
+            diss = pairwise_distances(self.sequences.values, metric=self.lcs_dist_same_length, n_jobs=n_jobs)
         elif callable(metric):
-            diss = pairwise_distances(self.sequences, metric=metric, n_jobs=n_jobs)
+            diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         else:
             raise Exception('metric not accepted')
         self.diss = diss
@@ -112,11 +111,14 @@ class PlotSequences(object):
     def modal_plot(self, title=''):
         clusters = set(self.cluster_labels)
         n_rows = int(math.ceil(len(clusters)/3))
+        print (clusters)
+        print (len(clusters))
+        print (n_rows)
         f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True)
         axs = axs.reshape(n_rows * 3)
 
         plots_off = (n_rows * 3) - len(clusters)
-        for i in range(plots_off):
+        for i in range(1, plots_off+1):
             axs[-i].axis('off')
 
         for clus in clusters:
@@ -128,9 +130,9 @@ class PlotSequences(object):
             colors = [self.states_color_dict[c] for c in modal_states[0]]
             legend_patches = [mpatches.Patch(color=self.states_color_dict[c], label=c) for c in set(modal_states[0])]
             axs[clus + 1].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
-            axs[clus + 1].legend(handles=legend_patches)
+            axs[clus + 1].legend(handles=legend_patches, fontsize='x-small')
             axs[clus + 1].set_ylabel('State frequency (n={0})'.format(len(clus_seqs)))
-            axs[clus + 1].set_title('Cluster {0}'.format(i))
+            axs[clus + 1].set_title('Cluster {0}'.format(clus))
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
