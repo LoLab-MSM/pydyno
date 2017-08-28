@@ -88,7 +88,7 @@ class FluxVisualization:
         :return: Creates Networkx graph from PySB model
         """
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
-        #  digraph only allows one edge between two nodes
+        # digraph only allows one edge between two nodes
         self.sp_graph = OrderedGraph(name=self.model.name, tspan=self.tspan.tolist())
         for idx, cp in enumerate(self.model.species):
             species_node = 's%d' % idx
@@ -166,11 +166,16 @@ class FluxVisualization:
             rate_reac = reac['rate']
             for p in self.param_dict:
                 rate_reac = rate_reac.subs(p, self.param_dict[p])
-            variables = [atom for atom in rate_reac.atoms(sympy.Symbol) if not re.match(r'\d', str(atom))]
+            variables = [atom for atom in rate_reac.atoms(sympy.Symbol)]
+            args = [0] * len(variables)  # arguments to put in the lambdify function
+            for idx2, va in enumerate(variables):
+                if str(va).startswith('__'):
+                    args[idx2] = self.y_df[str(va)]
+                else:
+                    args[idx2] = self.param_dict[va.name]
             func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=numpy.lib.scimath.sqrt))
-            args = [self.y_df[str(l)] for l in variables]  # arguments to put in the lambdify function
             react_rate = func(*args)
-            rxns_matrix[idx] = react_rate
+            rxns_matrix[idx2] = react_rate
 
         # maximum an minimum reaction values at each time point
         # max_all_times = [max(rxns_matrix[:, col]) for col in range(numpy.shape(rxns_matrix)[1])]
