@@ -1,0 +1,77 @@
+body {
+    font: 14px helvetica neue, helvetica, arial, sans-serif;
+}
+
+#cy {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+
+#Play {
+    width: 8%;
+    height: 10%;
+    font-size:130%;
+    position: absolute;
+    top: 5%;
+    right: 5%;
+}
+
+#Pause {
+    width: 8%;
+    height: 10%;
+    font-size:130%;
+    position: absolute;
+    top: 10%;
+    right: 5%;
+}
+
+#Resume {
+    width: 8%;
+    height: 10%;
+    font-size:130%;
+    position: absolute;
+    top: 10%;
+    right: 5%;
+}
+
+#range{
+width:80%;
+height:15%;
+top:80%;
+left:10%;
+border:1px solid black;
+position:absolute;
+}
+
+#textInput{
+    width:10%;
+    height:5%;
+    top:90%;
+    left:10%;
+    font-size:120%;
+    border:0px solid black;
+    position:absolute;
+}
+
+/*#bar{*/
+    /*width:1000px;*/
+    /*height:25px;*/
+    /*top:1000px;*/
+    /*left:100px;*/
+    /*border:1px solid black;*/
+    /*position:relative;*/
+/*}*/
+
+/*#slider{*/
+    /*width:0%;*/
+    /*height:100%;*/
+    /*background-color:red;*/
+    /*top:0px;*/
+    /*left:0px;*/
+    /*position:absolute;*/
+    /*cursor:pointer;*/
+/*}*/
