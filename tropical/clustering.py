@@ -5,7 +5,6 @@ import numpy as np
 import mlpy
 from sklearn.metrics.pairwise import pairwise_distances, distance_metrics
 import hdbscan
-from pam_clustering import kMedoids
 import matplotlib.pyplot as plt
 from distinct_colors import distinct_colors
 from collections import OrderedDict
@@ -22,6 +21,13 @@ class ClusterSequences(object):
     Class to cluster tropical signatures
     """
     def __init__(self, data, unique_sequences=True, truncate_seq=None):
+        """
+
+        :param data: file or ndarray where rows are tropical signatures and columns are dominant states at specific
+        time points
+        :param unique_sequences:
+        :param truncate_seq:
+        """
         if os.path.isfile(data):
             data_seqs = pd.read_csv(data, header=0, index_col=0)
             # convert column names into float numbers
@@ -30,9 +36,11 @@ class ClusterSequences(object):
             data_seqs = data
             data_seqs = pd.DataFrame(data=data_seqs)
         else:
-            raise Exception('data not valid')
+            raise ValueError('data type not valid')
+
         if isinstance(truncate_seq, int):
             data_seqs = data_seqs[data_seqs.columns.tolist()[:truncate_seq]]
+
         if unique_sequences:
             data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().rename('count').reset_index()
             data_seqs.set_index([range(len(data_seqs)), 'count'], inplace=True)
@@ -43,7 +51,9 @@ class ClusterSequences(object):
             self.unique = False
 
         # States in sequences
-        self.unique_states = pd.unique(data_seqs[data_seqs.columns.tolist()].values.ravel())
+        unique_states = pd.unique(data_seqs[data_seqs.columns.tolist()].values.ravel())
+        unique_states.sort()
+        self.unique_states = unique_states
 
         self.diss = None
         self.labels = None
@@ -84,7 +94,6 @@ class ClusterSequences(object):
     #     self.hdbscan(min_cluster_size=min_cluster_size, min_samples=min_samples)
 
 
-
 class PlotSequences(object):
     """
     Class to plot sequences
@@ -94,17 +103,22 @@ class PlotSequences(object):
 
         :param sequence_obj ClusterSequence object
         """
+        if sequence_obj.diss is None or sequence_obj.labels is None:
+            raise Exception('Clustering has not been done in the ClusterSequence class')
+
+        self.unique = sequence_obj.unique
         self.sequences = sequence_obj.sequences
+        self.diss = sequence_obj.diss
         self.cluster_labels = sequence_obj.labels
         self.unique_states = sequence_obj.unique_states
         self.colors = distinct_colors(len(self.unique_states))
         self.cmap, self.norm, self.states_color_dict = self.cmap_norm()
-        self.diss = sequence_obj.diss
 
     def cmap_norm(self):
         states_color_map = OrderedDict((state, self.colors[x]) for x, state, in enumerate(self.unique_states))
         cmap = ListedColormap(states_color_map.values())
         bounds = states_color_map.keys()
+        bounds.append(bounds[-1]+1)
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm, states_color_map
 
@@ -122,6 +136,13 @@ class PlotSequences(object):
         for clus in clusters:
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
+            if self.unique:
+                total_seqs = 0
+                for seq in clus_seqs.index.values:
+                    total_seqs += seq[1]
+            else:
+                total_seqs = n_seqs
+
             modal_states, mode_counts = stats.mode(clus_seqs, axis=0)
             mc_norm = np.divide(mode_counts[0], n_seqs, dtype=np.float)
             width_bar = self.sequences.columns[1] - self.sequences.columns[0]
@@ -129,7 +150,7 @@ class PlotSequences(object):
             legend_patches = [mpatches.Patch(color=self.states_color_dict[c], label=c) for c in set(modal_states[0])]
             axs[clus + 1].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
             axs[clus + 1].legend(handles=legend_patches, fontsize='x-small')
-            axs[clus + 1].set_ylabel('State frequency (n={0})'.format(len(clus_seqs)), fontsize='x-small')
+            axs[clus + 1].set_ylabel('State frequency (n={0})'.format(total_seqs), fontsize='x-small')
             axs[clus + 1].set_title('Cluster {0}'.format(clus))
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
@@ -140,34 +161,47 @@ class PlotSequences(object):
     def all_trajectories_plot(self, title='', sort_seq='silhouette'):
         clusters = set(self.cluster_labels)
         n_rows = int(math.ceil(len(clusters)/3))
-        f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True)
+        f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
+        f.subplots_adjust(wspace=.8)
         axs = axs.reshape(n_rows * 3)
 
         plots_off = (n_rows * 3) - len(clusters)
-        for i in range(plots_off):
+        for i in range(1, plots_off+1):
             axs[-i].axis('off')
 
         # TODO search for other types of sorting
         if sort_seq == 'silhouette':
             sil_samples = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
 
-        for i in clusters:
-            clus_seqs = self.sequences.iloc[self.cluster_labels == i]
-            clus_sil_samples = sil_samples[self.cluster_labels == i]
-            clus_sil_sort = np.argsort(clus_sil_samples)
-            clus_seqs = clus_seqs[clus_sil_sort]
-            xx = np.array(range(clus_seqs.shape[1] + 1))
+        for clus in clusters:
+            clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
+            n_seqs = clus_seqs.shape[0]
+            if self.unique:
+                total_seqs = 0
+                for seq in clus_seqs.index.values:
+                    total_seqs += seq[1]
+            else:
+                total_seqs = n_seqs
 
-            for idx, seq in enumerate(clus_seqs):
-                y = np.array([idx]*(clus_seqs.shape[1] + 1))
+            clus_sil_samples = sil_samples[self.cluster_labels == clus]
+            clus_sil_sort = np.argsort(clus_sil_samples)
+            clus_seqs = clus_seqs.iloc[clus_sil_sort]
+            xx = self.sequences.columns
+            count_seqs = 0
+
+            for index, seq in clus_seqs.iterrows():
+                y = np.array([count_seqs]*(clus_seqs.shape[1]))
                 points = np.array([xx, y]).T.reshape(-1, 1, 2)
                 segments = np.concatenate([points[:-1], points[1:]], axis=1)
                 lc = LineCollection(segments, cmap=self.cmap, norm=self.norm)
-                lc.set_array(seq)
+                lc.set_array(seq.values)
                 lc.set_linewidth(10)
-                axs[i + 1].add_collection(lc)
-                axs[i + 1].set_ylabel('Trajectories (n={0})'.format(len(clus_seqs)))
-                axs[i + 1].set_title('Cluster {0}'.format(i))
+                axs[clus + 1].add_collection(lc)
+                axs[clus + 1].set_ylabel('Trajectories (n={0})'.format(total_seqs))
+                axs[clus + 1].set_ylim(0, len(clus_seqs))
+                axs[clus + 1].set_xlim(xx.min(), xx.max())
+                axs[clus + 1].set_title('Cluster {0}'.format(clus))
+                count_seqs += 1
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
