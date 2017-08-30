@@ -321,4 +321,23 @@ def get_species_initial(model, sp):
     return initial_value
 
 
+def find_nonimportant_nodes(model):
+    """
+    This function looks a the bidirectional reactions and finds the nodes that only have one incoming and outgoing
+    reaction (edge)
+    :return: a list of non-important nodes
+    """
+    if not model.odes:
+        pysb.bng.generate_equations(model)
+
+    # gets the reactant and product species in the reactions
+    rcts_sp = sum([i['reactants'] for i in model.reactions_bidirectional], ())
+    pdts_sp = sum([i['products'] for i in model.reactions_bidirectional], ())
+    # find the reactants and products that are only used once
+    non_imp_rcts = set([x for x in range(len(model.species)) if rcts_sp.count(x) < 2])
+    non_imp_pdts = set([x for x in range(len(model.species)) if pdts_sp.count(x) < 2])
+    non_imp_nodes = set.intersection(non_imp_pdts, non_imp_rcts)
+    passengers = non_imp_nodes
+    return passengers
+
 
