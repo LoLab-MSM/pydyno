@@ -12,7 +12,7 @@ import helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import matplotlib.pyplot as plt
 from pysb import Parameter
-import pandas as pd
+
 
 def dynamic_signatures(param_values, tropical_object, tspan=None, type_sign='production', diff_par=1, ignore=1,
                        epsilon=1, find_passengers_by='imp_nodes', pre_equilibrate=False, max_comb=None, sp_to_visualize=None,
@@ -72,10 +72,11 @@ class Tropical:
         self.mon_type = None
 
     def tropicalize(self, tspan=None, param_values=None, type_sign='production', diff_par=1, ignore=1, epsilon=1,
-                    find_passengers_by='imp_nodes', pre_equilibrate=False, max_comb=None, sp_to_visualize=None, plot_imposed_trace=False,
-                    verbose=False):
+                    find_passengers_by='imp_nodes', pre_equilibrate=False, max_comb=None, sp_to_visualize=None,
+                    plot_imposed_trace=False, verbose=False):
         """
         tropicalization of driver species
+        :param pre_equilibrate: boolean, option to get the pre-equilibration time
         :param tspan: Time span
         :param param_values: PySB model parameter values
         :param type_sign: Type of max-plus signature. This is to see the way a species is being produced or consumed
@@ -142,29 +143,13 @@ class Tropical:
         if verbose:
             print('setting up the important nodes')
         if find_passengers_by == 'imp_nodes':
-            self.find_nonimportant_nodes()
+            self.passengers = hf.find_nonimportant_nodes(self.model)
             self.equations_to_tropicalize()
             if not self.all_comb:
                 self.set_combinations_sm(max_comb=max_comb)
 
         self.is_setup = True
         return
-
-    def find_nonimportant_nodes(self):
-        """
-        This function looks a the bidirectional reactions and finds the nodes that only have one incoming and outgoing
-        reaction (edge)
-        :return: a list of non-important nodes
-        """
-        # gets the reactant and product species in the reactions
-        rcts_sp = sum([i['reactants'] for i in self.model.reactions_bidirectional], ())
-        pdts_sp = sum([i['products'] for i in self.model.reactions_bidirectional], ())
-        # find the reactants and products that are only used once
-        non_imp_rcts = set([x for x in range(len(self.model.species)) if rcts_sp.count(x) < 2])
-        non_imp_pdts = set([x for x in range(len(self.model.species)) if pdts_sp.count(x) < 2])
-        non_imp_nodes = set.intersection(non_imp_pdts, non_imp_rcts)
-        self.passengers = non_imp_nodes
-        return self.passengers
 
     def find_passengers_qssa(self, y, params_ready, epsilon=1, ignore=1, plot=False, verbose=False):
         """
