@@ -193,24 +193,44 @@ class FluxVisualization:
 
         # max_abs_flux = numpy.array([max(i, abs(j)) for i, j in zip(max_all_times, min_all_times)])
         vals_norm = numpy.vectorize(self.mon_normalized)
+        all_products = [rx['products'] for rx in self.model.reactions_bidirectional]
 
-        for i, rxn in enumerate(rxns_matrix):
-            rxn_eps = rxn + self.mach_eps
-            rxn_max = rxn_eps.max()
-            rxn_min = abs(rxn_eps.min())
-            react_rate_norm = vals_norm(rxn_eps, rxn_max, rxn_min)
-            rate_colors = self.f2hex_edges(react_rate_norm)
-            rate_sizes = self.range_normalization(numpy.abs(react_rate_norm), min_x=0, max_x=1)
-            for rctan in self.model.reactions_bidirectional[i]['reactants']:
-                for pro in self.model.reactions_bidirectional[i]['products']:
-                    edges_id = 's' + str(rctan) + ',s' + str(pro)
+        for sp in range(len(self.model.species)):
+            rxns_idx = [all_products.index(rx) for rx in all_products if sp in rx]
+            rxn_val_total = rxns_matrix[rxns_idx].sum(axis=0)
+            for rx in rxns_idx:
+                reactants = self.model.reactions_bidirectional[rx]['reactants']
+                for r in reactants:
+                    react_rate_color = rxns_matrix[rx] / rxn_val_total
+                    numpy.nan_to_num(react_rate_color, copy=False)
+                    rate_colors = self.f2hex_edges(react_rate_color)
+
+                    rxn_eps = rxns_matrix[rx] + self.mach_eps
+                    rxn_max = rxn_eps.max()
+                    rxn_min = abs(rxn_eps.min())
+                    react_rate_size = vals_norm(rxn_eps, rxn_max, rxn_min)
+                    rate_sizes = self.range_normalization(numpy.abs(react_rate_size), min_x=0, max_x=1)
+                    edges_id = 's' + str(r) + ',s' + str(sp)
                     all_rate_colors[edges_id] = rate_colors
                     all_rate_sizes[edges_id] = rate_sizes
-                    all_rate_abs_val[edges_id] = rxn
+                    all_rate_abs_val[edges_id] = rxns_matrix[rx]
+
+        # for i, rxn in enumerate(rxns_matrix):
+        #     rxn_eps = rxn + self.mach_eps
+        #     rxn_max = rxn_eps.max()
+        #     rxn_min = abs(rxn_eps.min())
+        #     react_rate_norm = vals_norm(rxn_eps, rxn_max, rxn_min)
+        #     rate_colors = self.f2hex_edges(react_rate_norm)
+        #     rate_sizes = self.range_normalization(numpy.abs(react_rate_norm), min_x=0, max_x=1)
+        #     for rctan in self.model.reactions_bidirectional[i]['reactants']:
+        #         for pro in self.model.reactions_bidirectional[i]['products']:
+        #             edges_id = 's' + str(rctan) + ',s' + str(pro)
+        #             all_rate_colors[edges_id] = rate_colors
+        #             all_rate_sizes[edges_id] = rate_sizes
+        #             all_rate_abs_val[edges_id] = rxn
 
         # all_colors = pandas.DataFrame(all_rate_colors)
         # all_sizes = pandas.DataFrame(all_rate_sizes)
-
         self.size_time_edges = all_rate_sizes
         self.colors_time_edges = all_rate_colors
         self.rxn_abs_vals = all_rate_abs_val
@@ -250,7 +270,7 @@ class FluxVisualization:
         return colors_hex
 
     @staticmethod
-    def range_normalization(x, min_x, max_x, a=0.1, b=15):
+    def range_normalization(x, min_x, max_x, a=0.1, b=10):
         """
         Normalized vector to the [0.1,15] range
         :param x: Vector of numbers to be normalized
