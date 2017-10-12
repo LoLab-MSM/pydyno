@@ -16,8 +16,8 @@ body {
     height: 4%;
     font-size:130%;
     position: absolute;
-    top: 10%;
-    right: 5%;
+    top: 95%;
+    left: 10%;
 }
 
 #Reset {
@@ -25,16 +25,23 @@ body {
     height: 4%;
     font-size:130%;
     position: absolute;
-    top: 15%;
-    right: 5%;
+    top: 95%;
+    left: 16%;
 }
-
+#colorbar {
+    height: 50px;
+    width: 220px;
+    position: absolute;
+    top: 86%;
+    left: 10%;
+    /*border:1px solid black;*/
+}
 
 
 #range{
 width:80%;
 height:25px;
-top:85%;
+top:91%;
 left:10%;
 border:1px solid black;
 position:absolute;
@@ -43,11 +50,27 @@ position:absolute;
 #textInput{
     width:10%;
     height:5%;
-    top:90%;
-    left:10%;
+    top:94.5%;
+    left:24%;
     font-size:120%;
     border:0px solid black;
     position:absolute;
+}
+
+#reset_fit {
+  width: 3em;
+  margin: 0.5em;
+  position: absolute;
+  z-index: 999;
+}
+
+#reset_fit {
+  top: 0;
+  right: 0;
+}
+
+#reset_fit i {
+    transform: rotate(45deg);
 }
 
 #slidecontainer {
