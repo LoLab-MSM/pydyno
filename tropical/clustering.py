@@ -19,24 +19,29 @@ from matplotlib.collections import LineCollection
 class ClusterSequences(object):
     """
     Class to cluster tropical signatures
+
+    Parameters
+    ----------
+    data: str file or np.ndarray
+        file or ndarray where rows are tropical signatures and columns are dominant states at specific
+        time points
+    unique_sequences: bool, optional
+        Drop repeated sequences
+    truncate_seq: int
+        Index of where to truncate a sequence
     """
     def __init__(self, data, unique_sequences=True, truncate_seq=None):
-        """
 
-        :param data: file or ndarray where rows are tropical signatures and columns are dominant states at specific
-        time points
-        :param unique_sequences:
-        :param truncate_seq:
-        """
-        if os.path.isfile(data):
-            data_seqs = pd.read_csv(data, header=0, index_col=0)
-            # convert column names into float numbers
-            data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
-        elif type(data) is np.ndarray:
+        if isinstance(data, str):
+            if os.path.isfile(data):
+                data_seqs = pd.read_csv(data, header=0, index_col=0)
+                # convert column names into float numbers
+                data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
+        elif isinstance(data, np.ndarray):
             data_seqs = data
             data_seqs = pd.DataFrame(data=data_seqs)
         else:
-            raise ValueError('data type not valid')
+            raise TypeError('data type not valid')
 
         if isinstance(truncate_seq, int):
             data_seqs = data_seqs[data_seqs.columns.tolist()[:truncate_seq]]
@@ -78,7 +83,7 @@ class ClusterSequences(object):
         elif callable(metric):
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         else:
-            raise Exception('metric not accepted')
+            raise ValueError('metric not accepted')
         self.diss = diss
 
     def hdbscan(self, min_cluster_size=50, min_samples=5):
