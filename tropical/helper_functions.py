@@ -70,9 +70,9 @@ def read_all_pars(pars_path, new_path=None):
     Reads all pars in file or directory
     :param new_path:
     :param pars_path: Parameter file or directory path
-    :return: DataFrame with all the parameters
+    :return: np.ndarray with all the parameters
     """
-    if type(pars_path) is list:
+    if isinstance(pars_path, list):
         par_sets = pars_path
     elif os.path.isfile(pars_path):
         par_sets = list_pars_infile(pars_path, new_path)
