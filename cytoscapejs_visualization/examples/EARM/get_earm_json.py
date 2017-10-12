@@ -1,7 +1,7 @@
 from earm.lopez_embedded import model
 import numpy
 import os
-from cytoscapejs_visualization.model_visualization import FluxVisualization
+from cytoscapejs_visualization.model_visualization_reactions import FluxVisualization
 import csv
 
 
