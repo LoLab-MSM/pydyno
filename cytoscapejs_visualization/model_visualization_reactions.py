@@ -188,11 +188,6 @@ class FluxVisualization:
             react_rate = func(*args)
             rxns_matrix[idx] = react_rate
 
-        # maximum an minimum reaction values at each time point
-        # max_all_times = [max(rxns_matrix[:, col]) for col in range(numpy.shape(rxns_matrix)[1])]
-        # min_all_times = [min(rxns_matrix[:, col]) for col in range(numpy.shape(rxns_matrix)[1])]
-
-        # max_abs_flux = numpy.array([max(i, abs(j)) for i, j in zip(max_all_times, min_all_times)])
         vals_norm = numpy.vectorize(self.mon_normalized)
         all_products = [rx['products'] for rx in self.model.reactions_bidirectional]
         all_reactants = [rx['reactants'] for rx in self.model.reactions_bidirectional]
@@ -200,11 +195,7 @@ class FluxVisualization:
 
         for sp in sp_imp:
             rxns_idx_c = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
-            # getting reversible reactions that produce species sp
-            # rxns_idx_rev_p = []
-            # for idx, rb in enumerate(self.model.reactions_bidirectional):
-            #     if sp in rb['reactants'] and rb['reversible'] is True:
-            #         rxns_idx_rev_p.append(idx)
+
             rxn_val_pos = numpy.where(rxns_matrix[rxns_idx_c] > 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
             rxn_val_neg = numpy.where(rxns_matrix[rxns_idx_c] < 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
             rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
@@ -229,11 +220,6 @@ class FluxVisualization:
 
         for sp in self.passengers:
             rxns_idx_c = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
-            # getting reversible reactions that produce species sp
-            # rxns_idx_rev_p = []
-            # for idx, rb in enumerate(self.model.reactions_bidirectional):
-            #     if sp in rb['reactants'] and rb['reversible'] is True:
-            #         rxns_idx_rev_p.append(idx)
 
             rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
             for rx in rxns_idx_c:
