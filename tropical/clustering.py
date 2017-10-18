@@ -16,6 +16,7 @@ from sklearn import metrics
 from matplotlib.collections import LineCollection
 import editdistance
 
+
 class ClusterSequences(object):
     """
     Class to cluster tropical signatures
@@ -105,12 +106,14 @@ class ClusterSequences(object):
 
 class PlotSequences(object):
     """
-    Class to plot sequences
+    Class to plot dynamic signatures sequences
     """
     def __init__(self, sequence_obj):
         """
 
-        :param sequence_obj ClusterSequence object
+        Parameters
+        ----------
+        sequence_obj
         """
         if sequence_obj.diss is None or sequence_obj.labels is None:
             raise Exception('Clustering has not been done in the ClusterSequence class')
@@ -223,11 +226,3 @@ class PlotSequences(object):
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
         plt.savefig('cluster_hdbscan_all_tr', bbox_inches='tight', dpi=1000)
-
-
-
-
-
-
-
-
