@@ -14,7 +14,7 @@ from scipy import stats
 import matplotlib.patches as mpatches
 from sklearn import metrics
 from matplotlib.collections import LineCollection
-
+import editdistance
 
 class ClusterSequences(object):
     """
@@ -74,29 +74,33 @@ class ClusterSequences(object):
         d_1_2 = 2 * seq_len - 2 * mlpy.lcs_std(seq1, seq2)[0]
         return d_1_2
 
+    @staticmethod
+    def levenshtein(seq1, seq2):
+        d_1_2 = editdistance.eval(seq1, seq2).__float__()
+        return d_1_2
+
     def diss_matrix(self, metric='LCS', n_jobs=1):
         # TODO check if ndarray have sequences of different lengths
-        if metric in distance_metrics().keys():
+        if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         elif metric == 'LCS':
             diss = pairwise_distances(self.sequences.values, metric=self.lcs_dist_same_length, n_jobs=n_jobs)
+        elif metric == 'levenshtein':
+            diss = pairwise_distances(self.sequences.values, metric=self.levenshtein, n_jobs=n_jobs)
         elif callable(metric):
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         else:
             raise ValueError('metric not accepted')
         self.diss = diss
 
-    def hdbscan(self, min_cluster_size=50, min_samples=5):
+    def hdbscan(self, min_cluster_size=50, min_samples=5, alpha=1.0, cluster_selection_method='eom'):
 
-        hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples, metric='precomputed').fit(self.diss)
+        hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples, alpha=alpha,
+                              cluster_selection_method=cluster_selection_method, metric='precomputed').fit(self.diss)
         self.labels = hdb.labels_
         return hdb.labels_
 
-    # def plot_sequences(self, metric='LCS', min_cluster_size=50, min_samples=5, n_jobs=1):
-    #     if self.diss is None:
-    #         self.diss = self.diss_matrix(metric=metric, n_jobs=n_jobs)
-    #
-    #     self.hdbscan(min_cluster_size=min_cluster_size, min_samples=min_samples)
+    # TODO: Add clustering techniques from scikit-learn
 
 
 class PlotSequences(object):
@@ -127,18 +131,25 @@ class PlotSequences(object):
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm, states_color_map
 
-    def modal_plot(self, title=''):
+    def modal_plot(self, title='', legend_plot=False):
         clusters = set(self.cluster_labels)
+        clusters = list(clusters)[:-1] # this is to not plot the signatures that can't be clustered :(
         n_rows = int(math.ceil(len(clusters)/3))
         f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True, figsize=(8, 6))
         f.subplots_adjust(hspace=.5)
         axs = axs.reshape(n_rows * 3)
 
+        # if legend_plot:
+        #     fig_legend = plt.figure(100, figsize=(2, 1.25))
+        #     legend_patches = [mpatches.Patch(color=c, label=l) for l, c in self.states_color_dict.items()]
+        #     fig_legend.legend(legend_patches, self.states_color_dict.keys(), loc='center', frameon=False, ncol=4)
+        #     plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
+
         plots_off = (n_rows * 3) - len(clusters)
         for i in range(1, plots_off+1):
             axs[-i].axis('off')
 
-        for clus in clusters:
+        for clus in clusters: # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
             if self.unique:
@@ -153,21 +164,22 @@ class PlotSequences(object):
             width_bar = self.sequences.columns[1] - self.sequences.columns[0]
             colors = [self.states_color_dict[c] for c in modal_states[0]]
             legend_patches = [mpatches.Patch(color=self.states_color_dict[c], label=c) for c in set(modal_states[0])]
-            axs[clus + 1].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
-            axs[clus + 1].legend(handles=legend_patches, fontsize='x-small')
-            axs[clus + 1].set_ylabel('State frequency (n={0})'.format(total_seqs), fontsize='x-small')
-            axs[clus + 1].set_title('Cluster {0}'.format(clus))
+            axs[clus].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
+            axs[clus].legend(handles=legend_patches, fontsize='x-small')
+            axs[clus].set_ylabel('frequency (n={0})'.format(total_seqs), fontsize='x-small')
+            axs[clus].set_title('Cluster {0}'.format(clus))
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_hdbscan_modal', bbox_inches='tight')
+        plt.savefig('cluster_hdbscan_modal', bbox_inches='tight', dpi=1000)
         return
 
     def all_trajectories_plot(self, title='', sort_seq='silhouette'):
         clusters = set(self.cluster_labels)
+        clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
         n_rows = int(math.ceil(len(clusters)/3))
         f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
-        f.subplots_adjust(wspace=.8)
+        f.subplots_adjust(hspace=.6, wspace=.4)
         axs = axs.reshape(n_rows * 3)
 
         plots_off = (n_rows * 3) - len(clusters)
@@ -178,7 +190,7 @@ class PlotSequences(object):
         if sort_seq == 'silhouette':
             sil_samples = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
 
-        for clus in clusters:
+        for clus in clusters: # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
             if self.unique:
@@ -201,16 +213,16 @@ class PlotSequences(object):
                 lc = LineCollection(segments, cmap=self.cmap, norm=self.norm)
                 lc.set_array(seq.values)
                 lc.set_linewidth(10)
-                axs[clus + 1].add_collection(lc)
-                axs[clus + 1].set_ylabel('Trajectories (n={0})'.format(total_seqs))
-                axs[clus + 1].set_ylim(0, len(clus_seqs))
-                axs[clus + 1].set_xlim(xx.min(), xx.max())
-                axs[clus + 1].set_title('Cluster {0}'.format(clus))
+                axs[clus].add_collection(lc)
+                axs[clus].set_ylabel('Trajectories (n={0})'.format(total_seqs), fontsize='xx-small')
+                axs[clus].set_ylim(0, len(clus_seqs))
+                axs[clus].set_xlim(xx.min(), xx.max())
+                axs[clus].set_title('Cluster {0}'.format(clus))
                 count_seqs += 1
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_hdbscan_all_tr', bbox_inches='tight')
+        plt.savefig('cluster_hdbscan_all_tr', bbox_inches='tight', dpi=1000)
 
 
 
