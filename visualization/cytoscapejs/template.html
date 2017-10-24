@@ -215,8 +215,17 @@
                     };
                 };
 
+                var static_vis = function () {
+                    $('#{{textid}}')[0].style.display = 'none';
+                    $('#{{rangeid}}')[0].style.display = 'none';
+                    $('#{{playid}}')[0].style.display = 'none';
+                    $('#{{resetid}}')[0].style.display = 'none';
+                };
+
                 if(all_data.data.view == 'dynamic'){
                     dynamics_vis();
+                } else {
+                    static_vis()
                 }
 
                 var allNodes;
