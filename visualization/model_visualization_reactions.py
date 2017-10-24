@@ -39,7 +39,7 @@ class MidpointNormalize(colors.Normalize):
         return numpy.ma.masked_array(numpy.interp(value, x, y))
 
 
-class FluxVisualization:
+class ModelVisualization:
     mach_eps = numpy.finfo(float).eps
 
     def __init__(self, model):
@@ -48,13 +48,28 @@ class FluxVisualization:
         self.y_df = None
         self.param_dict = None
         self.sp_graph = None
-        self.size_time_edges = None
-        self.colors_time_edges = None
-        self.rxn_abs_vals = None
         self.passengers = []
         self.is_setup = False
 
-    def setup_info(self, tspan=None, param_values=None, get_passengers=True, verbose=False):
+    def static_view(self, layout='dot', get_passengers=True):
+        if get_passengers:
+            self.passengers = hf.find_nonimportant_nodes(self.model)
+        self.species_graph(view='static')
+        if layout == 'dot':
+            g_layout = self.dot_layout(self.sp_graph)
+        data = self.graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        return data
+
+    def dynamic_view(self, tspan=None, param_values=None, get_passengers=True, layout='dot', verbose=False):
+        self._setup_dynamics(tspan=tspan, param_values=param_values, get_passengers=get_passengers, verbose=verbose)
+        self.species_graph(view='dynamic')
+        if layout == 'dot':
+            g_layout = self.dot_layout(self.sp_graph)
+        self._add_edge_node_dynamics()
+        data = self.graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
+        return data
+
+    def _setup_dynamics(self, tspan=None, param_values=None, get_passengers=True, verbose=False):
         if verbose:
             print("Solving Simulation")
 
@@ -84,22 +99,25 @@ class FluxVisualization:
         sim_result = ScipyOdeSimulator(self.model, tspan=self.tspan, param_values=self.param_dict).run()
         self.y_df = sim_result.all
 
-        self.edges_colors_sizes()
         self.is_setup = True
         return
 
-    def species_graph(self):
+    def species_graph(self, view):
         """
         Creates a species graph
         :return: Creates Networkx graph from PySB model, it includes the results of simulation, where edges have
         different sizes for different reactions rates and nodes have different values
         """
+        if view in ['static', 'dynamic']:
+            pass
+        else:
+            raise ValueError('View is not valid')
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
-        self.sp_graph = OrderedGraph(name=self.model.name, tspan=self.tspan.tolist())
+        self.sp_graph = OrderedGraph(name=self.model.name, tspan=self.tspan.tolist(), view=view)
         for idx, cp in enumerate(self.model.species):
             species_node = 's%d' % idx
-            node_data = self.node_relative_values(idx)
+            node_data = {}
             node_data['label'] = parse_name(self.model.species[idx])
             node_data['shape_cy'] = "roundrectangle"
             node_data['font_size'] = 18
@@ -136,30 +154,39 @@ class FluxVisualization:
             del attrs['_flip']
             nodes = nodes[::-1]
         attrs.setdefault('arrowhead', 'normal')
-        link_name = ','.join(i for i in nodes)
-        attrs['name'] = link_name
-        if link_name in self.colors_time_edges.keys():
-            for idx in range(len(self.tspan)):
-                attrs['edge_color_t{0}'.format(idx)] = self.colors_time_edges[link_name][idx]
-                attrs['edge_size_t{0}'.format(idx)] = self.size_time_edges[link_name][idx]
-                attrs['edge_qtip_t{0}'.format(idx)] = self.rxn_abs_vals[link_name][idx]
-        # attrs['edges_colors'] = self.colors_time_edges[link_name].values.tolist()
-        # attrs['edges_sizes'] = self.size_time_edges[link_name].values.tolist()
+        # link_name = ','.join(i for i in nodes)
+        # attrs['name'] = link_name
+        # if link_name in self.colors_time_edges.keys():
+        #     for idx in range(len(self.tspan)):
+        #         attrs['edge_color_t{0}'.format(idx)] = self.colors_time_edges[link_name][idx]
+        #         attrs['edge_size_t{0}'.format(idx)] = self.size_time_edges[link_name][idx]
+        #         attrs['edge_qtip_t{0}'.format(idx)] = self.rxn_abs_vals[link_name][idx]
+
         self.sp_graph.add_edge(*nodes, **attrs)
 
-    def graph_to_json(self, path='', layout=None):
-        if not self.sp_graph:
-            self.species_graph()
-        data = from_networkx(self.sp_graph, layout=layout, scale=1)
-        with open(path + 'data.json', 'w') as outfile:
-            json.dump(data, outfile)
+    def _add_edge_node_dynamics(self):
+        edge_sizes, edge_colors, edge_qtips = self.edges_colors_sizes()
+        nx.set_edge_attributes(self.sp_graph, 'edge_color', edge_colors)
+        nx.set_edge_attributes(self.sp_graph, 'edge_size', edge_sizes)
+        nx.set_edge_attributes(self.sp_graph, 'edge_qtip', edge_qtips)
 
-    def dot_layout(self):
-        if not self.sp_graph:
-            self.species_graph()
-        pos = nx.drawing.nx_agraph.pygraphviz_layout(self.sp_graph, prog='dot', args="-Grankdir=LR")
+        node_abs, node_rel = self.node_data()
+        nx.set_node_attributes(self.sp_graph, 'abs_value', node_abs)
+        nx.set_node_attributes(self.sp_graph, 'rel_value', node_rel)
+
+    @staticmethod
+    def graph_to_json(sp_graph, layout=None, path=''):
+        data = from_networkx(sp_graph, layout=layout, scale=1)
+        if path:
+            with open(path + 'data.json', 'w') as outfile:
+                json.dump(data, outfile)
+        return data
+
+    @staticmethod
+    def dot_layout(sp_graph):
+        pos = nx.drawing.nx_agraph.pygraphviz_layout(sp_graph, prog='dot', args="-Grankdir=LR")
         # TODO: may be better to change the way the py2cytoscape function reads the layout
-        ordered_pos = collections.OrderedDict((node, pos[node]) for node in self.sp_graph.nodes())
+        ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
         return ordered_pos
 
     def edges_colors_sizes(self):
@@ -213,10 +240,10 @@ class FluxVisualization:
                     rxn_min = abs(rxn_eps.min())
                     react_rate_size = vals_norm(rxn_eps, rxn_max, rxn_min)
                     rate_sizes = self.range_normalization(numpy.abs(react_rate_size), min_x=0, max_x=1)
-                    edges_id = 's' + str(sp) + ',s' + str(p)
+                    edges_id = ('s' + str(sp), 's' + str(p))
                     all_rate_colors[edges_id] = rate_colors
-                    all_rate_sizes[edges_id] = rate_sizes
-                    all_rate_abs_val[edges_id] = rxns_matrix[rx]
+                    all_rate_sizes[edges_id] = rate_sizes.tolist()
+                    all_rate_abs_val[edges_id] = rxns_matrix[rx].tolist()
 
         for sp in self.passengers:
             rxns_idx_c = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
@@ -225,31 +252,32 @@ class FluxVisualization:
             for rx in rxns_idx_c:
                 products = all_products[rx]
                 for p in products:
-                    edges_id = 's' + str(sp) + ',s' + str(p)
+                    edges_id = ('s' + str(sp), 's' + str(p))
                     all_rate_colors[edges_id] = ['#A4A09F'] * len(self.tspan)
                     all_rate_sizes[edges_id] = [0.5] * len(self.tspan)
-                    all_rate_abs_val[edges_id] = rxns_matrix[rx]
+                    all_rate_abs_val[edges_id] = rxns_matrix[rx].tolist()
 
-        self.size_time_edges = all_rate_sizes
-        self.colors_time_edges = all_rate_colors
-        self.rxn_abs_vals = all_rate_abs_val
+        # self.size_time_edges = all_rate_sizes
+        # self.colors_time_edges = all_rate_colors
+        # self.rxn_abs_vals = all_rate_abs_val
 
-        return
+        return all_rate_sizes, all_rate_colors, all_rate_abs_val
 
-    def node_relative_values(self, sp):
+    def node_data(self):
         """
         Converts concentration values to colors to be used in the nodes
         :return: Returns a pandas data frame where each row is a node and each column a time point, with the color value
         """
+        node_absolute = {}
+        node_relative = {}
+        for sp in range(len(self.model.species)):
+            sp_absolute = self.y_df['__s%d' % sp]
+            sp_relative = (sp_absolute / sp_absolute.max()) * 100
+            node_absolute['s%d' % sp] = sp_absolute.tolist()
+            node_relative['s%d' % sp] = sp_relative.tolist()
 
-        node_data = {}
-        sp_values = self.y_df['__s%d' % sp]
-        node_values = (sp_values / sp_values.max()) * 100
-        for abs_val, rel_val, i in zip(sp_values, node_values, range(len(self.tspan))):
-            node_data['abs_value_t{0}'.format(i)] = abs_val
-            node_data['rel_value_t{0}'.format(i)] = rel_val
         # all_nodes_values = pandas.DataFrame(all_rate_colors)
-        return node_data
+        return node_absolute, node_relative
 
     @staticmethod
     def f2hex_edges(fx, vmin=-0.99, vmax=0.99):
