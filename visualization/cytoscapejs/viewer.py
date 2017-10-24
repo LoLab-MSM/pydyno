@@ -76,17 +76,11 @@ def render(network,
         style = STYLES[style]
 
     if network is None:
-        network = {'data': {},
-                   'elements': {'edges': [{'data': {'source': 'Network Data',
-                                                    'target': 'Empty'}}],
-                                'nodes': [{'data': {'id': 'Network Data', 'name': 'Network Data'}},
-                                          {'data': {'id': 'Empty', 'name': 'Empty'}}]}}
+        raise Exception('a network dict must be provided')
 
     path = os.path.abspath(os.path.dirname(__file__)) + '/' + HTML_TEMPLATE_FILE
     template = Template(open(path).read())
     cyjs_widget = template.render(
-        # nodes=json.dumps(nodes),
-        # edges=json.dumps(edges),
         datos=json.dumps(network),
         background=background,
         uuid="cy" + str(uuid.uuid4()),
