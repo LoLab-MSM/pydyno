@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="jdk" jdkName="Python 2.7.13 (~/anaconda/envs/tropical_multi/bin/pythonw)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="R User Library" level="project" />
+    <orderEntry type="library" name="R Skeletons" level="application" />
+    <orderEntry type="library" name="jquery" level="application" />
+    <orderEntry type="library" name="jquery.qtip" level="application" />
+    <orderEntry type="library" name="cytoscape-qtip" level="application" />
+    <orderEntry type="library" name="colorbar" level="application" />
+    <orderEntry type="library" name="d3.v4" level="application" />
+    <orderEntry type="module" module-name="earm" />
+    <orderEntry type="module" module-name="Magine" />
+    <orderEntry type="module" module-name="pysb" />
+    <orderEntry type="module" module-name="ortega2247.github.io" />
+    <orderEntry type="module" module-name="ParticleSwarmOptimization" />
+    <orderEntry type="module" module-name="n_monomers_itano" />
+    <orderEntry type="module" module-name="C3_data_analysis" />
+    <orderEntry type="module" module-name="magine_gui_app" />
+    <orderEntry type="module" module-name="bla" />
+  </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="myDocStringFormat" value="NumPy" />
+  </component>
+  <component name="TemplatesService">
+    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
+  </component>
+  <component name="TestRunnerService">
+    <option name="projectConfiguration" value="Nosetests" />
+    <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
+  </component>
+</module>

@@ -1,0 +1,2031 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="SCOPE_TYPE" value="3" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="35a9f859-d455-4e90-bc82-977ca9e1cfe0" name="Default" comment="functions to">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Magine/examples/run_go_enrichment_selma.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../n_monomers_itano/monomer3_visualization.ipynb" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../ortega2247.github.io/directorio_examenes/espermograma.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../pysb/pysb/tests/test_cytoscapejs.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/dictionaries/dionisio.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/R_User_Library.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/examples/EARM/data_frame37_clusters.csv" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/examples/EARM/decision_tree_analysis.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/old_functions/clustering_sequences.R" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/old_functions/max_plus_global_preequilibration.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tropical/max_plus_sim.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tropical/pam_clustering.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tropical/visualization/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tropical/visualization/examples/EARM/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tropical/visualization/examples/ddrxm.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/tropical/visualization/examples/model_0.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/_state/.keep" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0001_initial.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0002_auto_20170729_1809.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0003_data_file_name_path.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0004_auto_20170729_2213.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0005_remove_data_file_name_path.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0006_auto_20170730_2356.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0007_auto_20170730_2358.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0008_auto_20170730_2359.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0009_data_all_data.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0010_auto_20170812_1829.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0011_auto_20170816_1259.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0012_remove_data_all_data.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0013_data_data.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0014_auto_20170818_1309.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/0015_auto_20170818_1646.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../magine_gui_app/gui/migrations/__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/.ipynb_checkpoints/Untitled1-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/.ipynb_checkpoints/earm_visualization-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/temp.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/cytoscape.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM/data.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM/develop_widget2.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM/get_earm_json.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM/index.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM/network4.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM/pars_embedded_26.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/tyson_cycle/get_tyson_json.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/tyson_cycle/graph_data_tyson_oscillator.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/jquery-3.1.1.min.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/model_visualization.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/model_visualization_cytoscapejs.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/network3.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/run_server_cytoscapejs.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/style.css" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/5000_kpars_earm.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/all_IC_simulations/IC_10000_pars_consumption_kpar0.npy" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/bid_clusteredPAM_pars_consumption/data_frame37_Type1.csv" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/bid_clusteredPAM_pars_consumption/data_frame37_Type2.csv" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/bid_clusteredPAM_pars_consumption/data_frame37_Type3.csv" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/bid_clusteredPAM_pars_consumption/data_frame37_Type4.csv" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/EARM/dynamics_distribution_exp_data.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/examples/run_mm_two_paths_tropical.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/tropical/clustering_sequences.R" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/tropical/tropical/choose_max.so" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/visualization/cytoscapejs/__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/visualization/cytoscapejs/default_style.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/visualization/cytoscapejs/loader.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/visualization/cytoscapejs/template.html" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/visualization/cytoscapejs/viewer.py" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar/itano_paper.py" afterPath="$PROJECT_DIR$/../MT1_MMP/Master_Model/__init__.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar/n_monomers_model.py" afterPath="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar/n_monomers_model_solutions.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/data/EC-RP_IMS-RP_IC-RP_data_for_models.csv" afterPath="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples/data/EC-RP_IMS-RP_IC-RP_data_for_models.csv" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/__init__.py" afterPath="$PROJECT_DIR$/MANIFEST.in" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/cytoscapejs_visualization/examples/__init__.py" afterPath="$PROJECT_DIR$/examples/EARM/export_trajectories_signatures.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/tropical/cluster_signatures.py" afterPath="$PROJECT_DIR$/old_functions/cluster_signatures.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/tropical/clustering_R.py" afterPath="$PROJECT_DIR$/old_functions/clustering_R.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/tropical/max_plus_global.py" afterPath="$PROJECT_DIR$/old_functions/max_plus_global.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/tropical/max_plus_multiprocessing_numpy.py" afterPath="$PROJECT_DIR$/old_functions/max_plus_multiprocessing_numpy.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/tropical/miscellaneous_analysis.py" afterPath="$PROJECT_DIR$/miscellaneous_tools/miscellaneous_analysis.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/visualization/__init__.py" afterPath="$PROJECT_DIR$/tropical/dynamic_signatures.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/visualization/model_visualization_reactions.py" afterPath="$PROJECT_DIR$/tropical/visualization/model_visualization_reactions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Marion_project/data/inline-supplementary-material-1.xls" afterPath="$PROJECT_DIR$/../Marion_project/data/inline-supplementary-material-1.xls" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples/example_earm.py" afterPath="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples/example_earm.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../magine_gui_app/make_migrations.sh" afterPath="$PROJECT_DIR$/../magine_gui_app/make_migrations.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../n_monomers_itano/example_3monomers.py" afterPath="$PROJECT_DIR$/../n_monomers_itano/example_3monomers.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../ortega2247.github.io/.idea/ortega2247.github.io.iml" afterPath="$PROJECT_DIR$/../ortega2247.github.io/.idea/ortega2247.github.io.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../ortega2247.github.io/examenes.html" afterPath="$PROJECT_DIR$/../ortega2247.github.io/examenes.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/pysb/examples/catalysis.py" afterPath="$PROJECT_DIR$/../pysb/pysb/examples/catalysis.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/pysb/examples/run_tyson_oscillator.py" afterPath="$PROJECT_DIR$/../pysb/pysb/examples/run_tyson_oscillator.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/template.html" afterPath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/template.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/viewer.py" afterPath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/viewer.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/earm_visualization.ipynb" afterPath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/earm_visualization.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/model_visualization_reactions.py" afterPath="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/model_visualization_reactions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pysb/setup.py" afterPath="$PROJECT_DIR$/../pysb/setup.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/CORM/CORM_tropical.py" afterPath="$PROJECT_DIR$/examples/CORM/CORM_tropical.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/IC_distributions_earm.py" afterPath="$PROJECT_DIR$/examples/EARM/IC_distributions_earm.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/cluster_tropical_signatures.py" afterPath="$PROJECT_DIR$/examples/EARM/cluster_tropical_signatures.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/clusters_sp37_dynamics_distribution.py" afterPath="$PROJECT_DIR$/examples/EARM/clusters_sp37_dynamics_distribution.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/parameter_distribution.py" afterPath="$PROJECT_DIR$/examples/EARM/parameter_distribution.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/run_EARM_tropical.py" afterPath="$PROJECT_DIR$/examples/EARM/run_EARM_tropical.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/run_earm1_3.py" afterPath="$PROJECT_DIR$/examples/EARM/run_earm1_3.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/tr_sgn_to_txt.py" afterPath="$PROJECT_DIR$/examples/EARM/tr_sgn_to_txt.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/EARM/tropical_signatures_5000_pars.py" afterPath="$PROJECT_DIR$/examples/EARM/tropical_signatures_5000_pars.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/double_enzymatic/run_dynamics.py" afterPath="$PROJECT_DIR$/examples/double_enzymatic/run_dynamics.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/double_enzymatic/run_mm_two_paths_tropical.py" afterPath="$PROJECT_DIR$/examples/double_enzymatic/run_mm_two_paths_tropical.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/simple_enzymatic/run_mm_simple_tropical.py" afterPath="$PROJECT_DIR$/examples/simple_enzymatic/run_mm_simple_tropical.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/tyson_oscillator/run_tyson_oscillator_tropical.py" afterPath="$PROJECT_DIR$/examples/tyson_oscillator/run_tyson_oscillator_tropical.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/tyson_oscillator/tyson_oscillator_time_parameters_changed.py" afterPath="$PROJECT_DIR$/examples/tyson_oscillator/tyson_oscillator_time_parameters_changed.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/old_functions/max_plus_multiprocessing.py" afterPath="$PROJECT_DIR$/old_functions/max_plus_multiprocessing.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/setup.py" afterPath="$PROJECT_DIR$/setup.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tests/test_tropical.py" afterPath="$PROJECT_DIR$/tests/test_tropical.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tropical/analysis_of_clusters.py" afterPath="$PROJECT_DIR$/tropical/analysis_of_clusters.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tropical/max_plus_pos_neg.py" afterPath="$PROJECT_DIR$/tropical/max_plus_pos_neg.py" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/tropical$widget_tropical.coverage" NAME="widget_tropical Coverage Results" MODIFIED="1510160858376" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/tropical$sbml.coverage" NAME="sbml Coverage Results" MODIFIED="1503539607263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/export" />
+    <SUITE FILE_PATH="coverage/tropical$clusters_sp37_dynamics_distribution.coverage" NAME="clusters_sp37_dynamics_distribution Coverage Results" MODIFIED="1508180376210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$itano_paper.coverage" NAME="itano_paper Coverage Results" MODIFIED="1504647250869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar" />
+    <SUITE FILE_PATH="coverage/tropical$run_EARM_tropical.coverage" NAME="run_EARM_tropical Coverage Results" MODIFIED="1508541044404" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$3_monomers_example.coverage" NAME="3_monomers_example Coverage Results" MODIFIED="1506696309148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../n_monomers_itano" />
+    <SUITE FILE_PATH="coverage/tropical$run_dynamics.coverage" NAME="run_dynamics Coverage Results" MODIFIED="1494898593557" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/double_enzymatic" />
+    <SUITE FILE_PATH="coverage/tropical$pysb_vis.coverage" NAME="pysb_vis Coverage Results" MODIFIED="1510098402193" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/tropical$analysis_of_clusters.coverage" NAME="analysis_of_clusters Coverage Results" MODIFIED="1507084283755" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$Nosetests_in_test_tropical_py.coverage" NAME="Nosetests in test_tropical.py Coverage Results" MODIFIED="1499698799578" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/tropical$Nosetests_in_pysb.coverage" NAME="Nosetests in pysb Coverage Results" MODIFIED="1489698194915" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/tropical$earm_ic_sp37.coverage" NAME="earm_ic_sp37 Coverage Results" MODIFIED="1493173397300" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$Nosetests_in_test_tropical.coverage" NAME="Nosetests in test_tropical Coverage Results" MODIFIED="1489781830336" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/tropical$example_3monomers.coverage" NAME="example_3monomers Coverage Results" MODIFIED="1509396877995" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../n_monomers_itano" />
+    <SUITE FILE_PATH="coverage/tropical$cluster_tropical_signatures.coverage" NAME="cluster_tropical_signatures Coverage Results" MODIFIED="1508179234572" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$n_monomers_model.coverage" NAME="n_monomers_model Coverage Results" MODIFIED="1504817245418" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar" />
+    <SUITE FILE_PATH="coverage/tropical$decision_tree_analysis.coverage" NAME="decision_tree_analysis Coverage Results" MODIFIED="1486509602594" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$manage.coverage" NAME="manage Coverage Results" MODIFIED="1490212909494" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../lab_track" />
+    <SUITE FILE_PATH="coverage/tropical$earm_equilibration.coverage" NAME="earm_equilibration Coverage Results" MODIFIED="1497312903036" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/examples" />
+    <SUITE FILE_PATH="coverage/tropical$mt1_mmp_model_run.coverage" NAME="mt1_mmp_model_run Coverage Results" MODIFIED="1505194337634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../MT1_MMP/Master_Model" />
+    <SUITE FILE_PATH="coverage/tropical$dynamics_distribution_exp_data.coverage" NAME="dynamics_distribution_exp_data Coverage Results" MODIFIED="1508032300162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek2_erk1_akt2.coverage" NAME="egfr1_raf1_mek2_erk1_akt2 Coverage Results" MODIFIED="1503539768050" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$earm_tropical_multiprocessing.coverage" NAME="earm_tropical_multiprocessing Coverage Results" MODIFIED="1491513948934" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$pre_equilibration.coverage" NAME="pre_equilibration Coverage Results" MODIFIED="1497312099811" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools" />
+    <SUITE FILE_PATH="coverage/tropical$run_tyson_oscillator_tropical.coverage" NAME="run_tyson_oscillator_tropical Coverage Results" MODIFIED="1508356491543" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/tyson_oscillator" />
+    <SUITE FILE_PATH="coverage/tropical$cluster_signatures.coverage" NAME="cluster_signatures Coverage Results" MODIFIED="1501877885025" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek2_erk2_akt1.coverage" NAME="egfr1_raf1_mek2_erk2_akt1 Coverage Results" MODIFIED="1503539872331" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$export_trajectories_signatures.coverage" NAME="export_trajectories_signatures Coverage Results" MODIFIED="1495307156874" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$catalysis.coverage" NAME="catalysis Coverage Results" MODIFIED="1510000512341" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/examples" />
+    <SUITE FILE_PATH="coverage/tropical$run_michment_cupsoda.coverage" NAME="run_michment_cupsoda Coverage Results" MODIFIED="1497381065364" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/examples/cupsoda" />
+    <SUITE FILE_PATH="coverage/tropical$tyson_oscillator.coverage" NAME="tyson_oscillator Coverage Results" MODIFIED="1491243782500" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/examples" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek1_erk2_akt1.coverage" NAME="egfr1_raf1_mek1_erk2_akt1 Coverage Results" MODIFIED="1503539613207" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$c3_graph.coverage" NAME="c3_graph Coverage Results" MODIFIED="1508240503509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../C3_data_analysis" />
+    <SUITE FILE_PATH="coverage/tropical$5000_kpars_earm.coverage" NAME="5000_kpars_earm Coverage Results" MODIFIED="1486066675278" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$Unittests_in_tests.coverage" NAME="Unittests in tests Coverage Results" MODIFIED="1489697365545" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tests" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek2_erk1_akt1.coverage" NAME="egfr1_raf1_mek2_erk1_akt1 Coverage Results" MODIFIED="1503539708846" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek1_erk1_akt1.coverage" NAME="egfr1_raf1_mek1_erk1_akt1 Coverage Results" MODIFIED="1503509045653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Collection_of_models " />
+    <SUITE FILE_PATH="coverage/tropical$get_earm_json.coverage" NAME="get_earm_json Coverage Results" MODIFIED="1508360816046" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$ParticleSwarmOptimization.coverage" NAME="widget_tropical Coverage Results" MODIFIED="1508361891284" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek1_erk2_akt2.coverage" NAME="egfr1_raf1_mek1_erk2_akt2 Coverage Results" MODIFIED="1503539664255" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$run_mt1_mmp_theo.coverage" NAME="run_mt1_mmp_theo Coverage Results" MODIFIED="1505194469564" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../MT1_MMP/Project_with_Oscar" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek2_erk2_akt2.coverage" NAME="egfr1_raf1_mek2_erk2_akt2 Coverage Results" MODIFIED="1503539921567" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek1_erk1_akt1__1_.coverage" NAME="egfr1_raf1_mek1_erk1_akt1 (1) Coverage Results" MODIFIED="1503510478209" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Collection_of_models" />
+    <SUITE FILE_PATH="coverage/tropical$tropical_signatures_5000_pars.coverage" NAME="tropical_signatures_5000_pars Coverage Results" MODIFIED="1508968104907" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$model_optimization.coverage" NAME="model_optimization Coverage Results" MODIFIED="1509986192816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project" />
+    <SUITE FILE_PATH="coverage/tropical$temp.coverage" NAME="temp Coverage Results" MODIFIED="1510186823078" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$graficar_datos.coverage" NAME="graficar_datos Coverage Results" MODIFIED="1501734004665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../datos_roomie" />
+    <SUITE FILE_PATH="coverage/tropical$_bisect_kmeans.coverage" NAME="_bisect_kmeans Coverage Results" MODIFIED="1502140614629" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/pyclust" />
+    <SUITE FILE_PATH="coverage/tropical$Unittests_in_test_simulator_scipy.coverage" NAME="Unittests in test_simulator_scipy Coverage Results" MODIFIED="1489697983836" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tests" />
+    <SUITE FILE_PATH="coverage/tropical$dynamic_signatures.coverage" NAME="dynamic_signatures Coverage Results" MODIFIED="1508885560966" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$render_species_tyson.coverage" NAME="render_species_tyson Coverage Results" MODIFIED="1488241316725" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/examples" />
+    <SUITE FILE_PATH="coverage/tropical$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1508434091668" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cytoscapejs_visualization" />
+    <SUITE FILE_PATH="coverage/tropical$dichlet_process_test.coverage" NAME="dichlet_process_test Coverage Results" MODIFIED="1507228147080" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
+    <SUITE FILE_PATH="coverage/tropical$counting.coverage" NAME="counting Coverage Results" MODIFIED="1497029973016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../cell_counting" />
+    <SUITE FILE_PATH="coverage/tropical$max_plus_pos_neg.coverage" NAME="max_plus_pos_neg Coverage Results" MODIFIED="1508886068537" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$Unittest_TestScipySimulatorSingle_test_y0_as_list.coverage" NAME="Unittest TestScipySimulatorSingle.test_y0_as_list Coverage Results" MODIFIED="1489697966267" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tests" />
+    <SUITE FILE_PATH="coverage/tropical$IC_distributions_earm.coverage" NAME="IC_distributions_earm Coverage Results" MODIFIED="1497567664387" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$model_visualization_cytoscapejs.coverage" NAME="model_visualization_cytoscapejs Coverage Results" MODIFIED="1487808307480" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools" />
+    <SUITE FILE_PATH="coverage/tropical$loglog_plot.coverage" NAME="loglog_plot Coverage Results" MODIFIED="1491681523009" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../C3_data_analysis" />
+    <SUITE FILE_PATH="coverage/tropical$run_tyson_oscillator.coverage" NAME="run_tyson_oscillator Coverage Results" MODIFIED="1510157659373" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/examples" />
+    <SUITE FILE_PATH="coverage/tropical$mt1_mmp_model.coverage" NAME="mt1_mmp_model Coverage Results" MODIFIED="1504644916085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../MT1_MMP/Master Model" />
+    <SUITE FILE_PATH="coverage/tropical$max_plus_global.coverage" NAME="max_plus_global Coverage Results" MODIFIED="1499641655443" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$max_plus_multiprocessing_numpy.coverage" NAME="max_plus_multiprocessing_numpy Coverage Results" MODIFIED="1499462354818" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek1_erk1_akt2.coverage" NAME="egfr1_raf1_mek1_erk1_akt2 Coverage Results" MODIFIED="1503538430037" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$n_monomers_class.coverage" NAME="n_monomers_class Coverage Results" MODIFIED="1506897375849" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../n_monomers_itano" />
+    <SUITE FILE_PATH="coverage/tropical$distribution_fit_roomie.coverage" NAME="distribution_fit_roomie Coverage Results" MODIFIED="1501736678007" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../cell_counting" />
+    <SUITE FILE_PATH="coverage/tropical$model_0.coverage" NAME="model_0 Coverage Results" MODIFIED="1509990096068" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project" />
+    <SUITE FILE_PATH="coverage/tropical$run_mm_simple_tropical.coverage" NAME="run_mm_simple_tropical Coverage Results" MODIFIED="1491960929274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/simple_enzymatic" />
+    <SUITE FILE_PATH="coverage/tropical$clustering_R.coverage" NAME="clustering_R Coverage Results" MODIFIED="1485716897379" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/tropical$model_visualization_reactions.coverage" NAME="model_visualization_reactions Coverage Results" MODIFIED="1509506327191" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization" />
+    <SUITE FILE_PATH="coverage/tropical$Nosetest_TestFluxVisualization_test_type_sign_coonsumption.coverage" NAME="Nosetest TestFluxVisualization.test_type_sign_coonsumption Coverage Results" MODIFIED="1489700559082" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/tropical$EARM_Td_distributions.coverage" NAME="EARM_Td_distributions Coverage Results" MODIFIED="1493327592189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/EARM" />
+    <SUITE FILE_PATH="coverage/tropical$Doctests_in_model_visualization_reactions.coverage" NAME="Doctests in model_visualization_reactions Coverage Results" MODIFIED="1510266139653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization" />
+    <SUITE FILE_PATH="coverage/tropical$flux_visualization_earm.coverage" NAME="flux_visualization_earm Coverage Results" MODIFIED="1487004492344" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/examples" />
+    <SUITE FILE_PATH="coverage/tropical$egfr1_raf1_mek1_erk1_akt1__2_.coverage" NAME="egfr1_raf1_mek1_erk1_akt1 (2) Coverage Results" MODIFIED="1503538304104" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project/Models_Marion" />
+    <SUITE FILE_PATH="coverage/tropical$get_tyson_json.coverage" NAME="get_tyson_json Coverage Results" MODIFIED="1489589398617" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/tyson_cycle" />
+    <SUITE FILE_PATH="coverage/tropical$run_mm_two_paths_tropical.coverage" NAME="run_mm_two_paths_tropical Coverage Results" MODIFIED="1508242377181" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/double_enzymatic" />
+    <SUITE FILE_PATH="coverage/tropical$Nosetests_in_tests.coverage" NAME="Nosetests in tests Coverage Results" MODIFIED="1495755949043" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tests" />
+    <SUITE FILE_PATH="coverage/tropical$helper_functions.coverage" NAME="helper_functions Coverage Results" MODIFIED="1499720486419" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$model_visualization.coverage" NAME="model_visualization Coverage Results" MODIFIED="1485829901049" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools" />
+    <SUITE FILE_PATH="coverage/tropical$get_tyson_json__1_.coverage" NAME="get_tyson_json (1) Coverage Results" MODIFIED="1489591122149" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/tyson_cycle" />
+    <SUITE FILE_PATH="coverage/tropical$run_server_cytoscapejs.coverage" NAME="run_server_cytoscapejs Coverage Results" MODIFIED="1489588724843" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization" />
+    <SUITE FILE_PATH="coverage/tropical$polymers_view.coverage" NAME="polymers_view Coverage Results" MODIFIED="1509460312913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/tropical$example_earm.coverage" NAME="example_earm Coverage Results" MODIFIED="1509987035444" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples" />
+    <SUITE FILE_PATH="coverage/tropical$tyson_oscillator_time_parameters_changed.coverage" NAME="tyson_oscillator_time_parameters_changed Coverage Results" MODIFIED="1485967290384" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples/tyson_oscillator" />
+    <SUITE FILE_PATH="coverage/tropical$run_go_enrichment.coverage" NAME="run_go_enrichment Coverage Results" MODIFIED="1492103111339" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Magine/examples" />
+    <SUITE FILE_PATH="coverage/tropical$run_go_enrichment_selma.coverage" NAME="run_go_enrichment_selma Coverage Results" MODIFIED="1492104205918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Magine/examples" />
+    <SUITE FILE_PATH="coverage/tropical$clustering.coverage" NAME="clustering Coverage Results" MODIFIED="1508105274046" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tropical" />
+    <SUITE FILE_PATH="coverage/tropical$n_monomers_model__1_.coverage" NAME="n_monomers_model (1) Coverage Results" MODIFIED="1505162706879" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../n_monomers_itano" />
+    <SUITE FILE_PATH="coverage/tropical$model_0__1_.coverage" NAME="model_0 (1) Coverage Results" MODIFIED="1502489283452" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Marion_project" />
+  </component>
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_TABLE_DETAILS" value="true" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+  </component>
+  <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" module-name="tropical_web" sdk-home="$USER_HOME$/Documents/PhD/tropical_web/bin/python">
+    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
+    <option name="mySdkHome" value="$USER_HOME$/Documents/PhD/tropical_web/bin/python" />
+    <option name="myModuleName" value="tropical_web" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="tropical" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="template.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/template.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="417">
+              <caret line="121" column="50" lean-forward="false" selection-start-line="121" selection-start-column="50" selection-end-line="121" selection-end-column="50" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="loader.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/loader.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="21" column="1" lean-forward="true" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="base.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/simulator/base.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="400">
+              <caret line="979" column="0" lean-forward="false" selection-start-line="979" selection-start-column="0" selection-end-line="980" selection-end-column="73" />
+              <folding>
+                <element signature="e#0#39#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/setup.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="540">
+              <caret line="36" column="67" lean-forward="false" selection-start-line="36" selection-start-column="67" selection-end-line="36" selection-end-column="67" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_cytoscapejs.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_cytoscapejs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+              <folding>
+                <element signature="e#1#16#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="macros.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/macros.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="288">
+              <caret line="848" column="4" lean-forward="false" selection-start-line="848" selection-start-column="4" selection-end-line="848" selection-end-column="4" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_simulator_scipy.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_simulator_scipy.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#26#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../pysb/pysb/testing/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#24#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CSS File" />
+        <option value="JavaScript File" />
+        <option value="Jupyter Notebook" />
+        <option value="HTML File" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>Particle</find>
+      <find>self.toolbox</find>
+      <find>print</find>
+      <find>set</find>
+      <find>raf</find>
+      <find>mek</find>
+      <find>graph_to_json</find>
+      <find>dot_layout</find>
+      <find>include</find>
+      <find>attr_</find>
+      <find>shape</find>
+      <find>target</find>
+      <find>font</find>
+      <find>fill</find>
+      <find>add_edge_node_d</find>
+      <find>revers</find>
+      <find>erk</find>
+      <find>width</find>
+      <find>colors</find>
+      <find>h5py</find>
+      <find>midpointnorm</find>
+      <find>MidpointNormalize</find>
+      <find>cm</find>
+      <find>graph_layout</find>
+      <find>layout</find>
+      <find>data</find>
+      <find>DEF_EDGES</find>
+      <find>DEF_NODES</find>
+      <find>title</find>
+      <find>defa</find>
+    </findStrings>
+  </component>
+  <component name="Git.Rebase.Settings">
+    <option name="ONTO" value="refs/heads/cytoscapejs" />
+  </component>
+  <component name="Git.Settings">
+    <option name="ROOT_SYNC" value="SYNC" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../pysb" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../earm" value="oscar" />
+        <entry key="$PROJECT_DIR$/../pysb" value="master" />
+        <entry key="$PROJECT_DIR$/../scikit-learn" value="master" />
+        <entry key="$PROJECT_DIR$" value="oscar" />
+      </map>
+    </option>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/visualization/examples/EARM/Untitled.ipynb" />
+        <option value="$PROJECT_DIR$/visualization/cytoscapejs/__init__.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/index.html" />
+        <option value="$PROJECT_DIR$/visualization/examples/EARM/index.html" />
+        <option value="$PROJECT_DIR$/examples/EARM/run_EARM_tropical.py" />
+        <option value="$PROJECT_DIR$/visualization/__init__.py" />
+        <option value="$PROJECT_DIR$/visualization/examples/EARM/get_earm_json.py" />
+        <option value="$PROJECT_DIR$/visualization/cytoscapejs/template.html" />
+        <option value="$PROJECT_DIR$/visualization/cytoscapejs/viewer.py" />
+        <option value="$PROJECT_DIR$/../magine_gui_app/run_server.sh" />
+        <option value="$PROJECT_DIR$/../magine_gui_app/make_migrations.sh" />
+        <option value="$PROJECT_DIR$/tropical/max_plus_sim.py" />
+        <option value="$PROJECT_DIR$/tropical/max_plus_pos_neg.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/simulator/base.py" />
+        <option value="$PROJECT_DIR$/examples/EARM/tropical_signatures_5000_pars.py" />
+        <option value="$PROJECT_DIR$/tropical/dynamic_signatures.py" />
+        <option value="$PROJECT_DIR$/visualization/model_visualization_reactions.py" />
+        <option value="$PROJECT_DIR$/visualization/examples/EARM/earm_visualization.ipynb" />
+        <option value="$PROJECT_DIR$/../n_monomers_itano/monomer3_visualization.ipynb" />
+        <option value="$PROJECT_DIR$/tropical/visualization/model_visualization_reactions.py" />
+        <option value="$PROJECT_DIR$/MANIFEST.in" />
+        <option value="$PROJECT_DIR$/setup.py" />
+        <option value="$PROJECT_DIR$/../n_monomers_itano/n_monomers_model.py" />
+        <option value="$PROJECT_DIR$/../n_monomers_itano/n_monomers_class.py" />
+        <option value="$PROJECT_DIR$/../n_monomers_itano/setup.py" />
+        <option value="$PROJECT_DIR$/../n_monomers_itano/example_3monomers.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/pathfinder.py" />
+        <option value="$PROJECT_DIR$/../aprendiendo/__init__.py" />
+        <option value="$PROJECT_DIR$/../aprendiendo/index.html" />
+        <option value="$PROJECT_DIR$/../bla/index.html" />
+        <option value="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/pso.py" />
+        <option value="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples/example_earm.py" />
+        <option value="$PROJECT_DIR$/../Marion_project/model_0.py" />
+        <option value="$PROJECT_DIR$/../Marion_project/model_optimization.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/examples/catalysis.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/util_networkx.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/examples/run_tyson_oscillator.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/examples/tyson_oscillator2.py" />
+        <option value="$PROJECT_DIR$/tropical/visualization/cytoscapejs/__init__.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/__init__.py" />
+        <option value="$PROJECT_DIR$/tropical/visualization/examples/EARM/earm_visualization.ipynb" />
+        <option value="$PROJECT_DIR$/../pysb/MANIFEST.in" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/temp.py" />
+        <option value="$PROJECT_DIR$/../pysb/.travis.yml" />
+        <option value="$PROJECT_DIR$/../pysb/setup.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/earm_visualization.ipynb" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/model_visualization_reactions.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/template.html" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/viewer.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tests/test_cytoscapejs.py" />
+        <option value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/loader.js" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsFlowSettings">
+    <service-enabled>false</service-enabled>
+    <exe-path />
+    <annotation-enable>false</annotation-enable>
+    <other-services-enabled>false</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1200" />
+    <option name="y" value="24" />
+    <option name="width" value="1340" />
+    <option name="height" value="1353" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="tropical" type="b2602c69:ProjectViewProjectNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tropical" type="b2602c69:ProjectViewProjectNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tropical" type="b2602c69:ProjectViewProjectNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="tools" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tropical" type="b2602c69:ProjectViewProjectNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="tools" type="462c0819:PsiDirectoryNode" />
+              <item name="cytoscapejs_visualization" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tropical" type="b2602c69:ProjectViewProjectNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="pysb" type="462c0819:PsiDirectoryNode" />
+              <item name="tools" type="462c0819:PsiDirectoryNode" />
+              <item name="cytoscapejs_visualization" type="462c0819:PsiDirectoryNode" />
+              <item name="cytoscapejs" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scratches" />
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="js.eslint.eslintPackage" value="" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyIntegratedToolsModulesConfigurable" />
+    <property name="nodejs_interpreter_path" value="/usr/local/bin/node" />
+    <property name="js-jscs-nodeInterpreter" value="/usr/local/bin/node" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="309" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="309" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="309" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="309" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="84" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="101" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="163" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="888" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="two.files.diff.last.used.file" value="$PROJECT_DIR$/tropical/visualization/cytoscapejs/template.html" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="list.type.of.created.stylesheet" value="CSS" />
+    <property name="Git.Branch.Popup.ShowAllRepositories" value="true" />
+    <property name="SearchEverywhereHistoryKey" value="scroll&#9;ACTION&#9;EditorScrollLeft" />
+    <property name="run.code.analysis.last.selected.profile" value="aDefault" />
+    <property name="last_opened_file_path" value="$USER_HOME$/anaconda/envs/cytoscapejs/bin/pythonw" />
+  </component>
+  <component name="Push.Settings">
+    <excluded-roots>
+      <path value="$PROJECT_DIR$/../Magine" />
+      <path value="$PROJECT_DIR$/../pysb" />
+    </excluded-roots>
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="tropical_web" sdk-home="$USER_HOME$/Documents/PhD/tropical_web/bin/python">
+        <option name="mySdkHome" value="$USER_HOME$/Documents/PhD/tropical_web/bin/python" />
+        <option name="myModuleName" value="tropical_web" />
+      </console-settings>
+    </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tropical/visualization/examples" />
+      <recent name="$PROJECT_DIR$/tropical" />
+      <recent name="$PROJECT_DIR$/../Marion_project/data" />
+      <recent name="$PROJECT_DIR$/visualization/old_functions" />
+      <recent name="$PROJECT_DIR$/visualization/libraries" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../pysb/pysb/examples" />
+      <recent name="$PROJECT_DIR$/tropical/visualization/examples" />
+      <recent name="$PROJECT_DIR$/../n_monomers_itano" />
+      <recent name="$PROJECT_DIR$/tropical" />
+      <recent name="$PROJECT_DIR$/cytoscapejs_visualization/examples/EARM" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python tests.Doctests in model_visualization_reactions">
+    <configuration name="Doctests in model_visualization_reactions" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pysb" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/model_visualization_reactions.py" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+    </configuration>
+    <configuration default="true" type="PyBehaveRunConfigurationType" factoryName="Behave">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+    </configuration>
+    <configuration default="true" type="Python.DjangoServer" factoryName="Django server">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="earm" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <option name="port" value="8000" />
+      <option name="host" value="" />
+      <option name="additionalOptions" value="" />
+      <option name="browserUrl" value="" />
+      <option name="runTestServer" value="false" />
+      <option name="runNoReload" value="false" />
+      <option name="useCustomRunCommand" value="false" />
+      <option name="customRunCommand" value="" />
+    </configuration>
+    <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="TARGET" value="" />
+      <option name="SETTINGS_FILE" value="" />
+      <option name="CUSTOM_SETTINGS" value="false" />
+      <option name="USE_OPTIONS" value="false" />
+      <option name="OPTIONS" value="" />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+    </configuration>
+    <configuration default="true" type="docs" factoryName="Docutils task">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="C3_data_analysis" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="docutils_input_file" value="" />
+      <option name="docutils_output_file" value="" />
+      <option name="docutils_params" value="" />
+      <option name="docutils_task" value="" />
+      <option name="docutils_open_in_browser" value="false" />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <arguments />
+      <envs />
+    </configuration>
+    <configuration default="true" type="PyLettuceRunConfigurationType" factoryName="Lettuce">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <module name="tropical" />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerJest" factoryName="Jest">
+      <node-interpreter value="project" />
+      <working-dir value="" />
+      <envs />
+      <scope-kind value="ALL" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerProtractor" factoryName="Protractor">
+      <config-file value="" />
+      <node-interpreter value="project" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
+    <configuration default="true" type="ReactNative" factoryName="React Native">
+      <node-interpreter value="project" />
+      <platform value="ANDROID" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
+      <command value="run" />
+      <scripts />
+      <node-interpreter value="project" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Nosetests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Unittests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Attests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration name="catalysis" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../pysb/pysb/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pysb" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../pysb/pysb/examples/catalysis.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
+    <configuration name="clustering_sequences" type="RRunConfigurationType" factoryName="R">
+      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/tropical/clustering_sequences.R" />
+      <option name="SCRIPT_ARGS" value="" />
+      <option name="WORKING_DIRECTORY_PATH" value="$PROJECT_DIR$/tropical" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <envs />
+    </configuration>
+    <configuration name="example_earm" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ParticleSwarmOptimization" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../ParticleSwarmOptimization/simplepso/examples/example_earm.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
+    <configuration name="polymers_view" type="Python.Ipnb" factoryName="Jupyter Notebook">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/anaconda/envs/tropical_project2/bin/pythonw" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="n_monomers_itano" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="additionalOptions" value="" />
+      <option name="ipnbHost" value="127.0.0.1" />
+      <option name="ipnbPort" value="8888" />
+    </configuration>
+    <configuration name="pysb_vis" type="Python.Ipnb" factoryName="Jupyter Notebook">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/anaconda/envs/tropical_project2/bin/pythonw" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pysb" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="additionalOptions" value="" />
+      <option name="ipnbHost" value="127.0.0.1" />
+      <option name="ipnbPort" value="8888" />
+    </configuration>
+    <configuration name="run_tyson_oscillator" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../pysb/pysb/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pysb" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../pysb/pysb/examples/run_tyson_oscillator.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
+    <configuration name="temp" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="pysb" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/temp.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
+    <configuration name="untitled" type="Python.DjangoServer" factoryName="Django server">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="untitled" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <option name="port" value="8000" />
+      <option name="host" value="" />
+      <option name="additionalOptions" value="" />
+      <option name="browserUrl" value="" />
+      <option name="runTestServer" value="false" />
+      <option name="runNoReload" value="false" />
+      <option name="useCustomRunCommand" value="false" />
+      <option name="customRunCommand" value="" />
+    </configuration>
+    <configuration name="widget_tropical" type="Python.Ipnb" factoryName="Jupyter Notebook">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/anaconda/envs/tropical_project2/bin/pythonw" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tropical" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="additionalOptions" value="" />
+      <option name="ipnbHost" value="127.0.0.1" />
+      <option name="ipnbPort" value="8888" />
+    </configuration>
+    <list size="10">
+      <item index="0" class="java.lang.String" itemvalue="Django server.untitled" />
+      <item index="1" class="java.lang.String" itemvalue="Jupyter Notebook.pysb_vis" />
+      <item index="2" class="java.lang.String" itemvalue="Jupyter Notebook.widget_tropical" />
+      <item index="3" class="java.lang.String" itemvalue="Jupyter Notebook.polymers_view" />
+      <item index="4" class="java.lang.String" itemvalue="R.clustering_sequences" />
+      <item index="5" class="java.lang.String" itemvalue="Python.example_earm" />
+      <item index="6" class="java.lang.String" itemvalue="Python.catalysis" />
+      <item index="7" class="java.lang.String" itemvalue="Python.run_tyson_oscillator" />
+      <item index="8" class="java.lang.String" itemvalue="Python.temp" />
+      <item index="9" class="java.lang.String" itemvalue="Python tests.Doctests in model_visualization_reactions" />
+    </list>
+    <recent_temporary>
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python tests.Doctests in model_visualization_reactions" />
+        <item index="1" class="java.lang.String" itemvalue="Python.temp" />
+        <item index="2" class="java.lang.String" itemvalue="Python.run_tyson_oscillator" />
+        <item index="3" class="java.lang.String" itemvalue="Python.catalysis" />
+        <item index="4" class="java.lang.String" itemvalue="Python.example_earm" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="35a9f859-d455-4e90-bc82-977ca9e1cfe0" name="Default" comment="" />
+      <created>1485716747795</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1485716747795</updated>
+    </task>
+    <task id="LOCAL-00121" summary="example with 3 monomers">
+      <created>1505261689344</created>
+      <option name="number" value="00121" />
+      <option name="presentableId" value="LOCAL-00121" />
+      <option name="project" value="LOCAL" />
+      <updated>1505261689344</updated>
+    </task>
+    <task id="LOCAL-00122" summary="fixed some equations that were wrong">
+      <created>1505261730277</created>
+      <option name="number" value="00122" />
+      <option name="presentableId" value="LOCAL-00122" />
+      <option name="project" value="LOCAL" />
+      <updated>1505261730277</updated>
+    </task>
+    <task id="LOCAL-00123" summary="updated documentation">
+      <created>1505261770381</created>
+      <option name="number" value="00123" />
+      <option name="presentableId" value="LOCAL-00123" />
+      <option name="project" value="LOCAL" />
+      <updated>1505261770381</updated>
+    </task>
+    <task id="LOCAL-00124" summary="improved visualization">
+      <created>1505264473528</created>
+      <option name="number" value="00124" />
+      <option name="presentableId" value="LOCAL-00124" />
+      <option name="project" value="LOCAL" />
+      <updated>1505264473528</updated>
+    </task>
+    <task id="LOCAL-00125" summary="updated documentation, change location of fit function">
+      <created>1505319811487</created>
+      <option name="number" value="00125" />
+      <option name="presentableId" value="LOCAL-00125" />
+      <option name="project" value="LOCAL" />
+      <updated>1505319811487</updated>
+    </task>
+    <task id="LOCAL-00126" summary="examples to cluster other species">
+      <created>1505320619886</created>
+      <option name="number" value="00126" />
+      <option name="presentableId" value="LOCAL-00126" />
+      <option name="project" value="LOCAL" />
+      <updated>1505320619886</updated>
+    </task>
+    <task id="LOCAL-00127" summary="improved documentation and checking parameter types in the functions">
+      <created>1507225852013</created>
+      <option name="number" value="00127" />
+      <option name="presentableId" value="LOCAL-00127" />
+      <option name="project" value="LOCAL" />
+      <updated>1507225852014</updated>
+    </task>
+    <task id="LOCAL-00128" summary="rename function">
+      <created>1507233624752</created>
+      <option name="number" value="00128" />
+      <option name="presentableId" value="LOCAL-00128" />
+      <option name="project" value="LOCAL" />
+      <updated>1507233624752</updated>
+    </task>
+    <task id="LOCAL-00129" summary="fixed error with slider">
+      <created>1507319569312</created>
+      <option name="number" value="00129" />
+      <option name="presentableId" value="LOCAL-00129" />
+      <option name="project" value="LOCAL" />
+      <updated>1507319569313</updated>
+    </task>
+    <task id="LOCAL-00130" summary="change function that defines the color and size of edges to visualize how products are being generated">
+      <created>1507319617301</created>
+      <option name="number" value="00130" />
+      <option name="presentableId" value="LOCAL-00130" />
+      <option name="project" value="LOCAL" />
+      <updated>1507319617301</updated>
+    </task>
+    <task id="LOCAL-00131" summary="improved visualization of buttons">
+      <created>1507319666258</created>
+      <option name="number" value="00131" />
+      <option name="presentableId" value="LOCAL-00131" />
+      <option name="project" value="LOCAL" />
+      <updated>1507319666258</updated>
+    </task>
+    <task id="LOCAL-00132" summary="changing import names">
+      <created>1507319742717</created>
+      <option name="number" value="00132" />
+      <option name="presentableId" value="LOCAL-00132" />
+      <option name="project" value="LOCAL" />
+      <updated>1507319742717</updated>
+    </task>
+    <task id="LOCAL-00133" summary="added time to slider">
+      <created>1507319764028</created>
+      <option name="number" value="00133" />
+      <option name="presentableId" value="LOCAL-00133" />
+      <option name="project" value="LOCAL" />
+      <updated>1507319764029</updated>
+    </task>
+    <task id="LOCAL-00134" summary="Added colorbar and a button to relocalize the network">
+      <created>1507846582640</created>
+      <option name="number" value="00134" />
+      <option name="presentableId" value="LOCAL-00134" />
+      <option name="project" value="LOCAL" />
+      <updated>1507846582641</updated>
+    </task>
+    <task id="LOCAL-00135" summary="style of new colorbar and button to relocalize network">
+      <created>1507846613190</created>
+      <option name="number" value="00135" />
+      <option name="presentableId" value="LOCAL-00135" />
+      <option name="project" value="LOCAL" />
+      <updated>1507846613190</updated>
+    </task>
+    <task id="LOCAL-00136" summary="change functions to get percentanges of flux only of important species">
+      <created>1507846688028</created>
+      <option name="number" value="00136" />
+      <option name="presentableId" value="LOCAL-00136" />
+      <option name="project" value="LOCAL" />
+      <updated>1507846688029</updated>
+    </task>
+    <task id="LOCAL-00137" summary="change import to use new functions">
+      <created>1507846712802</created>
+      <option name="number" value="00137" />
+      <option name="presentableId" value="LOCAL-00137" />
+      <option name="project" value="LOCAL" />
+      <updated>1507846712802</updated>
+    </task>
+    <task id="LOCAL-00138" summary="added colorbar and button to put network in original position">
+      <created>1507846744058</created>
+      <option name="number" value="00138" />
+      <option name="presentableId" value="LOCAL-00138" />
+      <option name="project" value="LOCAL" />
+      <updated>1507846744058</updated>
+    </task>
+    <task id="LOCAL-00139" summary="deleting comments">
+      <created>1507849283511</created>
+      <option name="number" value="00139" />
+      <option name="presentableId" value="LOCAL-00139" />
+      <option name="project" value="LOCAL" />
+      <updated>1507849283511</updated>
+    </task>
+    <task id="LOCAL-00140" summary="functions to">
+      <created>1507849396751</created>
+      <option name="number" value="00140" />
+      <option name="presentableId" value="LOCAL-00140" />
+      <option name="project" value="LOCAL" />
+      <updated>1507849396751</updated>
+    </task>
+    <task id="LOCAL-00141" summary="deleting comments">
+      <created>1507849484337</created>
+      <option name="number" value="00141" />
+      <option name="presentableId" value="LOCAL-00141" />
+      <option name="project" value="LOCAL" />
+      <updated>1507849484337</updated>
+    </task>
+    <task id="LOCAL-00142" summary="changed title name">
+      <created>1507849571967</created>
+      <option name="number" value="00142" />
+      <option name="presentableId" value="LOCAL-00142" />
+      <option name="project" value="LOCAL" />
+      <updated>1507849571967</updated>
+    </task>
+    <task id="LOCAL-00143" summary="adding some documentation">
+      <created>1507849897313</created>
+      <option name="number" value="00143" />
+      <option name="presentableId" value="LOCAL-00143" />
+      <option name="project" value="LOCAL" />
+      <updated>1507849897313</updated>
+    </task>
+    <task id="LOCAL-00144" summary="change to isintance">
+      <created>1507850075516</created>
+      <option name="number" value="00144" />
+      <option name="presentableId" value="LOCAL-00144" />
+      <option name="project" value="LOCAL" />
+      <updated>1507850075516</updated>
+    </task>
+    <task id="LOCAL-00145" summary="added levenshtein metric. ignore noise cluster for visualization">
+      <created>1508356597662</created>
+      <option name="number" value="00145" />
+      <option name="presentableId" value="LOCAL-00145" />
+      <option name="project" value="LOCAL" />
+      <updated>1508356597663</updated>
+    </task>
+    <task id="LOCAL-00146" summary="adding documentation">
+      <created>1508356812199</created>
+      <option name="number" value="00146" />
+      <option name="presentableId" value="LOCAL-00146" />
+      <option name="project" value="LOCAL" />
+      <updated>1508356812199</updated>
+    </task>
+    <task id="LOCAL-00147" summary="widget for visualization in jupyter notebooks">
+      <created>1508539226504</created>
+      <option name="number" value="00147" />
+      <option name="presentableId" value="LOCAL-00147" />
+      <option name="project" value="LOCAL" />
+      <updated>1508539226505</updated>
+    </task>
+    <task id="LOCAL-00148" summary="reordering files">
+      <created>1508539913982</created>
+      <option name="number" value="00148" />
+      <option name="presentableId" value="LOCAL-00148" />
+      <option name="project" value="LOCAL" />
+      <updated>1508539913982</updated>
+    </task>
+    <task id="LOCAL-00149" summary="functions to">
+      <created>1508540302777</created>
+      <option name="number" value="00149" />
+      <option name="presentableId" value="LOCAL-00149" />
+      <option name="project" value="LOCAL" />
+      <updated>1508540302777</updated>
+    </task>
+    <task id="LOCAL-00150" summary="jupyter notebook of earm visualization">
+      <created>1508540681057</created>
+      <option name="number" value="00150" />
+      <option name="presentableId" value="LOCAL-00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1508540681057</updated>
+    </task>
+    <task id="LOCAL-00151" summary="functions to">
+      <created>1508543113030</created>
+      <option name="number" value="00151" />
+      <option name="presentableId" value="LOCAL-00151" />
+      <option name="project" value="LOCAL" />
+      <updated>1508543113031</updated>
+    </task>
+    <task id="LOCAL-00152" summary="give button unique identifiers so different models can be visualized in the same jupyter notebook">
+      <created>1508816977041</created>
+      <option name="number" value="00152" />
+      <option name="presentableId" value="LOCAL-00152" />
+      <option name="project" value="LOCAL" />
+      <updated>1508816977041</updated>
+    </task>
+    <task id="LOCAL-00153" summary="added function to hidde buttons when showing static view of model">
+      <created>1508818240402</created>
+      <option name="number" value="00153" />
+      <option name="presentableId" value="LOCAL-00153" />
+      <option name="project" value="LOCAL" />
+      <updated>1508818240402</updated>
+    </task>
+    <task id="LOCAL-00154" summary="give unique identifiers to buttons to be able to show different visualizations of model in the same jupyter notebook">
+      <created>1508818280365</created>
+      <option name="number" value="00154" />
+      <option name="presentableId" value="LOCAL-00154" />
+      <option name="project" value="LOCAL" />
+      <updated>1508818280365</updated>
+    </task>
+    <task id="LOCAL-00155" summary="added functions to get static view or dynamic view of the model">
+      <created>1508818365007</created>
+      <option name="number" value="00155" />
+      <option name="presentableId" value="LOCAL-00155" />
+      <option name="project" value="LOCAL" />
+      <updated>1508818365007</updated>
+    </task>
+    <task id="LOCAL-00156" summary="bla">
+      <created>1508818583049</created>
+      <option name="number" value="00156" />
+      <option name="presentableId" value="LOCAL-00156" />
+      <option name="project" value="LOCAL" />
+      <updated>1508818583049</updated>
+    </task>
+    <task id="LOCAL-00157" summary="Adding documentation">
+      <created>1509634995746</created>
+      <option name="number" value="00157" />
+      <option name="presentableId" value="LOCAL-00157" />
+      <option name="project" value="LOCAL" />
+      <updated>1509634995746</updated>
+    </task>
+    <task id="LOCAL-00158" summary="obtain explicit solutions">
+      <created>1509635089485</created>
+      <option name="number" value="00158" />
+      <option name="presentableId" value="LOCAL-00158" />
+      <option name="project" value="LOCAL" />
+      <updated>1509635089486</updated>
+    </task>
+    <task id="LOCAL-00159" summary="set up file">
+      <created>1509636581218</created>
+      <option name="number" value="00159" />
+      <option name="presentableId" value="LOCAL-00159" />
+      <option name="project" value="LOCAL" />
+      <updated>1509636581218</updated>
+    </task>
+    <task id="LOCAL-00160" summary="example with three monomers">
+      <created>1509636620879</created>
+      <option name="number" value="00160" />
+      <option name="presentableId" value="LOCAL-00160" />
+      <option name="project" value="LOCAL" />
+      <updated>1509636620879</updated>
+    </task>
+    <task id="LOCAL-00161" summary="init">
+      <created>1509636641396</created>
+      <option name="number" value="00161" />
+      <option name="presentableId" value="LOCAL-00161" />
+      <option name="project" value="LOCAL" />
+      <updated>1509636641397</updated>
+    </task>
+    <task id="LOCAL-00162" summary="fix windows path to bionetgen">
+      <created>1509647147044</created>
+      <option name="number" value="00162" />
+      <option name="presentableId" value="LOCAL-00162" />
+      <option name="project" value="LOCAL" />
+      <updated>1509647147044</updated>
+    </task>
+    <task id="LOCAL-00163" summary="fit mike's model">
+      <created>1509992440208</created>
+      <option name="number" value="00163" />
+      <option name="presentableId" value="LOCAL-00163" />
+      <option name="project" value="LOCAL" />
+      <updated>1509992440208</updated>
+    </task>
+    <task id="LOCAL-00164" summary="figure fit">
+      <created>1509992493719</created>
+      <option name="number" value="00164" />
+      <option name="presentableId" value="LOCAL-00164" />
+      <option name="project" value="LOCAL" />
+      <updated>1509992493720</updated>
+    </task>
+    <task id="LOCAL-00165" summary="working visualization in pysb library">
+      <created>1510190294772</created>
+      <option name="number" value="00165" />
+      <option name="presentableId" value="LOCAL-00165" />
+      <option name="project" value="LOCAL" />
+      <updated>1510190294773</updated>
+    </task>
+    <task id="LOCAL-00166" summary="adde line to add json and html files in the pysb installation">
+      <created>1510190368323</created>
+      <option name="number" value="00166" />
+      <option name="presentableId" value="LOCAL-00166" />
+      <option name="project" value="LOCAL" />
+      <updated>1510190368323</updated>
+    </task>
+    <task id="LOCAL-00167" summary="added new folders">
+      <created>1510190394666</created>
+      <option name="number" value="00167" />
+      <option name="presentableId" value="LOCAL-00167" />
+      <option name="project" value="LOCAL" />
+      <updated>1510190394666</updated>
+    </task>
+    <task id="LOCAL-00168" summary="added ipython to required packages">
+      <created>1510243368184</created>
+      <option name="number" value="00168" />
+      <option name="presentableId" value="LOCAL-00168" />
+      <option name="project" value="LOCAL" />
+      <updated>1510243368185</updated>
+    </task>
+    <task id="LOCAL-00169" summary="travis install ipython">
+      <created>1510244246952</created>
+      <option name="number" value="00169" />
+      <option name="presentableId" value="LOCAL-00169" />
+      <option name="project" value="LOCAL" />
+      <updated>1510244246952</updated>
+    </task>
+    <option name="localTasksCounter" value="170" />
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="Doctests_in_model_visualization_reactions - 2017.11.09 at 16h 07m 36s.xml">
+      <configuration name="Doctests in model_visualization_reactions" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Doctests_in_model_visualization_reactions - 2017.11.09 at 16h 19m 12s.xml">
+      <configuration name="Doctests in model_visualization_reactions" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Doctests_in_model_visualization_reactions - 2017.11.09 at 16h 21m 56s.xml">
+      <configuration name="Doctests in model_visualization_reactions" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Doctests_in_model_visualization_reactions - 2017.11.09 at 16h 22m 28s.xml">
+      <configuration name="Doctests in model_visualization_reactions" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_tropical_py - 2017.07.09 at 13h 26m 51s.xml">
+      <configuration name="Nosetests in test_tropical.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_tropical_py - 2017.07.09 at 13h 29m 44s.xml">
+      <configuration name="Nosetests in test_tropical.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_tropical_py - 2017.07.09 at 14h 39m 39s.xml">
+      <configuration name="Nosetests in test_tropical.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_tropical_py - 2017.07.09 at 14h 40m 15s.xml">
+      <configuration name="Nosetests in test_tropical.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_tropical_py - 2017.07.10 at 09h 59m 06s.xml">
+      <configuration name="Nosetests in test_tropical.py" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Nosetests_in_test_tropical_py - 2017.07.10 at 10h 00m 11s.xml">
+      <configuration name="Nosetests in test_tropical.py" configurationId="tests" />
+    </history-entry>
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="1200" y="24" width="1340" height="1353" extended-state="0" />
+    <layout>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32854578" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.106167056" sideWeight="0.52821314" order="6" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.106167056" sideWeight="0.47178683" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3754879" sideWeight="0.48828125" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36690086" sideWeight="0.465625" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24850747" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4037267" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20522387" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="R Packages" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="R Graphics" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3153786" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4730679" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32955924" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32943013" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="manage.py@mysite" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3156146" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="SHOW_FILE_HISTORY_DETAILS" value="false" />
+    <MESSAGE value="change to isintance" />
+    <MESSAGE value="added levenshtein metric. ignore noise cluster for visualization" />
+    <MESSAGE value="adding documentation" />
+    <MESSAGE value="widget for visualization in jupyter notebooks" />
+    <MESSAGE value="reordering files" />
+    <MESSAGE value="jupyter notebook of earm visualization" />
+    <MESSAGE value="functions to" />
+    <MESSAGE value="give button unique identifiers so different models can be visualized in the same jupyter notebook" />
+    <MESSAGE value="added function to hidde buttons when showing static view of model" />
+    <MESSAGE value="give unique identifiers to buttons to be able to show different visualizations of model in the same jupyter notebook" />
+    <MESSAGE value="added functions to get static view or dynamic view of the model" />
+    <MESSAGE value="bla" />
+    <MESSAGE value="Adding documentation" />
+    <MESSAGE value="obtain explicit solutions" />
+    <MESSAGE value="set up file" />
+    <MESSAGE value="example with three monomers" />
+    <MESSAGE value="init" />
+    <MESSAGE value="fix windows path to bionetgen" />
+    <MESSAGE value="fit mike's model" />
+    <MESSAGE value="figure fit" />
+    <MESSAGE value="working visualization in pysb library" />
+    <MESSAGE value="adde line to add json and html files in the pysb installation" />
+    <MESSAGE value="added new folders" />
+    <MESSAGE value="added ipython to required packages" />
+    <MESSAGE value="travis install ipython" />
+    <option name="LAST_COMMIT_MESSAGE" value="travis install ipython" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../pysb/pysb/tools/examples/flux_visualization_earm.py</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/sympy/solvers/solvers.py</url>
+          <line>1044</line>
+          <option name="timeStamp" value="34" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/sympy/solvers/solvers.py</url>
+          <line>1041</line>
+          <option name="timeStamp" value="35" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/sympy/solvers/solvers.py</url>
+          <line>1042</line>
+          <option name="timeStamp" value="36" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/sympy/solvers/solvers.py</url>
+          <line>1043</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/sympy/solvers/solvers.py</url>
+          <line>1046</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/sympy/solvers/solvers.py</url>
+          <line>1045</line>
+          <option name="timeStamp" value="39" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_multi/lib/python2.7/site-packages/multiprocess/pool.py</url>
+          <line>568</line>
+          <option name="timeStamp" value="88" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_multi/lib/python2.7/site-packages/multiprocess/pool.py</url>
+          <line>569</line>
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/numpy/core/fromnumeric.py</url>
+          <line>3025</line>
+          <option name="timeStamp" value="90" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/deap/tools/support.py</url>
+          <line>207</line>
+          <option name="timeStamp" value="92" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda/envs/tropical_project2/lib/python2.7/site-packages/deap/tools/support.py</url>
+          <line>206</line>
+          <option name="timeStamp" value="93" />
+        </line-breakpoint>
+      </breakpoints>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="97" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/move_connected.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/kinase_cascade.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-194">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/hello_pysb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/fricker_2010_apoptosis.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2428">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/expression_observables.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/explicit.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/earm_1_3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1919">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/bngwiki_simple.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/bax_pore.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/bax_pore_sequential.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/bngwiki_egfr_simple.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-63">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/bngwiki_enzymatic_cycle_mm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/catalysis.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="42" lean-forward="false" selection-start-line="21" selection-start-column="38" selection-end-line="21" selection-end-column="42" />
+          <folding>
+            <element signature="e#0#73#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/michment.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="5" lean-forward="false" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
+          <folding>
+            <element signature="e#0#18#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MANIFEST.in">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="13" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/util_networkx.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="36" lean-forward="false" selection-start-line="1" selection-start-column="36" selection-end-line="1" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tropical/visualization/cytoscapejs/default_style.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/tyson_oscillator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="344">
+          <caret line="44" column="0" lean-forward="false" selection-start-line="44" selection-start-column="0" selection-end-line="45" selection-end-column="122" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tropical/visualization/cytoscapejs/viewer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-796">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#11#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tropical/visualization/cytoscapejs/loader.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tropical/visualization/examples/EARM/earm_visualization.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/MANIFEST.in">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="41" lean-forward="false" selection-start-line="3" selection-start-column="41" selection-end-line="3" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/tyson_oscillator2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="501">
+          <caret line="46" column="122" lean-forward="false" selection-start-line="46" selection-start-column="122" selection-end-line="46" selection-end-column="122" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/examples/run_tyson_oscillator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="49" lean-forward="false" selection-start-line="0" selection-start-column="49" selection-end-line="0" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tropical/visualization/cytoscapejs/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="46" lean-forward="false" selection-start-line="7" selection-start-column="46" selection-end-line="7" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="60" lean-forward="false" selection-start-line="7" selection-start-column="60" selection-end-line="7" selection-end-column="60" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/data.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tropical/visualization/cytoscapejs/template.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="656">
+          <caret line="92" column="74" lean-forward="false" selection-start-line="92" selection-start-column="56" selection-end-line="92" selection-end-column="74" />
+          <folding>
+            <element signature="n#style#0;n#div#1;n#body#0;n#html#0;n#!!top" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/simulator/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="400">
+          <caret line="979" column="0" lean-forward="false" selection-start-line="979" selection-start-column="0" selection-end-line="980" selection-end-column="73" />
+          <folding>
+            <element signature="e#0#39#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/.travis.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="23" column="74" lean-forward="false" selection-start-line="23" selection-start-column="74" selection-end-line="23" selection-end-column="74" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/temp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="51" lean-forward="false" selection-start-line="7" selection-start-column="51" selection-end-line="7" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/examples/EARM/earm_visualization.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/model_visualization_reactions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3703">
+          <caret line="188" column="67" lean-forward="false" selection-start-line="188" selection-start-column="67" selection-end-line="188" selection-end-column="67" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/simulator/scipyode.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="855">
+          <caret line="84" column="0" lean-forward="false" selection-start-line="84" selection-start-column="0" selection-end-line="88" selection-end-column="37" />
+          <folding>
+            <element signature="e#0#79#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/sensitivity_analysis.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="15" lean-forward="false" selection-start-line="4" selection-start-column="5" selection-end-line="4" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/default_style.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="400">
+          <caret line="392" column="8" lean-forward="false" selection-start-line="392" selection-start-column="3" selection-end-line="392" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/viewer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="457">
+          <caret line="32" column="6" lean-forward="false" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="6" />
+          <folding>
+            <element signature="e#0#11#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="36" column="67" lean-forward="false" selection-start-line="36" selection-start-column="67" selection-end-line="36" selection-end-column="67" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_simulationresult.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#58#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_simulator_stochkit.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#49#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#62#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_examples.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#77#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_expressions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#18#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/testing/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_integrate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1259">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#26#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_simulator_scipy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#26#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tests/test_cytoscapejs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+          <folding>
+            <element signature="e#1#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/macros.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="848" column="4" lean-forward="false" selection-start-line="848" selection-start-column="4" selection-end-line="848" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/template.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="417">
+          <caret line="121" column="50" lean-forward="false" selection-start-line="121" selection-start-column="50" selection-end-line="121" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../pysb/pysb/tools/cytoscapejs_visualization/cytoscapejs/loader.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="1" lean-forward="true" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>
