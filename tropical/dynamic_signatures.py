@@ -12,7 +12,7 @@ import itertools
 
 class Tropical(object):
     mach_eps = 1e-11
-    
+
     def __init__(self, model):
         self.all_comb = {}
         self.model = model
@@ -23,10 +23,10 @@ class Tropical(object):
         self.eqs_for_tropicalization = {}
         self.tspan = []
 
-    def setup_tropical(self, trajectories, tspan=None, simulator=None, passengers_by='imp_nodes'):
-        self.get_simulations(sim_or_params=trajectories, tspan=tspan, simulator=simulator)
-        self.equations_to_tropicalize()
+    def setup_tropical(self, sim_or_params, tspan=None, simulator=None, passengers_by='imp_nodes'):
+        self.get_simulations(sim_or_params=sim_or_params, tspan=tspan, simulator=simulator)
         self.get_passengers(by=passengers_by)
+        self.equations_to_tropicalize()
         self.set_combinations_sm()
         self._is_setup = True
         return
@@ -41,7 +41,7 @@ class Tropical(object):
         elif isinstance(sim_or_params, SimulationResult):
             sim = sim_or_params
             tspan = sim.tout[0]
-        elif isinstance(sim_or_params, collections.Iterable):
+        elif isinstance(sim_or_params, collections.Iterable) or sim_or_params is None:
             # TODO check parameter length
             parameters = sim_or_params
             if simulator == 'scipy':
@@ -95,8 +95,9 @@ class Tropical(object):
         ascending_order = [False, True]
         mons_types = ['products', 'reactants']
 
-        pos_neg_largest = [0]*2
-        for ii, mon_type, mons_idx, sign, ascending in zip(range(2), mons_types, mons_pos_neg, signs, ascending_order):
+        pos_neg_largest = [0] * 2
+        range_0_1 = range(2)
+        for ii, mon_type, mons_idx, sign, ascending in zip(range_0_1, mons_types, mons_pos_neg, signs, ascending_order):
             largest_prod = 'NoDoms'
             mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in mons_idx]
             # print (array, mon_names_ready)
@@ -136,19 +137,42 @@ class Tropical(object):
             # print(mon_type, mon_names_ready, mon_comb_type, largest_prod)
         # print (pos_neg_largest, mon_names)
         return pos_neg_largest
-    
+
     def set_combinations_sm(self, max_comb=None, create_sm=False):
 
         for sp in self.eqs_for_tropicalization:
             # reaction terms
             pos_neg_combs = {}
-            for mon_type, mon_sign in zip(['products', 'reactants'], [1, -1]):
+            parts_reaction = ['products', 'reactants']
+            parts_rev = ['reactants', 'products']
+            signs = [1, -1]
+
+            # We get the reaction rates from the bidirectional reactions in order to have reversible reactions
+            # as one 'monomial'. This is helpful for visualization and other (I should think more about this)
+            for mon_type, mon_sign, rev_parts in zip(parts_reaction, signs, parts_rev):
                 monomials = []
 
                 for term in self.model.reactions_bidirectional:
                     if sp in term[mon_type]:
-                        monomials.append(mon_sign * term['rate'])
+                        # Add zero to monomials in cases like autocatalytic reactions where a species
+                        # shows up both in reactants and products, and we are looking for the reactions that use a sp
+                        # but the reaction produces the species overall
+                        if sp in term[rev_parts]:
+                            count_reac = term['reactants'].count(sp)
+                            count_pro = term['products'].count(sp)
+                            mon_zero = mon_sign
+                            if mon_type == 'reactants':
+                                if count_pro > count_reac:
+                                    mon_zero = 0
+                            else:
+                                if count_pro < count_reac:
+                                    mon_zero = 0
+                            monomials.append(mon_zero * term['rate'])
+                        else:
+                            monomials.append(mon_sign * term['rate'])
 
+                # remove zeros from reactions in which the species shows up both in reactants and products
+                monomials = [value for value in monomials if value != 0]
                 if max_comb:
                     combs = max_comb
                 else:
@@ -170,7 +194,7 @@ class Tropical(object):
             self.all_comb[sp] = pos_neg_combs
         return
 
-    def _signature(self, y, pars_ready, diff_par=1):
+    def signature(self, y, pars_ready, diff_par=1):
         # Dictionary that will contain the signature of each of the species to study
         if not self._is_setup:
             raise Exception('you must setup tropical first')
@@ -219,9 +243,10 @@ class Tropical(object):
             all_signatures[sp] = list(signature_species)
         return all_signatures
 
-def run_tropical(model, trajectories, tspan=None, simulator=None, passengers_by='imp_nodes', diff_par=1, cpu_cores=1):
+
+def run_tropical(model, sim_or_params=None, tspan=None, simulator=None, passengers_by='imp_nodes', diff_par=1, cpu_cores=1):
     tro = Tropical(model)
-    tro.setup_tropical(trajectories, tspan=tspan, simulator=simulator, passengers_by=passengers_by)
+    tro.setup_tropical(sim_or_params, tspan=tspan, simulator=simulator, passengers_by=passengers_by)
     p = Pool(cpu_cores)
-    res = p.amap(tro._signature, tro.trajectories, tro.parameters)
+    res = p.amap(tro.signature, tro.trajectories, tro.parameters)
     return res.get()
