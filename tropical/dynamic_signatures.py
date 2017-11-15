@@ -17,9 +17,18 @@ except ImportError:
 
 
 class Tropical(object):
+    """
+    Obtain the dynamic signatures of species from a PySB model
+
+    Parameters
+    ----------
+    model : pysb.Model
+        Model to analyze.
+    """
     mach_eps = 1e-11
 
     def __init__(self, model):
+
         self.all_comb = {}
         self.model = model
         self.par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
@@ -30,6 +39,23 @@ class Tropical(object):
         self.tspan = None
 
     def setup_tropical(self, tspan, diff_par=1, passengers_by='imp_nodes'):
+        """
+        Set up parameters necessary to obtain the dynamic signatures of species signal execution
+
+        Parameters
+        ----------
+        tspan : vector-like, optional
+            Time values over which to do the tropical analysis. The first and last values define
+            the time range.
+        diff_par : float
+            Magnitude difference that defines that a reaction is dominant over others.
+        passengers_by : str
+            It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
+
+        Returns
+        -------
+
+        """
         self.get_passengers(by=passengers_by)
         self.diff_par = diff_par
         self.tspan = tspan
@@ -40,6 +66,18 @@ class Tropical(object):
 
 
     def get_passengers(self, by='imp_nodes'):
+        """
+        Get passenger species in the model
+
+        Parameters
+        ----------
+        by : str
+            It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
+
+        Returns
+        -------
+
+        """
         if by == 'imp_nodes':
             self.passengers = hf.find_nonimportant_nodes(self.model)
         return
@@ -47,7 +85,10 @@ class Tropical(object):
     def equations_to_tropicalize(self):
         """
 
-        :return: Dict, keys are the index of the driver species, values are the differential equations
+        Returns
+        -------
+        Dictionary with dominant species indices as keys and ODEs as values o
+
         """
 
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
@@ -61,14 +102,20 @@ class Tropical(object):
         return
 
     @staticmethod
-    def choose_max_pos_neg(array, mon_names, diff_par, mon_comb):
+    def _choose_max_pos_neg(array, mon_names, diff_par, mon_comb):
         """
+        Get the dominant reaction(s) of a species at a specific time point
 
-        :param array:
-        :param mon_names:
-        :param diff_par:
-        :param mon_comb:
-        :return:
+        Parameters
+        ----------
+        array
+        mon_names
+        diff_par
+        mon_comb
+
+        Returns
+        -------
+
         """
         mons_pos_neg = [numpy.where(array > 0)[0], numpy.where(array < 0)[0]]
         signs = [1, -1]
@@ -118,9 +165,24 @@ class Tropical(object):
         return pos_neg_largest
 
     def signature(self, y, param_values):
-        # Dictionary that will contain the signature of each of the species to study
+        """
+        Dynamic signature of the dominant species
+
+        Parameters
+        ----------
+        y : np.array
+            Species trajectories from the model simulation
+        param_values: vector-like
+            Parameter values used to obtain species trajectories
+
+        Returns
+        -------
+
+        """
+
         if not self._is_setup:
             raise Exception('you must setup tropical first')
+        # Dictionary that will contain the signature of each of the species to study
         all_signatures = {}
         for sp in self.eqs_for_tropicalization:
             # reaction terms for positive and negative monomials
@@ -160,13 +222,24 @@ class Tropical(object):
                 mons_array[idx] = mons_dict[name]
                 mons_names[name] = idx
 
-            signature_species = numpy.apply_along_axis(self.choose_max_pos_neg, 0, mons_array,
+            signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
                                                        *(mons_names, self.diff_par, self.all_comb[sp]))
             all_signatures[sp] = list(signature_species)
         return all_signatures
 
-    def set_combinations_sm(self, max_comb=None, create_sm=False):
+    def set_combinations_sm(self, max_comb=None):
+        """
+        Obtain all possible combinations of the reactions in which a species is involved
 
+        Parameters
+        ----------
+        max_comb: int
+            Maximum level of combinations
+
+        Returns
+        -------
+
+        """
         for sp in self.eqs_for_tropicalization:
             # reaction terms
             pos_neg_combs = {}
@@ -223,6 +296,17 @@ class Tropical(object):
 
 
 def get_simulations(simulations):
+    """
+    Obtains trajectories, parameters, tspan from a SimulationResult object
+    Parameters
+    ----------
+    simulations: pysb.SimulationResult
+        Simulation result
+
+    Returns
+    -------
+
+    """
     if isinstance(simulations, str):
         if h5py is None:
             raise Exception('please install the h5py package for this feature')
@@ -243,15 +327,52 @@ def get_simulations(simulations):
     return trajectories, parameters, nsims, tspan
 
 
-def run_tropical(model, simulations=None, passenger_by='imp_nodes', diff_par=1):
+def run_tropical(model, simulations=None, passengers_by='imp_nodes', diff_par=1):
+    """
+
+    Parameters
+    ----------
+    model: pysb.model
+        model to analyze
+    simulations: pysb.SimulationResult, or str
+        Simulation result of model
+    passengers_by : str
+        It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
+    diff_par : float
+        Magnitude difference that defines that a reaction is dominant over others.
+
+    Returns
+    -------
+    Dynamic signatures of dominant species of the model
+    """
     trajectories, parameters, nsims, tspan = get_simulations(simulations)
     tro = Tropical(model)
-    tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passenger_by)
+    tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
     return signatures
 
 
 def run_tropical_multi(model, simulations=None, passengers_by='imp_nodes', diff_par=1, cpu_cores=1):
+    """
+
+    Parameters
+    ----------
+    model: pysb.model
+        model to analyze
+    simulations: pysb.SimulationResult, or str
+        Simulation result of model
+    passengers_by : str
+        It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
+    diff_par : float
+        Magnitude difference that defines that a reaction is dominant over others.
+    cpu_cores: int
+        Number of cores to use for running the analysis
+
+    Returns
+    -------
+    Dynamic signatures of dominant species of the model
+
+    """
     if Pool is None:
         raise Exception('Please install the pathos package for this feature')
 
