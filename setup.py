@@ -10,7 +10,9 @@ setup(name='DynSign',
       packages=find_packages(),
       include_package_data=True,
       # packages=['DynSign', 'DynSign.visualization', 'DynSign.visualization.cytoscapejs'],
-    requires=['pysb', 'pathos', 'sympy'],
+      install_requires=['pysb', 'sympy', 'numpy', 'networkx'],
+      setup_requires=['nose'],
+      tests_require=['pathos', 'pygraphviz'],
       keywords=['systems', 'biology', 'model'],
       )
 

@@ -1,7 +1,7 @@
 import numpy as np
 
-from miscellaneous_tools.miscellaneous_analysis import change_parameter_in_time
 from pysb.examples.tyson_oscillator import model
+from tropical.tools.miscellaneous_analysis import change_parameter_in_time
 
 tspan = np.linspace(0, 200, 200)
 
