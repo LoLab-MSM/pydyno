@@ -115,6 +115,7 @@ class AnalysisCluster(object):
     @staticmethod
     def curve_fit_ftn(functions, species, xdata, ydata, **kwargs):
         """
+        Fit simulation data to specific function
 
         Parameters
         ----------
@@ -134,7 +135,6 @@ class AnalysisCluster(object):
         Parameter values of the functions used to fit the data
 
         """
-        #TODO should I use duck typing here?
         if callable(functions):
             functions = [functions]
         if isinstance(species, int):

@@ -136,7 +136,7 @@ def column(matrix, i):
     return np.array([row[i] for row in matrix])
 
 
-def _find_nearest_zero(array):
+def find_nearest_zero(array):
     """
     Finds array value closer to zero
     :param array: Array

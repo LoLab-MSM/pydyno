@@ -319,6 +319,18 @@ def get_simulations(simulations):
     return trajectories, parameters, nsims, tspan
 
 
+def organize_dynsign_multi(signatures):
+    species = signatures[0].keys()
+    nsims = [0]*len(signatures)
+    organized_dynsigns = {sp: {'production': nsims[:], 'consumption': nsims[:]} for sp in species}
+    for idx, dyn in enumerate(signatures):
+        for sp in species:
+            organized_dynsigns[sp]['production'][idx] = dyn[sp][0]
+            organized_dynsigns[sp]['consumption'][idx] = dyn[sp][1]
+
+    return organized_dynsigns
+
+
 def run_tropical(model, simulations=None, passengers_by='imp_nodes', diff_par=1):
     """
 
@@ -378,4 +390,6 @@ def run_tropical_multi(model, simulations=None, passengers_by='imp_nodes', diff_
     else:
         trajectories = trajectories
     res = p.amap(tro.signature, trajectories, parameters)
-    return res.get()
+    signatures = res.get()
+    signatures = organize_dynsign_multi(signatures)
+    return signatures
