@@ -382,7 +382,6 @@ class Tropical:
 
                     prod_values = f_prod(*arg_prod)
                     mons_dict[mon_p] = prod_values
-
             mons_names = {}
             mons_array = numpy.zeros((len(mons_dict.keys()), len(self.tspan)))
             for idx, name in enumerate(mons_dict.keys()):
