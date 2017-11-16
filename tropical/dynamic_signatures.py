@@ -56,33 +56,14 @@ class Tropical(object):
         -------
 
         """
-        self.get_passengers(by=passengers_by)
         self.diff_par = diff_par
         self.tspan = tspan
-        self.equations_to_tropicalize()
+        self.equations_to_tropicalize(get_passengers_by=passengers_by)
         self.set_combinations_sm()
         self._is_setup = True
         return
 
-
-    def get_passengers(self, by='imp_nodes'):
-        """
-        Get passenger species in the model
-
-        Parameters
-        ----------
-        by : str
-            It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
-
-        Returns
-        -------
-
-        """
-        if by == 'imp_nodes':
-            self.passengers = hf.find_nonimportant_nodes(self.model)
-        return
-
-    def equations_to_tropicalize(self):
+    def equations_to_tropicalize(self, get_passengers_by='imp_nodes'):
         """
 
         Returns
@@ -90,6 +71,10 @@ class Tropical(object):
         Dictionary with dominant species indices as keys and ODEs as values o
 
         """
+        if get_passengers_by == 'imp_nodes':
+            self.passengers = hf.find_nonimportant_nodes(self.model)
+        else:
+            raise ValueError('method to obtain passengers not supported')
 
         idx = list(set(range(len(self.model.odes))) - set(self.passengers))
         if self.model.has_synth_deg():
@@ -179,9 +164,8 @@ class Tropical(object):
         -------
 
         """
+        assert self._is_setup, 'you must setup tropical first'
 
-        if not self._is_setup:
-            raise Exception('you must setup tropical first')
         # Dictionary that will contain the signature of each of the species to study
         all_signatures = {}
         for sp in self.eqs_for_tropicalization:
@@ -240,6 +224,9 @@ class Tropical(object):
         -------
 
         """
+        assert self.eqs_for_tropicalization, 'you must find passenger species first'
+
+        all_comb = {}
         for sp in self.eqs_for_tropicalization:
             # reaction terms
             pos_neg_combs = {}
@@ -273,10 +260,14 @@ class Tropical(object):
 
                 # remove zeros from reactions in which the species shows up both in reactants and products
                 monomials = [value for value in monomials if value != 0]
-                if max_comb:
-                    combs = max_comb
-                else:
-                    combs = len(monomials) + 1
+
+                # This is suppose to reduce the number of combinations to max_comb. But it's not working
+                # TODO: Make this work
+                # if max_comb:
+                #     combs = max_comb
+                # else:
+                #     combs = len(monomials) + 1
+                combs = len(monomials) + 1
 
                 mon_comb = {}
                 prod_idx = 0
@@ -291,7 +282,8 @@ class Tropical(object):
                             prod_idx += 1
                     mon_comb[L] = prod_comb_names
                 pos_neg_combs[mon_type] = mon_comb
-            self.all_comb[sp] = pos_neg_combs
+            all_comb[sp] = pos_neg_combs
+        self.all_comb = all_comb
         return
 
 
