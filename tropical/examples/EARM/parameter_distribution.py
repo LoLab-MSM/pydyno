@@ -1,7 +1,7 @@
-import tropical.helper_functions as hf
-
 from earm.lopez_embedded import model
-from miscellaneous_tools.miscellaneous_analysis import parameter_distribution
+
+import tropical.helper_functions as hf
+from tropical.tools.miscellaneous_analysis import parameter_distribution
 
 # Script to get the comparison of parameter distribution between different parameter clusters in EARM
 
