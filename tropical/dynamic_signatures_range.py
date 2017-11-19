@@ -5,6 +5,7 @@ import operator
 import sympy
 import math
 import itertools
+from collections import OrderedDict
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
@@ -94,7 +95,7 @@ class Tropical(object):
 
         Parameters
         ----------
-        array
+        array : An array with reaction rate values
         mon_names
         diff_par
         mon_comb
@@ -112,44 +113,26 @@ class Tropical(object):
         range_0_1 = range(2)
         for ii, mon_type, mons_idx, sign, ascending in zip(range_0_1, mons_types, mons_pos_neg, signs, ascending_order):
             largest_prod = 'NoDoms'
-            mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in mons_idx]
-            # print (array, mon_names_ready)
-            # if mon_type == 'reactants':
-            #     print(mon_names_ready, mon_names, mons_pos_neg)
+            # mons_comb_type = mon_comb[mon_type]
+            # mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in mons_idx]
             mon_comb_type = mon_comb[mon_type]
+            if len(mons_idx) == 0:
+                largest_prod = 'NoReaction'
+            else:
+                monomials_values = {mon_names[idx]:
+                                        numpy.log10(numpy.abs(array[idx])) for idx in mons_idx}
+                max_val = numpy.amax(monomials_values.values())
+                rr_monomials = [n for n, i in monomials_values.items() if i > (max_val - diff_par) and max_val > -5]
 
-            for comb in sorted(mon_comb_type.keys()):
-                # comb is an integer that represents the number of monomials in a combination
-                if len(mon_comb_type[comb].keys()) == 1:
-                    largest_prod = mon_comb_type[comb].keys()[0]
-                    break
-
-                monomials_values = {}
-                for idx in mon_comb_type[comb].keys():
-                    value = 0
-                    for j in mon_comb_type[comb][idx]:
-                        if j not in mon_names_ready:
-                            value += sign * 1e-100 # value_to_add
-                        else:
-                            value += array[mon_names[j]]
-                    monomials_values[idx] = value
-                foo2 = sorted(monomials_values.items(), key=operator.itemgetter(1), reverse=ascending)
-                # foo2 = pd.Series(monomials_values).sort_values(ascending=ascending)
-                comb_largest = mon_comb_type[comb][foo2[0][0]]
-                if mon_type == 'products':
-                    print (comb, monomials_values, comb_largest)
-                for cm in foo2:
-                    # Compares the largest combination of monomials to other combinations whose monomials that are not
-                    # present in comb_largest
-                    if len(set(comb_largest) - set(mon_comb_type[comb][cm[0]])) == len(comb_largest):
-                        value_prod_largest = math.log10(sign * foo2[0][1])
-                        if abs(value_prod_largest - math.log10(sign * cm[1])) > diff_par and value_prod_largest > -5:
-                            largest_prod = foo2[0][0]
-                            break
-                if largest_prod != 'NoDoms':
-                    break
+                if not rr_monomials or len(rr_monomials) == mon_comb_type.keys()[-1]:
+                    largest_prod = mon_comb_type.values()[-1].keys()[0]
+                else:
+                    rr_monomials.sort(key=sympy.default_sort_key)
+                    rr_monomials = tuple(rr_monomials)
+                    largest_prod = mon_comb_type[len(rr_monomials)].keys()[
+                        mon_comb_type[len(rr_monomials)].values().index(rr_monomials)]
             pos_neg_largest[ii] = largest_prod
-            # print(mon_type, mon_names_ready, mon_comb_type, largest_prod)
+
         return pos_neg_largest
 
     def signature(self, y, param_values):
@@ -172,7 +155,7 @@ class Tropical(object):
         # Dictionary that will contain the signature of each of the species to study
         all_signatures = {}
         for sp in self.eqs_for_tropicalization:
-            # reaction terms for positive and negative monomials
+            # reaction terms of all reaction rates in which species sp is involved
             monomials = []
             for term in self.model.reactions_bidirectional:
                 total_rate = 0
@@ -183,7 +166,6 @@ class Tropical(object):
                 if total_rate == 0:
                     continue
                 monomials.append(total_rate)
-
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
@@ -207,8 +189,9 @@ class Tropical(object):
             mons_array = numpy.zeros((len(mons_dict.keys()), len(self.tspan)))
             for idx, name in enumerate(mons_dict.keys()):
                 mons_array[idx] = mons_dict[name]
-                mons_names[name] = idx
-
+                mons_names[idx] = name
+            # This function takes a list of the reaction rates values and calculates the largest
+            # reaction rate at eacht time point
             signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
                                                        *(mons_names, self.diff_par, self.all_comb[sp]))
             all_signatures[sp] = list(signature_species)
@@ -266,7 +249,6 @@ class Tropical(object):
 
                 # remove zeros from reactions in which the species shows up both in reactants and products
                 monomials = [value for value in monomials if value != 0]
-
                 # This is suppose to reduce the number of combinations to max_comb. But it's not working
                 # TODO: Make this work
                 # if max_comb:
@@ -275,17 +257,18 @@ class Tropical(object):
                 #     combs = len(monomials) + 1
                 combs = len(monomials) + 1
 
-                mon_comb = {}
-                prod_idx = 0
-
+                mon_comb = OrderedDict()
+                comb_counter = 0
                 for L in range(1, combs):
                     prod_comb_names = {}
-                    if L == combs - 1:
-                        prod_comb_names['NoDoms'] = 'No_Dominants'
-                    else:
-                        for subset in itertools.combinations(monomials, L):
-                            prod_comb_names['M{0}{1}'.format(L, prod_idx)] = subset
-                            prod_idx += 1
+                    for subset in itertools.combinations(monomials, L):
+                        subset = list(subset)
+                        subset.sort(key=sympy.default_sort_key)
+                        subset = tuple(subset)
+                        rr_label = comb_counter
+                        prod_comb_names[rr_label] = subset
+                        comb_counter += 1
+
                     mon_comb[L] = prod_comb_names
                 pos_neg_combs[mon_type] = mon_comb
             all_comb[sp] = pos_neg_combs

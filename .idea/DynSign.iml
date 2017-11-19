@@ -12,14 +12,8 @@
     <orderEntry type="library" name="colorbar" level="application" />
     <orderEntry type="library" name="d3.v4" level="application" />
     <orderEntry type="module" module-name="earm" />
-    <orderEntry type="module" module-name="Magine" />
     <orderEntry type="module" module-name="pysb" />
-    <orderEntry type="module" module-name="ortega2247.github.io" />
-    <orderEntry type="module" module-name="ParticleSwarmOptimization" />
-    <orderEntry type="module" module-name="n_monomers_itano" />
     <orderEntry type="module" module-name="C3_data_analysis" />
-    <orderEntry type="module" module-name="magine_gui_app" />
-    <orderEntry type="module" module-name="bla" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />
