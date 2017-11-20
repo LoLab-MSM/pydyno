@@ -1,9 +1,7 @@
 import tropical.helper_functions as hf
 from pysb.simulator import SimulationResult, ScipyOdeSimulator, CupSodaSimulator
 import numpy
-import operator
 import sympy
-import math
 import itertools
 from collections import OrderedDict
 try:
@@ -319,6 +317,8 @@ def organize_dynsign_multi(signatures):
 
     return organized_dynsigns
 
+# def signatures_to_hdf5(signatures):
+
 
 def run_tropical(model, simulations=None, passengers_by='imp_nodes', diff_par=1):
     """
@@ -381,4 +381,5 @@ def run_tropical_multi(model, simulations=None, passengers_by='imp_nodes', diff_
     res = p.amap(tro.signature, trajectories, parameters)
     signatures = res.get()
     signatures = organize_dynsign_multi(signatures)
+    signatures['species_combinations'] = tro.all_comb
     return signatures
