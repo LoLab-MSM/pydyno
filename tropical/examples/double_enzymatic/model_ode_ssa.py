@@ -50,7 +50,7 @@ Initial(S(e=None, type='1'), S1_0)
 Parameter('S2_0', 10.*V)
 Initial(S(e=None, type='2'), S2_0)
 
-t = np.linspace(0, 50, 501)
+t = np.linspace(0, 50, 51)
 
 # for i in range(n_ssa_runs):
 #     print i
@@ -67,6 +67,7 @@ t = np.linspace(0, 50, 501)
 
 if run_ode:
     x = odesolve(model, t, verbose=True)
+    np.save('product_data', x['Product'])
     for j,obs in enumerate(model.observables):
         if j == len(model.observables)-1:
             plt.figure('product')
