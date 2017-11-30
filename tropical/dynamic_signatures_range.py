@@ -110,12 +110,12 @@ class Tropical(object):
         pos_neg_largest = [0] * 2
         range_0_1 = range(2)
         for ii, mon_type, mons_idx, sign, ascending in zip(range_0_1, mons_types, mons_pos_neg, signs, ascending_order):
-            largest_prod = 'NoDoms'
+            # largest_prod = 'NoDoms'
             # mons_comb_type = mon_comb[mon_type]
             # mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in mons_idx]
             mon_comb_type = mon_comb[mon_type]
             if len(mons_idx) == 0:
-                largest_prod = 'NoReaction'
+                largest_prod = -1
             else:
                 monomials_values = {mon_names[idx]:
                                         numpy.log10(numpy.abs(array[idx])) for idx in mons_idx}
@@ -130,7 +130,6 @@ class Tropical(object):
                     largest_prod = mon_comb_type[len(rr_monomials)].keys()[
                         mon_comb_type[len(rr_monomials)].values().index(rr_monomials)]
             pos_neg_largest[ii] = largest_prod
-
         return pos_neg_largest
 
     def signature(self, y, param_values):
@@ -164,6 +163,7 @@ class Tropical(object):
                 if total_rate == 0:
                     continue
                 monomials.append(total_rate)
+
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
@@ -188,8 +188,9 @@ class Tropical(object):
             for idx, name in enumerate(mons_dict.keys()):
                 mons_array[idx] = mons_dict[name]
                 mons_names[idx] = name
+
             # This function takes a list of the reaction rates values and calculates the largest
-            # reaction rate at eacht time point
+            # reaction rate at each time point
             signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
                                                        *(mons_names, self.diff_par, self.all_comb[sp]))
             all_signatures[sp] = list(signature_species)
@@ -228,6 +229,8 @@ class Tropical(object):
                         # Add zero to monomials in cases like autocatalytic reactions where a species
                         # shows up both in reactants and products, and we are looking for the reactions that use a sp
                         # but the reaction produces the species overall
+                        sp_count = term[mon_type].count(sp)
+
                         if sp in term[parts_reaction[rev_parts]]:
                             count_reac = term['reactants'].count(sp)
                             count_pro = term['products'].count(sp)
@@ -240,11 +243,12 @@ class Tropical(object):
                                     mon_zero = 0
                             monomials.append(mon_zero * term['rate'])
                         else:
-                            monomials.append(mon_sign * term['rate'])
+                            monomials.append(sp_count * mon_sign * term['rate'])
 
+                    # Add reversible reaction rates on which the species is involved but was not added
+                    # in the previous loop because it was not in the mon_type
                     if sp in term[parts_reaction[rev_parts]] and term['reversible']:
                         monomials.append(signs[rev_parts] * term['rate'])
-
                 # remove zeros from reactions in which the species shows up both in reactants and products
                 monomials = [value for value in monomials if value != 0]
                 # This is suppose to reduce the number of combinations to max_comb. But it's not working
