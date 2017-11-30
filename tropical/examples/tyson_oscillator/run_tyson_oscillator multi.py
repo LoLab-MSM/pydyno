@@ -1,5 +1,5 @@
-from tropical.dynamic_signatures import run_tropical_multi
 import numpy as np
+from tropical.dynamic_signatures_range import run_tropical_multi
 from pysb.examples.tyson_oscillator import model
 from pysb.simulator.scipyode import ScipyOdeSimulator
 
