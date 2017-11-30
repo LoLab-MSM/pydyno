@@ -1,4 +1,4 @@
-from tropical.helper_functions import trajectories_signature_2_txt
+from tropical.tools.tr_sgn_to_txt import trajectories_signature_2_txt
 import numpy as np
 import os
 from earm.lopez_embedded import model

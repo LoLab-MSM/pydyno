@@ -48,6 +48,7 @@ def display(param_values):
     std_norm = var_norm ** 0.5
     solver.run(param_values)
     obs_names_disp = obs_names + ['aSmac']
+    for i in solver.yobs['aSmac']: print (i)
     sim_obs = solver.yobs[obs_names_disp].view(float).reshape(len(solver.yobs), -1)
     totals = obs_totals + [momp_obs_total]
     sim_obs_norm = (sim_obs / totals).T
@@ -65,8 +66,9 @@ def display(param_values):
     plt.show()
     return
 
-directory = os.path.dirname(__file__)
-parameters_path = os.path.join(directory, "parameters_5000")
-all_parameters = hf.listdir_fullpath(parameters_path)
-parameters = hf.read_pars(all_parameters[0])
-display(parameters)
+# directory = os.path.dirname(__file__)
+# parameters_path = os.path.join(directory, "parameters_5000")
+# all_parameters = hf.listdir_fullpath(parameters_path)
+# parameters = hf.read_pars(all_parameters[500])
+parameters = np.load('calibrated_6572pars.npy')
+display(parameters[70])
