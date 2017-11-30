@@ -1,9 +1,11 @@
 from __future__ import division
+import matplotlib
+matplotlib.use('TkAgg')
 import os
 import pandas as pd
 import numpy as np
-import mlpy
 from sklearn.metrics.pairwise import pairwise_distances, distance_metrics
+import sklearn.cluster as cluster
 import hdbscan
 import matplotlib.pyplot as plt
 from distinct_colors import distinct_colors
@@ -15,6 +17,17 @@ import matplotlib.patches as mpatches
 from sklearn import metrics
 from matplotlib.collections import LineCollection
 import editdistance
+import tropical.lcs as lcs
+import collections
+from kmedoids import kMedoids
+# def lcs_length(a, b):
+#     table = [[0] * (len(b) + 1) for _ in xrange(len(a) + 1)]
+#     for i, ca in enumerate(a, 1):
+#         for j, cb in enumerate(b, 1):
+#             table[i][j] = (
+#                 table[i - 1][j - 1] + 1 if ca == cb else
+#                 max(table[i][j - 1], table[i - 1][j]))
+#     return table[-1][-1]
 
 
 class ClusterSequences(object):
@@ -63,16 +76,17 @@ class ClusterSequences(object):
 
         self.diss = None
         self.labels = None
+        self.cluster_method = ''
 
     @staticmethod
     def lcs_dist_diff_length(seq1, seq2):
-        d_1_2 = mlpy.lcs_std(seq1, seq1)[0] + mlpy.lcs_std(seq2, seq2)[0] - 2*mlpy.lcs_std(seq1, seq2)[0]
+        d_1_2 = lcs.lcs_std(seq1, seq1)[0] + lcs.lcs_std(seq2, seq2)[0] - 2*lcs.lcs_std(seq1, seq2)[0]
         return d_1_2
 
     @staticmethod
     def lcs_dist_same_length(seq1, seq2):
         seq_len = len(seq1)
-        d_1_2 = 2 * seq_len - 2 * mlpy.lcs_std(seq1, seq2)[0]
+        d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
         return d_1_2
 
     @staticmethod
@@ -99,9 +113,52 @@ class ClusterSequences(object):
         hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples, alpha=alpha,
                               cluster_selection_method=cluster_selection_method, metric='precomputed').fit(self.diss)
         self.labels = hdb.labels_
-        return hdb.labels_
+        self.cluster_method = 'hdbscan'
+        return
 
-    # TODO: Add clustering techniques from scikit-learn
+    def Kmedoids(self, n_clusters):
+        kmedoids = kMedoids(self.diss, n_clusters)
+        labels = np.empty(len(self.sequences), dtype=np.int32)
+        for lb, seq_idx in kmedoids[1].items():
+            labels[seq_idx] = lb
+        self.cluster_method = 'kmedoids'
+        self.labels = labels
+        return
+
+    def Kmeans(self, n_clusters, **kwargs):
+        kmeans = cluster.KMeans(n_clusters=n_clusters, **kwargs).fit(self.diss)
+        self.labels = kmeans.labels_
+        self.cluster_method = 'kmeans'
+        return
+
+    def silhouette_score(self):
+        if self.labels is None:
+            raise Exception('you must cluster the signatures first')
+        score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
+        return score
+
+    def calinski_harabaz_score(self):
+        if self.labels is None:
+            raise Exception('you must cluster the signatures first')
+        score = metrics.calinski_harabaz_score(self.sequences, self.labels)
+        return score
+
+    def elbow_plot(self, cluster_range):
+        if self.cluster_method not in ['kmeans']:
+            raise ValueError('Analysis not valid for {0}'.format(self.cluster_method))
+        if isinstance(cluster_range, int):
+            cluster_range = range(1, cluster_range)
+        elif isinstance(cluster_range, collections.Iterable):
+            pass
+        else:
+            raise TypeError('Type not valid')
+        cluster_errors = []
+        for num_clusters in cluster_range:
+            clusters = cluster.KMeans(num_clusters).fit(self.diss)
+            cluster_errors.append(clusters.inertia_)
+        clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_errors': cluster_errors})
+        plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
+        plt.savefig('elbow_analysis.png', format='png')
 
 
 class PlotSequences(object):
@@ -136,7 +193,10 @@ class PlotSequences(object):
 
     def modal_plot(self, title='', legend_plot=False):
         clusters = set(self.cluster_labels)
-        clusters = list(clusters)[:-1] # this is to not plot the signatures that can't be clustered :(
+        if -1 in clusters:
+            clusters = list(clusters)[:-1] # this is to not plot the signatures that can't be clustered :(
+        else:
+            clusters = list(clusters)
         n_rows = int(math.ceil(len(clusters)/3))
         f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True, figsize=(8, 6))
         f.subplots_adjust(hspace=.5)
@@ -179,7 +239,10 @@ class PlotSequences(object):
 
     def all_trajectories_plot(self, title='', sort_seq='silhouette'):
         clusters = set(self.cluster_labels)
-        clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
+        if -1 in clusters:
+            clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
+        else:
+            clusters = list(clusters)
         n_rows = int(math.ceil(len(clusters)/3))
         f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
         f.subplots_adjust(hspace=.6, wspace=.4)
@@ -225,4 +288,4 @@ class PlotSequences(object):
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_hdbscan_all_tr', bbox_inches='tight', dpi=1000)
+        plt.savefig('cluster_hdbscan_all_tr', bbox_inches='tight', dpi=500)

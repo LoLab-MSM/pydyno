@@ -1,5 +1,5 @@
 import numpy as np
-import random
+
 
 def kMedoids(D, k, tmax=100):
     # determine dimensions of distance matrix D
