@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 import numpy
 import sympy
 from sympy import default_sort_key
-import helper_functions as hf
+import tropical.helper_functions as hf
 from pysb.simulator import ScipyOdeSimulator, SimulatorException
 import matplotlib.pyplot as plt
 from pysb import Parameter
