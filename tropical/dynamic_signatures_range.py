@@ -248,7 +248,8 @@ class Tropical(object):
                     # Add reversible reaction rates on which the species is involved but was not added
                     # in the previous loop because it was not in the mon_type
                     if sp in term[parts_reaction[rev_parts]] and term['reversible']:
-                        monomials.append(signs[rev_parts] * term['rate'])
+                        sp_count = term[parts_reaction[rev_parts]].count(sp)
+                        monomials.append(sp_count * signs[rev_parts] * term['rate'])
                 # remove zeros from reactions in which the species shows up both in reactants and products
                 monomials = [value for value in monomials if value != 0]
                 # This is suppose to reduce the number of combinations to max_comb. But it's not working
