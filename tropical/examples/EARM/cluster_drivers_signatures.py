@@ -10,7 +10,7 @@ def get_cluster_percentage_color(signatures_idx):
     signatures = all_signatures[signatures_idx]['consumption']
     clus = clustering.ClusterSequences(data=signatures, unique_sequences=False, truncate_seq=50)
     clus.diss_matrix()
-    sil_df = clus.silhouette_score_kmeans_range([2, 30])
+    sil_df = clus.silhouette_score_kmeans_range(range(2, 31))
     n_clus = sil_df.loc[sil_df['cluster_silhouette'].idxmax(), 'num_clusters']
     print (signatures_idx, sil_df)
     clus.Kmeans(n_clusters=n_clus)
