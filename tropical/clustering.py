@@ -82,8 +82,6 @@ class ClusterSequences(object):
         unique_states = pd.unique(data_seqs[data_seqs.columns.tolist()].values.ravel())
         unique_states.sort()
         self.unique_states = unique_states
-        colors = distinct_colors(len(self.unique_states))
-        self.states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self.unique_states))
 
         self.diss = None
         self.labels = None
@@ -218,7 +216,8 @@ class PlotSequences(object):
         self.diss = sequence_obj.diss
         self.cluster_labels = sequence_obj.labels
         self.unique_states = sequence_obj.unique_states
-        self.states_colors = sequence_obj.states_colors
+        colors = distinct_colors(len(self.unique_states))
+        self.states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self.unique_states))
         self.cmap, self.norm = self.cmap_norm()
 
     def cmap_norm(self):
@@ -262,8 +261,8 @@ class PlotSequences(object):
             modal_states, mode_counts = stats.mode(clus_seqs, axis=0)
             mc_norm = np.divide(mode_counts[0], n_seqs, dtype=np.float)
             width_bar = self.sequences.columns[1] - self.sequences.columns[0]
-            colors = [self.states_color_dict[c] for c in modal_states[0]]
-            legend_patches = [mpatches.Patch(color=self.states_color_dict[c], label=c) for c in set(modal_states[0])]
+            colors = [self.states_colors[c] for c in modal_states[0]]
+            legend_patches = [mpatches.Patch(color=self.states_colors[c], label=c) for c in set(modal_states[0])]
             axs[clus].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
             axs[clus].legend(handles=legend_patches, fontsize='x-small')
             axs[clus].set_ylabel('frequency (n={0})'.format(total_seqs), fontsize='x-small')
@@ -303,7 +302,7 @@ class PlotSequences(object):
             else:
                 total_seqs = n_seqs
 
-            clus_sil_samples = sil_samples[self.cluster_labels == clus]
+            clus_sil_samples = sil_samples[self.cluster_labels == clus] # FIXME varible sil_samples can be referenced without assignment
             clus_sil_sort = np.argsort(clus_sil_samples)
             clus_seqs = clus_seqs.iloc[clus_sil_sort]
             xx = self.sequences.columns
