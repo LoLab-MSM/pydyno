@@ -20,14 +20,6 @@ import editdistance
 import tropical.lcs as lcs
 import collections
 from kmedoids import kMedoids
-# def lcs_length(a, b):
-#     table = [[0] * (len(b) + 1) for _ in xrange(len(a) + 1)]
-#     for i, ca in enumerate(a, 1):
-#         for j, cb in enumerate(b, 1):
-#             table[i][j] = (
-#                 table[i - 1][j - 1] + 1 if ca == cb else
-#                 max(table[i][j - 1], table[i - 1][j]))
-#     return table[-1][-1]
 
 
 class ClusterSequences(object):
@@ -51,7 +43,7 @@ class ClusterSequences(object):
                 data_seqs = pd.read_csv(data, header=0, index_col=0)
                 # convert column names into float numbers
                 data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
-        elif isinstance(data, np.ndarray):
+        elif isinstance(data, collections.Iterable):
             data_seqs = data
             data_seqs = pd.DataFrame(data=data_seqs)
         else:
@@ -59,6 +51,7 @@ class ClusterSequences(object):
 
         if isinstance(truncate_seq, int):
             data_seqs = data_seqs[data_seqs.columns.tolist()[:truncate_seq]]
+        self.n_sequences = len(data)
 
         if unique_sequences:
             data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().rename('count').reset_index()
@@ -73,6 +66,8 @@ class ClusterSequences(object):
         unique_states = pd.unique(data_seqs[data_seqs.columns.tolist()].values.ravel())
         unique_states.sort()
         self.unique_states = unique_states
+        colors = distinct_colors(len(self.unique_states))
+        self.states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self.unique_states))
 
         self.diss = None
         self.labels = None
@@ -134,8 +129,31 @@ class ClusterSequences(object):
     def silhouette_score(self):
         if self.labels is None:
             raise Exception('you must cluster the signatures first')
-        score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
-        return score
+        if self.cluster_method == 'hdbscan':
+            # Keep only clustered sequences
+            clustered = np.where(self.labels != -1)[0]
+            updated_labels = self.labels[clustered]
+            updated_diss = self.diss[clustered][:, clustered]
+            score = metrics.silhouette_score(updated_diss, updated_labels, metric='precomputed')
+            return score
+        else:
+            score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
+            return score
+
+    def silhouette_score_kmeans_range(self, cluster_range, **kwargs):
+        if isinstance(cluster_range, int):
+            cluster_range = range(2, cluster_range+1) # +1 to cluster up to cluster_range
+        elif isinstance(cluster_range, collections.Iterable):
+            pass
+        else:
+            raise TypeError('Type not valid')
+        cluster_silhouette = []
+        for num_clusters in cluster_range:
+            clusters = cluster.KMeans(num_clusters, **kwargs).fit(self.diss)
+            score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
+            cluster_silhouette.append(score)
+        clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_silhouette': cluster_silhouette})
+        return clusters_df
 
     def calinski_harabaz_score(self):
         if self.labels is None:
@@ -143,11 +161,11 @@ class ClusterSequences(object):
         score = metrics.calinski_harabaz_score(self.sequences, self.labels)
         return score
 
-    def elbow_plot(self, cluster_range):
+    def elbow_plot_kmeans(self, cluster_range):
         if self.cluster_method not in ['kmeans']:
             raise ValueError('Analysis not valid for {0}'.format(self.cluster_method))
         if isinstance(cluster_range, int):
-            cluster_range = range(1, cluster_range)
+            cluster_range = range(2, cluster_range+1) # +1 to cluster up to cluster_range
         elif isinstance(cluster_range, collections.Iterable):
             pass
         else:
@@ -159,6 +177,26 @@ class ClusterSequences(object):
         clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_errors': cluster_errors})
         plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
         plt.savefig('elbow_analysis.png', format='png')
+
+    def cluster_percentage_color(self):
+        if self.labels is None:
+            raise Exception('you must cluster the signatures first')
+        clusters = set(self.labels)
+
+        cluster_modal_state = {}
+        for clus in clusters:
+            clus_seqs = self.sequences.iloc[self.labels == clus]
+            n_seqs = clus_seqs.shape[0]
+            if self.unique:
+                total_seqs = 0
+                for seq in clus_seqs.index.values:
+                    total_seqs += seq[1]
+            else:
+                total_seqs = n_seqs
+
+            cluster_percentage = total_seqs / self.n_sequences
+            cluster_modal_state[clus] = (cluster_percentage, self.states_colors[clus])
+        return cluster_modal_state
 
 
 class PlotSequences(object):
@@ -180,16 +218,15 @@ class PlotSequences(object):
         self.diss = sequence_obj.diss
         self.cluster_labels = sequence_obj.labels
         self.unique_states = sequence_obj.unique_states
-        self.colors = distinct_colors(len(self.unique_states))
-        self.cmap, self.norm, self.states_color_dict = self.cmap_norm()
+        self.states_colors = sequence_obj.states_colors
+        self.cmap, self.norm = self.cmap_norm()
 
     def cmap_norm(self):
-        states_color_map = OrderedDict((state, self.colors[x]) for x, state, in enumerate(self.unique_states))
-        cmap = ListedColormap(states_color_map.values())
-        bounds = states_color_map.keys()
+        cmap = ListedColormap(self.states_colors.values())
+        bounds = self.states_colors.keys()
         bounds.append(bounds[-1]+1)
         norm = BoundaryNorm(bounds, cmap.N)
-        return cmap, norm, states_color_map
+        return cmap, norm
 
     def modal_plot(self, title='', legend_plot=False):
         clusters = set(self.cluster_labels)
