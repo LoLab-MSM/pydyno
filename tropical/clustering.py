@@ -22,6 +22,22 @@ import collections
 from kmedoids import kMedoids
 
 
+def lcs_dist_same_length(seq1, seq2):
+    seq_len = len(seq1)
+    d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
+    return d_1_2
+
+
+def lcs_dist_diff_length(seq1, seq2):
+    d_1_2 = lcs.lcs_std(seq1, seq1)[0] + lcs.lcs_std(seq2, seq2)[0] - 2*lcs.lcs_std(seq1, seq2)[0]
+    return d_1_2
+
+
+def levenshtein(seq1, seq2):
+    d_1_2 = editdistance.eval(seq1, seq2).__float__()
+    return d_1_2
+
+
 class ClusterSequences(object):
     """
     Class to cluster DynSign signatures
@@ -73,30 +89,14 @@ class ClusterSequences(object):
         self.labels = None
         self.cluster_method = ''
 
-    @staticmethod
-    def lcs_dist_diff_length(seq1, seq2):
-        d_1_2 = lcs.lcs_std(seq1, seq1)[0] + lcs.lcs_std(seq2, seq2)[0] - 2*lcs.lcs_std(seq1, seq2)[0]
-        return d_1_2
-
-    @staticmethod
-    def lcs_dist_same_length(seq1, seq2):
-        seq_len = len(seq1)
-        d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
-        return d_1_2
-
-    @staticmethod
-    def levenshtein(seq1, seq2):
-        d_1_2 = editdistance.eval(seq1, seq2).__float__()
-        return d_1_2
-
     def diss_matrix(self, metric='LCS', n_jobs=1):
         # TODO check if ndarray have sequences of different lengths
         if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         elif metric == 'LCS':
-            diss = pairwise_distances(self.sequences.values, metric=self.lcs_dist_same_length, n_jobs=n_jobs)
+            diss = pairwise_distances(self.sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
         elif metric == 'levenshtein':
-            diss = pairwise_distances(self.sequences.values, metric=self.levenshtein, n_jobs=n_jobs)
+            diss = pairwise_distances(self.sequences.values, metric=levenshtein, n_jobs=n_jobs)
         elif callable(metric):
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         else:
