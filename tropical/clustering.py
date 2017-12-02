@@ -1,6 +1,6 @@
 from __future__ import division
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import os
 import pandas as pd
 import numpy as np
@@ -182,7 +182,7 @@ class ClusterSequences(object):
         if self.labels is None:
             raise Exception('you must cluster the signatures first')
         clusters = set(self.labels)
-
+        colors = distinct_colors(len(clusters))
         cluster_modal_state = {}
         for clus in clusters:
             clus_seqs = self.sequences.iloc[self.labels == clus]
@@ -195,7 +195,7 @@ class ClusterSequences(object):
                 total_seqs = n_seqs
 
             cluster_percentage = total_seqs / self.n_sequences
-            cluster_modal_state[clus] = (cluster_percentage, self.states_colors[clus])
+            cluster_modal_state[clus] = (cluster_percentage, colors[clus])
         return cluster_modal_state
 
 
