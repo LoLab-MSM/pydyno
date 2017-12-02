@@ -19,5 +19,5 @@ t = np.linspace(0, 20000, 100)
 sim = SimulationResult.load('simulations_earm6572.h5')
 a=run_tropical_multi(model, simulations=sim, cpu_cores=4)
 
-with open('filename.pickle', 'wb') as handle:
+with open('earm_signatures.pickle', 'wb') as handle:
     pickle.dump(a, handle, protocol=pickle.HIGHEST_PROTOCOL)
