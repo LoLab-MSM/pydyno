@@ -1,5 +1,5 @@
 import tropical.helper_functions as hf
-from pysb.simulator import SimulationResult, ScipyOdeSimulator, CupSodaSimulator
+from pysb.simulator import SimulationResult
 import numpy
 import sympy
 import itertools
