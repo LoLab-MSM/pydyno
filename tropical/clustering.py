@@ -118,8 +118,8 @@ class ClusterSequences(object):
         self.labels = labels
         return
 
-    def Kmeans(self, n_clusters, n_jobs=1, **kwargs):
-        kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, **kwargs).fit(self.diss)
+    def Kmeans(self, n_clusters, n_jobs=1, random_state=None, **kwargs):
+        kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.diss)
         self.labels = kmeans.labels_
         self.cluster_method = 'kmeans'
         return
@@ -138,7 +138,7 @@ class ClusterSequences(object):
             score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
             return score
 
-    def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, **kwargs):
+    def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
         if isinstance(cluster_range, int):
             cluster_range = range(2, cluster_range+1) # +1 to cluster up to cluster_range
         elif isinstance(cluster_range, collections.Iterable):
@@ -147,7 +147,7 @@ class ClusterSequences(object):
             raise TypeError('Type not valid')
         cluster_silhouette = []
         for num_clusters in cluster_range:
-            clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, **kwargs).fit(self.diss)
+            clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.diss)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
         clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_silhouette': cluster_silhouette})
@@ -176,7 +176,7 @@ class ClusterSequences(object):
         plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
         plt.savefig('elbow_analysis.png', format='png')
 
-    def cluster_percentage_color(self):
+    def cluster_percentage_color(self, best_silh=None):
         if self.labels is None:
             raise Exception('you must cluster the signatures first')
         clusters = set(self.labels)
@@ -193,7 +193,10 @@ class ClusterSequences(object):
                 total_seqs = n_seqs
 
             cluster_percentage = total_seqs / self.n_sequences
-            cluster_modal_state[clus] = (cluster_percentage, colors[clus])
+            if best_sil:
+                cluster_modal_state[clus] = (cluster_percentage, best_sil, colors[clus])
+            else:
+                cluster_modal_state[clus] = (cluster_percentage, colors[clus])
         return cluster_modal_state
 
 
