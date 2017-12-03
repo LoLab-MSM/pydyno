@@ -14,7 +14,7 @@ def get_cluster_percentage_color(signatures_idx):
     best_silh_idx = sil_df['cluster_silhouette'].idxmax()
     best_silh, n_clus = sil_df.loc[best_silh_idx]
     n_clus = int(n_clus)
-    clus.Kmeans(n_clusters=n_clus)
+    clus.Kmeans(n_clusters=n_clus, random_state=1234)
     return clus.cluster_percentage_color(best_silh=best_silh)
 
 
