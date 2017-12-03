@@ -118,8 +118,8 @@ class ClusterSequences(object):
         self.labels = labels
         return
 
-    def Kmeans(self, n_clusters, **kwargs):
-        kmeans = cluster.KMeans(n_clusters=n_clusters, **kwargs).fit(self.diss)
+    def Kmeans(self, n_clusters, n_jobs=1, **kwargs):
+        kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, **kwargs).fit(self.diss)
         self.labels = kmeans.labels_
         self.cluster_method = 'kmeans'
         return
@@ -138,7 +138,7 @@ class ClusterSequences(object):
             score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
             return score
 
-    def silhouette_score_kmeans_range(self, cluster_range, **kwargs):
+    def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, **kwargs):
         if isinstance(cluster_range, int):
             cluster_range = range(2, cluster_range+1) # +1 to cluster up to cluster_range
         elif isinstance(cluster_range, collections.Iterable):
@@ -147,7 +147,7 @@ class ClusterSequences(object):
             raise TypeError('Type not valid')
         cluster_silhouette = []
         for num_clusters in cluster_range:
-            clusters = cluster.KMeans(num_clusters, **kwargs).fit(self.diss)
+            clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, **kwargs).fit(self.diss)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
         clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_silhouette': cluster_silhouette})
