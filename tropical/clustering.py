@@ -23,13 +23,22 @@ from kmedoids import kMedoids
 
 
 def lcs_dist_same_length(seq1, seq2):
+    """
+
+    :param seq1:
+    :param seq2:
+    :return:
+    """
     seq_len = len(seq1)
     d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
     return d_1_2
 
 
 def lcs_dist_diff_length(seq1, seq2):
-    d_1_2 = lcs.lcs_std(seq1, seq1)[0] + lcs.lcs_std(seq2, seq2)[0] - 2*lcs.lcs_std(seq1, seq2)[0]
+    seq1_len = len(seq1)
+    seq2_len = len(seq2)
+
+    d_1_2 = seq1_len + seq2_len - 2*lcs.lcs_std(seq1, seq2)[0]
     return d_1_2
 
 
