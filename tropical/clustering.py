@@ -193,8 +193,8 @@ class ClusterSequences(object):
                 total_seqs = n_seqs
 
             cluster_percentage = total_seqs / self.n_sequences
-            if best_sil:
-                cluster_modal_state[clus] = (cluster_percentage, best_sil, colors[clus])
+            if best_silh:
+                cluster_modal_state[clus] = (cluster_percentage, best_silh, colors[clus])
             else:
                 cluster_modal_state[clus] = (cluster_percentage, colors[clus])
         return cluster_modal_state
