@@ -25,9 +25,16 @@ from kmedoids import kMedoids
 def lcs_dist_same_length(seq1, seq2):
     """
 
-    :param seq1:
-    :param seq2:
-    :return:
+    Parameters
+    ----------
+    seq1 : array-like
+        Sequence 1
+    seq2 : array-like
+        Sequence 2
+
+    Returns
+    -------
+
     """
     seq_len = len(seq1)
     d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
@@ -54,7 +61,7 @@ class ClusterSequences(object):
     Parameters
     ----------
     data: str file or np.ndarray
-        file or ndarray where rows are DynSign signatures and columns are dominant states at specific
+        file of pandas dataframe or ndarray where rows are DynSign signatures and columns are dominant states at specific
         time points
     unique_sequences: bool, optional
         Drop repeated sequences
@@ -62,12 +69,13 @@ class ClusterSequences(object):
         Index of where to truncate a sequence
     """
     def __init__(self, data, unique_sequences=True, truncate_seq=None):
-
         if isinstance(data, str):
             if os.path.isfile(data):
                 data_seqs = pd.read_csv(data, header=0, index_col=0)
                 # convert column names into float numbers
                 data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
+            else:
+                raise TypeError('String is not a file')
         elif isinstance(data, collections.Iterable):
             data_seqs = data
             data_seqs = pd.DataFrame(data=data_seqs)
@@ -96,7 +104,25 @@ class ClusterSequences(object):
         self.labels = None
         self.cluster_method = ''
 
+    def __repr__(self):
+        return ('{} (Sequences:{} Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
+
+
     def diss_matrix(self, metric='LCS', n_jobs=1):
+        """
+
+        Parameters
+        ----------
+        metric : str
+            Metric to use to calculate the dissimilarity matrix
+        n_jobs : int
+            Number of processors to use
+
+        Returns : numpy array
+            Dissimilarity matrix
+        -------
+
+        """
         # TODO check if ndarray have sequences of different lengths
         if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
@@ -107,18 +133,43 @@ class ClusterSequences(object):
         elif callable(metric):
             diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
         else:
-            raise ValueError('metric not accepted')
+            raise ValueError('metric not supported')
         self.diss = diss
 
-    def hdbscan(self, min_cluster_size=50, min_samples=5, alpha=1.0, cluster_selection_method='eom'):
+    def hdbscan(self, min_cluster_size=50, min_samples=5, alpha=1.0, cluster_selection_method='eom', **kwargs):
+        """
 
-        hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples, alpha=alpha,
-                              cluster_selection_method=cluster_selection_method, metric='precomputed').fit(self.diss)
+        Parameters
+        ----------
+        min_cluster_size
+        min_samples
+        alpha
+        cluster_selection_method
+        kwargs
+
+        Returns
+        -------
+
+        """
+        hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples,
+                              alpha=alpha, cluster_selection_method=cluster_selection_method,
+                              metric='precomputed', **kwargs).fit(self.diss)
         self.labels = hdb.labels_
         self.cluster_method = 'hdbscan'
         return
 
     def Kmedoids(self, n_clusters):
+        """
+
+        Parameters
+        ----------
+        n_clusters : int
+            Number of clusters
+
+        Returns
+        -------
+
+        """
         kmedoids = kMedoids(self.diss, n_clusters)
         labels = np.empty(len(self.sequences), dtype=np.int32)
         for lb, seq_idx in kmedoids[1].items():
@@ -128,6 +179,19 @@ class ClusterSequences(object):
         return
 
     def Kmeans(self, n_clusters, n_jobs=1, random_state=None, **kwargs):
+        """
+
+        Parameters
+        ----------
+        n_clusters
+        n_jobs
+        random_state
+        kwargs
+
+        Returns
+        -------
+
+        """
         kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.diss)
         self.labels = kmeans.labels_
         self.cluster_method = 'kmeans'
@@ -185,12 +249,12 @@ class ClusterSequences(object):
         plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
         plt.savefig('elbow_analysis.png', format='png')
 
-    def cluster_percentage_color(self, best_silh=None):
+    def cluster_percentage_color(self):
         if self.labels is None:
             raise Exception('you must cluster the signatures first')
         clusters = set(self.labels)
         colors = distinct_colors(len(clusters))
-        cluster_modal_state = {}
+        cluster_inf = {}
         for clus in clusters:
             clus_seqs = self.sequences.iloc[self.labels == clus]
             n_seqs = clus_seqs.shape[0]
@@ -202,11 +266,9 @@ class ClusterSequences(object):
                 total_seqs = n_seqs
 
             cluster_percentage = total_seqs / self.n_sequences
-            if best_silh:
-                cluster_modal_state[clus] = (cluster_percentage, best_silh, colors[clus])
-            else:
-                cluster_modal_state[clus] = (cluster_percentage, colors[clus])
-        return cluster_modal_state
+            cluster_inf[clus] = (cluster_percentage, colors[clus])
+
+        return cluster_inf
 
 
 class PlotSequences(object):
