@@ -137,7 +137,7 @@ class ModelVisualization(object):
         self.passengers = []
         self.is_setup = False
 
-    def static_view(self, get_passengers=True):
+    def static_view(self, get_passengers=True, cluster_info=None):
         """
         Generates a dictionary with the model graph data that can be converted in the Cytoscape.js JSON format
 
@@ -160,6 +160,9 @@ class ModelVisualization(object):
         if get_passengers:
             self.passengers = find_nonimportant_nodes(self.model)
         self.species_graph(view='static')
+        if cluster_info:
+            # TODO check structure of cluster_info
+            self._add_cluster_info(cluster_info)
         g_layout = self.dot_layout(self.sp_graph)
         data = self.graph_to_json(sp_graph=self.sp_graph, layout=g_layout)
         return data
@@ -305,6 +308,28 @@ class ModelVisualization(object):
             nodes = nodes[::-1]
         # attrs.setdefault('arrowhead', 'normal')
         self.sp_graph.add_edge(*nodes, **attrs)
+
+    def _add_cluster_info(self, cluster_info):
+        node_backgrounds = {}
+        node_percentages = {}
+        for sp_info in cluster_info:
+            sp = [idx for idx in sp_info.keys() if isinstance(idx, int)]
+            sp = sp[0]
+            percs = []
+            bgs = []
+            for perc in sp_info[sp].values():
+                if perc[0] < 1:
+                    perc_r = perc[0] * 100
+                else:
+                    perc_r = perc[0]
+                percs.append(perc_r)
+                bgs.append(perc[1])
+            node_percentages['s{}'.format(sp)] = percs
+            node_backgrounds['s{}'.format(sp)] = bgs
+
+        nx.set_node_attributes(self.sp_graph, node_backgrounds, 'clus_colors')
+        nx.set_node_attributes(self.sp_graph, node_percentages, 'clus_perc')
+        return
 
     def _add_edge_node_dynamics(self):
         """
@@ -464,10 +489,10 @@ class ModelVisualization(object):
         node_absolute = {}
         node_relative = {}
         for sp in range(len(self.model.species)):
-            sp_absolute = self.y_df['__s%d' % sp]
+            sp_absolute = self.y_df['__s{}'.format(sp)]
             sp_relative = (sp_absolute / sp_absolute.max()) * 100
-            node_absolute['s%d' % sp] = sp_absolute.tolist()
-            node_relative['s%d' % sp] = sp_relative.tolist()
+            node_absolute['s{}'.format(sp)] = sp_absolute.tolist()
+            node_relative['s{}'.format(sp)] = sp_relative.tolist()
 
         # all_nodes_values = pandas.DataFrame(all_rate_colors)
         return node_absolute, node_relative

@@ -82,7 +82,7 @@
                             'pie-1-background-color': 'data(background_color)',
                             'pie-1-background-size': '100',
                             'pie-2-background-color': '#dddcd4',
-                            'pie-2-background-size': '100',
+                            'pie-2-background-size': '100'
                         })
 
                         .selector('edge')
@@ -90,14 +90,14 @@
                             'curve-style': 'bezier',
                             // 'width': 'data(width)',
                             'target-arrow-shape': 'data(target_arrow_shape)',
-                            'source-arrow-shape': 'data(source_arrow_shape)',
+                            'source-arrow-shape': 'data(source_arrow_shape)'
                         }),
                     elements: all_data.elements,
 
                     layout: {name: '{{layout}}'
                     },
 
-                    boxSelectionEnabled: true,
+                    boxSelectionEnabled: true
                 });
 
                 var dynamics_vis = function(){
@@ -215,6 +215,24 @@
                     };
                 };
 
+                var cluster_info = function () {
+                    cy.batch(function () {
+                        cy.nodes("[clus_colors]").forEach(function (n) {
+                            var bg = n.data('clus_colors');
+                            var perc = n.data('clus_perc');
+                            var i;
+                            var pie_bg = {};
+                            for (i = 0; i < bg.length; i++){
+                                pie_bg['pie-'+(i+1)+'-background-color'] = bg[i];
+                                pie_bg['pie-'+(i+1)+'-background-size'] = perc[i]
+                            }
+                            n.style(pie_bg);
+
+                        })
+
+                    });
+                };
+
                 var static_vis = function () {
                     $('#{{textid}}')[0].style.display = 'none';
                     $('#{{rangeid}}')[0].style.display = 'none';
@@ -225,7 +243,8 @@
                 if(all_data.data.view == 'dynamic'){
                     dynamics_vis();
                 } else {
-                    static_vis()
+                    static_vis();
+                    cluster_info()
                 }
 
                 var allNodes;
