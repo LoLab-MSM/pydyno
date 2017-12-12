@@ -5,7 +5,7 @@ A package for rendering embedded Cytoscape.js object for IPython Notebook.
 
 """
 
-from pysb.tools.cytoscapejs_visualization.cytoscapejs.viewer import *
+from tropical.cytoscapejs_visualization.cytoscapejs.viewer import *
 import os
 JS_LOADER_FILE = "loader.js"
 
