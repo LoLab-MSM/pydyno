@@ -18,6 +18,8 @@ before_install:
 - pip install -i https://pypi.binstar.org/pypi/simple pygraphviz
 - pip install git+https://github.com/pysb/pysb.git
 - pip install python-coveralls pathos
+- mkdir -p ~/.config/matplotlib
+- echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
 - wget "http://www.csb.pitt.edu/Faculty/Faeder/wp-content/uploads/2017/04/BioNetGen-2.2.6-stable_Linux.tar.gz"
     -O bionetgen.tar.gz
 - tar xzf bionetgen.tar.gz
@@ -27,5 +29,6 @@ install:
   python setup.py build --build-lib=build/lib
 script:
   nosetests build/lib/tropical --with-coverage --cover-inclusive
+  --cover-package=build/lib/tropical
 after_success:
   coveralls
