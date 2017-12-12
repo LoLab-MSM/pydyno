@@ -1,5 +1,6 @@
 from __future__ import division
 import matplotlib
+
 matplotlib.use('Agg')
 import os
 import pandas as pd
@@ -45,7 +46,7 @@ def lcs_dist_diff_length(seq1, seq2):
     seq1_len = len(seq1)
     seq2_len = len(seq2)
 
-    d_1_2 = seq1_len + seq2_len - 2*lcs.lcs_std(seq1, seq2)[0]
+    d_1_2 = seq1_len + seq2_len - 2 * lcs.lcs_std(seq1, seq2)[0]
     return d_1_2
 
 
@@ -68,28 +69,27 @@ class ClusterSequences(object):
     truncate_seq: int
         Index of where to truncate a sequence
     """
-    def __init__(self, data, unique_sequences=True, truncate_seq=None):
-        if isinstance(data, str):
-            if os.path.isfile(data):
-                data_seqs = pd.read_csv(data, header=0, index_col=0)
+
+    def __init__(self, seqdata, unique_sequences=True, truncate_seq=None):
+        if isinstance(seqdata, str):
+            if os.path.isfile(seqdata):
+                data_seqs = pd.read_csv(seqdata, header=0, index_col=0)
                 # convert column names into float numbers
                 data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
             else:
                 raise TypeError('String is not a file')
-        elif isinstance(data, collections.Iterable):
-            data_seqs = data
+        elif isinstance(seqdata, collections.Iterable):
+            data_seqs = seqdata
             data_seqs = pd.DataFrame(data=data_seqs)
         else:
             raise TypeError('data type not valid')
 
         if isinstance(truncate_seq, int):
             data_seqs = data_seqs[data_seqs.columns.tolist()[:truncate_seq]]
-        self.n_sequences = len(data)
+        self.n_sequences = len(seqdata)
 
         if unique_sequences:
-            data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().rename('count').reset_index()
-            data_seqs.set_index([range(len(data_seqs)), 'count'], inplace=True)
-            self.sequences = data_seqs
+            self.sequences = self.get_unique_sequences(data_seqs)
             self.unique = True
         else:
             self.sequences = data_seqs
@@ -105,8 +105,14 @@ class ClusterSequences(object):
         self.cluster_method = ''
 
     def __repr__(self):
-        return ('{} (Sequences:{} Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
+        return (
+        '{} (Sequences:{}, Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
 
+    @staticmethod
+    def get_unique_sequences(data_seqs):
+        data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().rename('count').reset_index()
+        data_seqs.set_index([range(len(data_seqs)), 'count'], inplace=True)
+        return data_seqs
 
     def diss_matrix(self, metric='LCS', n_jobs=1):
         """
@@ -192,7 +198,8 @@ class ClusterSequences(object):
         -------
 
         """
-        kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.diss)
+        kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(
+            self.diss)
         self.labels = kmeans.labels_
         self.cluster_method = 'kmeans'
         return
@@ -213,7 +220,7 @@ class ClusterSequences(object):
 
     def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
         if isinstance(cluster_range, int):
-            cluster_range = range(2, cluster_range+1) # +1 to cluster up to cluster_range
+            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
         elif isinstance(cluster_range, collections.Iterable):
             pass
         else:
@@ -223,7 +230,7 @@ class ClusterSequences(object):
             clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.diss)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
-        clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_silhouette': cluster_silhouette})
+        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
         return clusters_df
 
     def calinski_harabaz_score(self):
@@ -236,7 +243,7 @@ class ClusterSequences(object):
         if self.cluster_method not in ['kmeans']:
             raise ValueError('Analysis not valid for {0}'.format(self.cluster_method))
         if isinstance(cluster_range, int):
-            cluster_range = range(2, cluster_range+1) # +1 to cluster up to cluster_range
+            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
         elif isinstance(cluster_range, collections.Iterable):
             pass
         else:
@@ -245,19 +252,128 @@ class ClusterSequences(object):
         for num_clusters in cluster_range:
             clusters = cluster.KMeans(num_clusters).fit(self.diss)
             cluster_errors.append(clusters.inertia_)
-        clusters_df = pd.DataFrame({'num_clusters':cluster_range, 'cluster_errors': cluster_errors})
+        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_errors': cluster_errors})
         plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
         plt.savefig('elbow_analysis.png', format='png')
 
-    def cluster_percentage_color(self):
+    assign = lambda d, k: lambda f: d.setdefault(k, f)
+    representativeness = {}
+
+    @assign(representativeness, 'neighborhood')
+    def neighbourhood_density(self, proportion, sequences_idx=None):
+        seq_len = self.sequences.shape[1]
+        ci = 1  # ci is the indel cost
+        s = 2  # s is the substitution cost
+        # this is the maximal distance between two sequences using the optimal matching metric
+        # with indel cost ci=1 and substitution cost s=2. Gabardinho et al (2011) communications in computer
+        # and information science
+        theo_max_dist = seq_len * min([2 * ci, s])
+        neighbourhood_radius = theo_max_dist * proportion
+
+        def neighbourhood_density(seq_dists):
+            density = len(seq_dists[seq_dists < neighbourhood_radius])
+            return density
+
+        if sequences_idx is not None:
+            seqs = self.sequences.iloc[sequences_idx]
+            seqs_diss = self.diss[sequences_idx][:, sequences_idx]
+        else:
+            seqs = self.sequences
+            seqs_diss = self.diss
+        seqs_neighbours = np.apply_along_axis(neighbourhood_density, 1, seqs_diss)
+        decreasing_seqs = seqs.iloc[seqs_neighbours.argsort()[::-1]]
+        return decreasing_seqs.iloc[0].values
+
+    @assign(representativeness, 'centrality')
+    def centrality(self, sequences_idx=None):
+        if sequences_idx is not None:
+            seqs = self.sequences.iloc[sequences_idx]
+            seqs_diss = self.diss[sequences_idx][:, sequences_idx]
+        else:
+            seqs = self.sequences
+            seqs_diss = self.diss
+        seqs_centrality_idx = seqs_diss.sum(axis=0).argsort()
+        decreasing_seqs = seqs.iloc[seqs_centrality_idx]
+        return decreasing_seqs.iloc[0].values
+
+    @assign(representativeness, 'frequency')
+    def frequency(self, sequences_idx=None):
+        decreasing_seqs = self.neighbourhood_density(proportion=1, sequences_idx=sequences_idx)
+        return decreasing_seqs.iloc[0].values
+
+    def transition_rate_matrix(self, time_varying=False, lag=1):
+        # this code comes from seqtrate from the TraMineR package in r
+        nbetat = len(self.unique_states)
+        sdur = self.sequences.shape[1]
+        alltransitions = np.arange(0, sdur - lag)
+        numtransition = len(alltransitions)
+        row_index = pd.MultiIndex.from_product([alltransitions, self.unique_states],
+                                               names=['time_idx', 'from_state'])  # , names=row_names)
+        col_index = pd.MultiIndex.from_product([self.unique_states], names=['to_state'])  # , names=column_names)
+        if time_varying:
+            array_zeros = np.zeros(shape=(nbetat * numtransition, nbetat))
+            tmat = pd.DataFrame(array_zeros, index=row_index, columns=col_index)
+            for sl in alltransitions:
+                for x in self.unique_states:
+                    colxcond = self.sequences[[sl]] == x
+                    PA = colxcond.sum().values[0]
+                    if PA == 0:
+                        tmat.loc[sl, x] = 0
+                    else:
+                        for y in self.unique_states:
+                            PAB_p = np.logical_and(colxcond, self.sequences[[sl + lag]] == y)
+                            PAB = PAB_p.sum().values[0]
+                            tmat.loc[sl, x][[y]] = PAB / PA
+        else:
+            tmat = pd.DataFrame(index=self.unique_states, columns=self.unique_states)
+            for x in self.unique_states:
+                # PA = 0
+                colxcond = self.sequences[alltransitions] == x
+                if numtransition > 1:
+                    PA = colxcond.sum(axis=1).sum()
+                else:
+                    PA = colxcond.sum()
+                if PA == 0:
+                    tmat.loc[x] = 0
+                else:
+                    for y in self.unique_states:
+                        if numtransition > 1:
+                            PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
+                            PAB = PAB_p.sum(axis=1).sum()
+                        else:
+                            PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
+                            PAB = PAB_p.sum()
+                        tmat.loc[x][[y]] = PAB / PA
+
+        return tmat
+
+    # def seqlogp(self, prob='trate', time_varying=True, begin='freq'):
+    #     sl = self.sequences.shape[1]  # all sequences have the same length for our analysis
+    #     maxage = sl
+    #     nbtrans = maxage - 1
+    #     agedtr = np.zeros(maxage)
+
+    def dispatch(self, k):  # , *args, **kwargs):
+        try:
+            method = self.representativeness[k].__get__(self, type(self))
+        except KeyError:
+            assert k in self.representativeness, "invalid operation: " + repr(k)
+        return method  # (*args, **kwargs)
+
+    def cluster_percentage_color(self, representative_method='centrality', **kwargs):
         if self.labels is None:
             raise Exception('you must cluster the signatures first')
+
+        rep_method = self.dispatch(representative_method)
         clusters = set(self.labels)
         colors = distinct_colors(len(clusters))
         cluster_inf = {}
         for clus in clusters:
             clus_seqs = self.sequences.iloc[self.labels == clus]
+            clus_idxs = clus_seqs.index.get_level_values(0).values
+            rep = rep_method(sequences_idx=clus_idxs, **kwargs)
             n_seqs = clus_seqs.shape[0]
+            # This is to sum over the index of sequences that have the sequence repetitions
             if self.unique:
                 total_seqs = 0
                 for seq in clus_seqs.index.values:
@@ -266,7 +382,7 @@ class ClusterSequences(object):
                 total_seqs = n_seqs
 
             cluster_percentage = total_seqs / self.n_sequences
-            cluster_inf[clus] = (cluster_percentage, colors[clus])
+            cluster_inf[clus] = (cluster_percentage, colors[clus], rep)
 
         return cluster_inf
 
@@ -275,6 +391,7 @@ class PlotSequences(object):
     """
     Class to plot dynamic signatures sequences
     """
+
     def __init__(self, sequence_obj):
         """
 
@@ -297,17 +414,17 @@ class PlotSequences(object):
     def cmap_norm(self):
         cmap = ListedColormap(self.states_colors.values())
         bounds = self.states_colors.keys()
-        bounds.append(bounds[-1]+1)
+        bounds.append(bounds[-1] + 1)
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
     def modal_plot(self, title='', legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
-            clusters = list(clusters)[:-1] # this is to not plot the signatures that can't be clustered :(
+            clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
         else:
             clusters = list(clusters)
-        n_rows = int(math.ceil(len(clusters)/3))
+        n_rows = int(math.ceil(len(clusters) / 3))
         f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True, figsize=(8, 6))
         f.subplots_adjust(hspace=.5)
         axs = axs.reshape(n_rows * 3)
@@ -319,10 +436,10 @@ class PlotSequences(object):
         #     plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
 
         plots_off = (n_rows * 3) - len(clusters)
-        for i in range(1, plots_off+1):
+        for i in range(1, plots_off + 1):
             axs[-i].axis('off')
 
-        for clus in clusters: # if we start from 1 it won't plot the sets not clustered
+        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
             if self.unique:
@@ -353,20 +470,20 @@ class PlotSequences(object):
             clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
         else:
             clusters = list(clusters)
-        n_rows = int(math.ceil(len(clusters)/3))
+        n_rows = int(math.ceil(len(clusters) / 3))
         f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
         f.subplots_adjust(hspace=.6, wspace=.4)
         axs = axs.reshape(n_rows * 3)
 
         plots_off = (n_rows * 3) - len(clusters)
-        for i in range(1, plots_off+1):
+        for i in range(1, plots_off + 1):
             axs[-i].axis('off')
 
         # TODO search for other types of sorting
         if sort_seq == 'silhouette':
             sil_samples = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
 
-        for clus in clusters: # if we start from 1 it won't plot the sets not clustered
+        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
             if self.unique:
@@ -376,14 +493,15 @@ class PlotSequences(object):
             else:
                 total_seqs = n_seqs
 
-            clus_sil_samples = sil_samples[self.cluster_labels == clus] # FIXME varible sil_samples can be referenced without assignment
+            clus_sil_samples = sil_samples[
+                self.cluster_labels == clus]  # FIXME varible sil_samples can be referenced without assignment
             clus_sil_sort = np.argsort(clus_sil_samples)
             clus_seqs = clus_seqs.iloc[clus_sil_sort]
             xx = self.sequences.columns
             count_seqs = 0
 
             for index, seq in clus_seqs.iterrows():
-                y = np.array([count_seqs]*(clus_seqs.shape[1]))
+                y = np.array([count_seqs] * (clus_seqs.shape[1]))
                 points = np.array([xx, y]).T.reshape(-1, 1, 2)
                 segments = np.concatenate([points[:-1], points[1:]], axis=1)
                 lc = LineCollection(segments, cmap=self.cmap, norm=self.norm)
