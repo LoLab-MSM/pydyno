@@ -28,6 +28,7 @@ before_install:
 install:
   python setup.py build --build-lib=build/lib
 script:
-  nosetests build/lib/tropical/tests
+  nosetests build/lib/tropical --with-coverage --cover-inclusive
+  --cover-package=build/lib/tropical
 after_success:
   coveralls
