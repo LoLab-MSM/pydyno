@@ -25,7 +25,7 @@ class TestDinSygnSingle(TestDynSignBase):
 
     def test_run_tropical(self):
         signatures = dynamic_signatures_range.run_tropical(self.model, self.sim)
-        assert np.array_equal(signatures[3][1],
+        assert np.array_equal(signatures[2][1],
                               np.array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
                                         2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2,
@@ -42,7 +42,7 @@ class TestDinSygnSingle(TestDynSignBase):
 
     def test_equations_to_tropicalize(self):
         self.tro.equations_to_tropicalize(get_passengers_by='imp_nodes')
-        assert self.tro.eqs_for_tropicalization.keys() == [3, 5], self.tro.eqs_for_tropicalization.keys()
+        assert self.tro.eqs_for_tropicalization.keys() == [2, 4], self.tro.eqs_for_tropicalization.keys()
 
     @raises(ValueError)
     def test_equations_to_tropicalize_invalid_method(self):
