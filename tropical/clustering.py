@@ -211,6 +211,12 @@ class ClusterSequences(object):
         return
 
     def silhouette_score(self):
+        """
+
+        Returns : Silhouette score to measure quality of the clustering
+        -------
+
+        """
         if self.labels is None:
             raise Exception('you must cluster the signatures first')
         if self.cluster_method == 'hdbscan':
@@ -225,6 +231,21 @@ class ClusterSequences(object):
             return score
 
     def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
+        """
+
+        Parameters
+        ----------
+        cluster_range : list-like or int
+            Range of the number of clusterings to obtain the silhouette score
+        n_jobs : int
+            Number of processors to use
+        random_state : seed for the random number generator
+        kwargs : keyd arguments to pass to the kmeans clustering function
+
+        Returns
+        -------
+
+        """
         if isinstance(cluster_range, int):
             cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
         elif isinstance(cluster_range, collections.Iterable):
@@ -276,9 +297,9 @@ class ClusterSequences(object):
         theo_max_dist = seq_len * min([2 * ci, s])
         neighbourhood_radius = theo_max_dist * proportion
 
-        def neighbourhood_density(seq_dists):
-            density = len(seq_dists[seq_dists < neighbourhood_radius])
-            return density
+        def density(seq_dists):
+            seq_density = len(seq_dists[seq_dists < neighbourhood_radius])
+            return seq_density
 
         if sequences_idx is not None:
             seqs = self.sequences.iloc[sequences_idx]
@@ -286,7 +307,7 @@ class ClusterSequences(object):
         else:
             seqs = self.sequences
             seqs_diss = self.diss
-        seqs_neighbours = np.apply_along_axis(neighbourhood_density, 1, seqs_diss)
+        seqs_neighbours = np.apply_along_axis(density, 1, seqs_diss)
         decreasing_seqs = seqs.iloc[seqs_neighbours.argsort()[::-1]]
         return decreasing_seqs.iloc[0].values
 
