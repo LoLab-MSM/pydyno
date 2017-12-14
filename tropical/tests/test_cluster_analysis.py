@@ -92,6 +92,20 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_silhouette_score_kmeans_range_2_4(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.silhouette_score_kmeans_range(range(2,4))
+        k_range = range(2, 4)
+        clus_info = self.clus.silhouette_score_kmeans_range(k_range)
+        assert len(k_range) == len(clus_info['num_clusters'])
+        scores = np.array([True for i in clus_info['cluster_silhouette'] if 1 > i > -1])
+        assert scores.all() == True
 
+    @raises(TypeError)
+    def test_silhouette_score_kmeans_invalid_range(self):
+        self.clus.diss_matrix(metric='LCS')
+        self.clus.silhouette_score_kmeans_range('bla')
+
+    def test_calinski_harabaz_score(self):
+        self.clus.diss_matrix(metric='LCS')
+        self.clus.Kmeans(2)
+        score = self.clus.calinski_harabaz_score()
+        assert score == 17.0
 
