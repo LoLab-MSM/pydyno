@@ -157,6 +157,8 @@ class ClusterSequences(object):
         -------
 
         """
+        if self.diss is None:
+            raise Exception('Get the dissimilarity matrix first')
         hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples,
                               alpha=alpha, cluster_selection_method=cluster_selection_method,
                               metric='precomputed', **kwargs).fit(self.diss)
@@ -176,6 +178,8 @@ class ClusterSequences(object):
         -------
 
         """
+        if self.diss is None:
+            raise Exception('Get the dissimilarity matrix first')
         kmedoids = kMedoids(self.diss, n_clusters)
         labels = np.empty(len(self.sequences), dtype=np.int32)
         for lb, seq_idx in kmedoids[1].items():
@@ -198,6 +202,8 @@ class ClusterSequences(object):
         -------
 
         """
+        if self.diss is None:
+            raise Exception('Get the dissimilarity matrix first')
         kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(
             self.diss)
         self.labels = kmeans.labels_

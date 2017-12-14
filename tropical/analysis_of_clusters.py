@@ -1,7 +1,6 @@
 from __future__ import division
 import numpy as np
 import csv
-from pysb.integrate import ScipyOdeSimulator
 import matplotlib.pyplot as plt
 import colorsys
 from scipy.optimize import curve_fit
@@ -52,16 +51,6 @@ class AnalysisCluster(object):
 
         # get parameters
         self.all_parameters = sim_results.param_values
-        # # check parameters
-        # if isinstance(parameters, str):
-        #     if os.path.isfile(parameters):
-        #         self.all_parameters = np.load(parameters)
-        # elif isinstance(parameters, np.ndarray):
-        #     self.all_parameters = parameters
-        # else:
-        #     raise TypeError('A valid format of parameters must be provided')
-        # if self.all_parameters.shape[1] != len(self.model.parameters):
-        #     raise Exception("param_values must be the same length as model.parameters")
 
         # check clusters
         if isinstance(clusters, collections.Iterable):
@@ -112,24 +101,17 @@ class AnalysisCluster(object):
             raise TypeError('wrong data structure')
 
         self.all_simulations = sim_results.all
-        # if len(self.tspan) != self.all_simulations.shape[1]:
-        #     raise Exception("'tspan' must be the same length as sim_results")
-        # if self.number_pars != self.all_simulations.shape[0]:
-        #     raise Exception("The number of simulations must be the same as the number of parameters provided")
-        # else:
-        #     self.sim = ScipyOdeSimulator(self.model, self.tspan)
-        #     self.all_simulations = self.sim.run(param_values=self.all_parameters).all
 
     @staticmethod
-    def curve_fit_ftn(functions, species, xdata, ydata, **kwargs):
+    def curve_fit_ftn(function, species, xdata, ydata, **kwargs):
         """
         Fit simulation data to specific function
 
         Parameters
         ----------
-        functions: list, must be same length as species
+        functions: callable
             functions that would be used for fitting the data
-        species: list-like, must be same length as functions
+        species: int
             species whose trajectories will be fitted to a function
         xdata: list-like,
             x-axis data points (usually time span of the simulation)
@@ -143,14 +125,11 @@ class AnalysisCluster(object):
         Parameter values of the functions used to fit the data
 
         """
-        if callable(functions):
-            functions = [functions]
-        if isinstance(species, int):
-            species = [species]
-        results = [0] * len(species)
-        for i, j in enumerate(species):
-            results[i] = curve_fit(functions[i], xdata, ydata['__s{0}'.format(j)], p0=kwargs['p0'])[0]
-        return results[0]
+        if not callable(function):
+            raise Exception('a function must be provided')
+        results = curve_fit(function, xdata, ydata['__s{0}'.format(species)], p0=kwargs['p0'])[0]
+        # FIXME this returns the fitting of only the first species
+        return results
 
     def plot_dynamics_cluster_types(self, species, save_path='', species_to_fit=None, fit_ftn=None, norm=False, **kwargs):
         """
@@ -162,8 +141,8 @@ class AnalysisCluster(object):
             Indices of PySB species that will be plotted
         save_path: str
             Path to file to save figures
-        species_to_fit: list-like
-            Indices of species whose trajectory would be fitted to a function (fit_ftn)
+        species_to_fit: int
+            Index of species whose trajectory would be fitted to a function (fit_ftn)
         fit_ftn: list-like
             list of functions that will be used to fit the simulation results
         norm: boolean, optional
@@ -193,8 +172,8 @@ class AnalysisCluster(object):
                     for i, par_idx in enumerate(clus):
                         y = self.all_simulations[par_idx]
                         try:
-                            result = (self.curve_fit_ftn(functions=fit_ftn, species=species_to_fit, xdata=self.tspan,
-                                                         ydata=y, **kwargs))
+                            ydata = y['__s{0}'.format(species_to_fit)]
+                            result = curve_fit(f=fit_ftn, xdata=self.tspan, ydata=ydata, **kwargs)
                         except:
                             print ("Trajectory {0} can't be fitted".format(par_idx))
                         ftn_result.append(result)

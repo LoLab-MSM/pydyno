@@ -6,6 +6,7 @@ from pysb.simulator import ScipyOdeSimulator
 from pysb.simulator.base import SimulatorException
 from pysb.testing import *
 
+
 class TestDynSignBase(object):
     def setUp(self):
         self.model = model
@@ -17,6 +18,7 @@ class TestDynSignBase(object):
         self.model = None
         self.time = None
         self.sim = None
+
 
 class TestDinSygnSingle(TestDynSignBase):
     def test_setup_tropical(self):
