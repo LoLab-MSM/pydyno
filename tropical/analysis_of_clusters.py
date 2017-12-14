@@ -6,7 +6,7 @@ import colorsys
 from scipy.optimize import curve_fit
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import os
-import helper_functions as hf
+import util as hf
 from matplotlib.offsetbox import AnchoredText
 import seaborn as sns
 import collections
@@ -163,9 +163,6 @@ class AnalysisCluster(object):
         if norm:
             if species_to_fit:
                 # checking if species_to_fit are present in the species that are going to be plotted
-                sp_overlap = [ii for ii in species_to_fit if ii in species]
-                if not sp_overlap:
-                    raise ValueError('species_to_fit must be in model.species')
 
                 for idx, clus in self.clusters.items():
                     ftn_result = []

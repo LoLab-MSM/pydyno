@@ -1,4 +1,4 @@
-import tropical.helper_functions as hf
+import tropical.util as hf
 from pysb.simulator import SimulationResult
 import numpy
 import sympy

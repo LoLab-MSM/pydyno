@@ -106,7 +106,7 @@ class ClusterSequences(object):
 
     def __repr__(self):
         return (
-        '{} (Sequences:{}, Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
+            '{} (Sequences:{}, Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
 
     @staticmethod
     def get_unique_sequences(data_seqs):
