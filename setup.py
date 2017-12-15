@@ -55,7 +55,8 @@ else:
                               libraries=math_lib,
                               include_dirs=py_inc + np_inc)]
 
-install_requires = ['pysb', 'sympy', 'numpy', 'networkx', 'seaborn', 'hdbscan', 'scikit-learn']
+install_requires = ['pysb', 'sympy', 'numpy', 'networkx', 'seaborn', 'hdbscan',
+                    'scikit-learn', 'editdistance']
 
 setup(name='DynSign',
       version='1.0',
