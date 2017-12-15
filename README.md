@@ -31,13 +31,3 @@ tr.visualization(tspan, parameters)
 ![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bak.png)
 
 Zooming in
-
-![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file408_bak_zoom.png)
-
-### Mode2: Mitochondrial Outer Membrane Permeabilization through Bax pores
-
-![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file439_bax.png)
-
-Zooming in
-
-![alt text](https://github.com/LoLab-VU/tropical/blob/master/visualization/examples/Results_EARM/file439_bax_zoom.png)
