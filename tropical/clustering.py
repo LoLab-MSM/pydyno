@@ -248,7 +248,7 @@ class ClusterSequences(object):
         """
         if isinstance(cluster_range, int):
             cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
-        elif isinstance(cluster_range, collections.Iterable):
+        elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
             pass
         else:
             raise TypeError('Type not valid')
@@ -282,12 +282,13 @@ class ClusterSequences(object):
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_errors': cluster_errors})
         plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
         plt.savefig('elbow_analysis.png', format='png')
+        return
 
     assign = lambda d, k: lambda f: d.setdefault(k, f)
     representativeness = {}
 
     @assign(representativeness, 'neighborhood')
-    def neighbourhood_density(self, proportion, sequences_idx=None):
+    def neighborhood_density(self, proportion, sequences_idx=None):
         seq_len = self.sequences.shape[1]
         ci = 1  # ci is the indel cost
         s = 2  # s is the substitution cost
@@ -325,8 +326,8 @@ class ClusterSequences(object):
 
     @assign(representativeness, 'frequency')
     def frequency(self, sequences_idx=None):
-        decreasing_seqs = self.neighbourhood_density(proportion=1, sequences_idx=sequences_idx)
-        return decreasing_seqs.iloc[0].values
+        decreasing_seqs = self.neighborhood_density(proportion=1, sequences_idx=sequences_idx)
+        return decreasing_seqs
 
     def transition_rate_matrix(self, time_varying=False, lag=1):
         # this code comes from seqtrate from the TraMineR package in r
