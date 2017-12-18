@@ -251,5 +251,3 @@ def find_nonimportant_nodes(model):
     non_imp_nodes = set.intersection(non_imp_pdts, non_imp_rcts)
     passengers = non_imp_nodes
     return passengers
-
-
