@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pysb.integrate
-import tropical.helper_functions as hf
+import tropical.util as hf
+import pandas as pd
+from tropical.dynamic_signatures_range import run_tropical
 from pysb.integrate import ScipyOdeSimulator
 
 
@@ -49,27 +50,33 @@ def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_ch
     plt.show()
 
 
-def parameter_distribution(parameters_paths, par_name, new_path):
-    """
+def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=None, file_path=''):
+    # TODO: make sure this functions works
+    y = ScipyOdeSimulator(model, tspan=tspan, param_values=parameters).run().dataframe
+    observables = [obs.name for obs in model.observables]
+    y.drop(observables, axis=1, inplace=True)
+    sp_short_names = [hf.parse_name(sp) for sp in model.species]
+    y.columns = sp_short_names
+    # y['time'] = tspan
+    signatures = run_tropical(model, tspan, parameters, diff_par=1, type_sign='consumption')
+    for sp in sp_to_analyze:
+        y[hf.parse_name(model.species[sp])+'_truncated'] = signatures[sp]
+    y.to_csv(file_path+'tr_sig.txt')
 
-    :param parameters_paths: paths to clusters of parameters. It can be a folder or a file that contains the paths
-    :param par_name: Specific PySB parameter name to look at
-    :param new_path: Optional, path to where the parameters are in the file names
-    :return: a matplotlib histogram of the parameters
-    """
-
-    plt.figure(1)
-    for i, par_path in enumerate(parameters_paths):
-        all_parameters = hf.read_all_pars(par_path, new_path)
-        weights = np.ones_like(all_parameters[par_name]*100)/len(all_parameters[par_name])
-        all_parameters[par_name].plot.hist(title=par_name, alpha=0.5, label='Type{0}'.format(i), weights=weights)
-
-    plt.legend(loc=0)
-    plt.savefig('/home/oscar/Documents/tropical_earm/type1_pars_distribution/{0}.{1}'.format(par_name, 'png'), bbox_inches='tight', dpi=400
-                , format='png')
-    plt.clf()
-    # plt.show()
-
-
-
+    if parameters is not None:
+        initials = np.zeros([1, len(model.species)])
+        initials_df = pd.DataFrame(data=initials, columns=sp_short_names)
+        initial_pars = [ic[1] for ic in model.initial_conditions]
+        for i, par in enumerate(model.parameters):
+            if par in initial_pars:
+                idx = initial_pars.index(par)
+                ic_name = hf.parse_name(model.initial_conditions[idx][0])
+                ic_value = parameters[i]
+                initials_df[ic_name] = ic_value
+        # initials_idx_in_pars = np.array([i for i, j in enumerate(model.parameters)
+        #                                  if j in [par[1] for par in model.initial_conditions]])
+        # initials[0][initials_idx_in_pars] = parameters[initials_idx_in_pars]
+        # initials_df = pd.DataFrame(data=initials, columns=sp_short_names)
+        initials_df.to_csv(file_path+'initials.txt', index=False)
+    return
 
