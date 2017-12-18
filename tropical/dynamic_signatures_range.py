@@ -176,7 +176,8 @@ class Tropical(object):
                     arg_prod = [0] * len(var_prod)
                     for idx, va in enumerate(var_prod):
                         if str(va).startswith('__'):
-                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[str(va)])
+                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                            arg_prod[idx] = numpy.maximum(self.mach_eps, y[:, sp_idx])
                         else:
                             arg_prod[idx] = param_values[self.par_name_idx[va.name]]
                     # arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
@@ -279,6 +280,14 @@ class Tropical(object):
         return
 
 
+def all_equal(iterator):
+    try:
+        iterator = iter(iterator)
+        first = next(iterator)
+        return all(numpy.array_equal(first, rest) for rest in iterator)
+    except StopIteration:
+        return True
+
 def get_simulations(simulations):
     """
     Obtains trajectories, parameters, tspan from a SimulationResult object
@@ -295,19 +304,24 @@ def get_simulations(simulations):
         if h5py is None:
             raise Exception('please install the h5py package for this feature')
         if h5py.is_hdf5(simulations):
-            sim = SimulationResult.load(simulations)
-            tspan = sim.tout[0]
+            sims = h5py.File(simulations)
+            parameters = sims.values()[0]['result']['param_values']
+            trajectories = sims.values()[0]['result']['trajectories']
+            sim_tout = sims.values()[0]['result']['tout']
+            if all_equal(sim_tout):
+                tspan = sim_tout[0]
+            else:
+                raise Exception('Analysis is not supported for simulations with different time spans')
         else:
             raise TypeError('File format not supported')
     elif isinstance(simulations, SimulationResult):
-        sim = simulations
-        tspan = sim.tout[0]
+        sims = simulations
+        parameters = sims.param_values
+        trajectories = sims.species
+        tspan = sims.tout[0]
     else:
         raise TypeError('format not supported')
-    trajectories = sim.all
-    parameters = sim.param_values
-    nsims = sim.nsims
-    tspan = tspan
+    nsims = len(parameters)
     return trajectories, parameters, nsims, tspan
 
 
