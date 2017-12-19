@@ -4,7 +4,7 @@ from tropical.examples.double_enzymatic.mm_two_paths_model import model
 from pysb.simulator.scipyode import ScipyOdeSimulator
 
 parameters = np.load('calibrated_pars.npy')
-parameters = parameters[:901]
+parameters = parameters
 
 tspan = np.linspace(0, 50, 101)
 sim = ScipyOdeSimulator(model, tspan=tspan).run(param_values=parameters)
