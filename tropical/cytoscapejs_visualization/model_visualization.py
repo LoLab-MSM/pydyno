@@ -312,11 +312,15 @@ class ModelVisualization(object):
     def _add_cluster_info(self, cluster_info):
         node_backgrounds = {}
         node_percentages = {}
+        # node_repres = {}
+        node_clus_scores = {}
         for sp_info in cluster_info:
             sp = [idx for idx in sp_info.keys() if isinstance(idx, int)]
             sp = sp[0]
             percs = []
             bgs = []
+            repres = []
+            scores = []
             for perc in sp_info[sp].values():
                 if perc[0] < 1:
                     perc_r = perc[0] * 100
@@ -324,11 +328,17 @@ class ModelVisualization(object):
                     perc_r = perc[0]
                 percs.append(perc_r)
                 bgs.append(perc[1])
+                # repres.append(perc[2].tolist())
+                scores.append(sp_info['best_silh'])
             node_percentages['s{}'.format(sp)] = percs
             node_backgrounds['s{}'.format(sp)] = bgs
+            # node_repres['s{}'.format(sp)] = repres
+            node_clus_scores['s{}'.format(sp)] = scores
 
         nx.set_node_attributes(self.sp_graph, node_backgrounds, 'clus_colors')
         nx.set_node_attributes(self.sp_graph, node_percentages, 'clus_perc')
+        # nx.set_node_attributes(self.sp_graph, node_repres, 'clus_repres')
+        nx.set_node_attributes(self.sp_graph, node_clus_scores, 'clus_scores')
         return
 
     def _add_edge_node_dynamics(self):
