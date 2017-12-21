@@ -249,7 +249,7 @@
                         style: {
                             classes: 'qtip-bootstrap',
                             tip: {
-                                width: 8,
+                                width: 800,
                                 height: 4
                             }
                         }
@@ -260,7 +260,7 @@
                             var bg = n.data('clus_colors');
                             var perc = n.data('clus_perc');
                             var scores = n.data('clus_scores');
-//                            var repres = n.data('clus_repres');
+                            var repres = n.data('clus_repres');
                             var i;
                             var pie_bg = {};
                             for (i = 0; i < bg.length; i++){
@@ -269,7 +269,7 @@
                                 var data = "";
                                 data +="<li style='list-style: none;'>";
                                 data +="<div class='input-color'> <input type='text' " +
-                                    "value='"+ perc[i].toFixed(2) +" "+'%,'+"' /> <div " +
+                                    "value='"+ perc[i].toFixed(2) +" "+'%,'+" "+ repres[i] +"' /> <div " +
                                     "class='color-box' style='background-color:"+ bg[i] +";' </div></div>";
                                 data +="</li>";
                                 $('#{{clusid}}').append(data) ;
