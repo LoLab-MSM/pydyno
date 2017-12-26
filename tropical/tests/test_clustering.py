@@ -66,10 +66,6 @@ class TestClusteringSingle(TestClusteringBase):
         assert len(self.clus.labels) == len(self.clus.sequences)
         assert not np.isnan(self.clus.labels).any()
 
-    @raises(Exception)
-    def test_kmeans_no_diss_matrix(self):
-        self.clus.Kmeans(2)
-
     def test_silhouette_score_hdbscan(self):
         self.clus.diss_matrix(metric='LCS')
         self.clus.hdbscan(min_cluster_size=2, min_samples=1)
