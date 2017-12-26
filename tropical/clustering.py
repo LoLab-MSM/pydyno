@@ -253,7 +253,7 @@ class ClusterSequences(object):
             raise TypeError('Type not valid')
         cluster_silhouette = []
         for num_clusters in cluster_range:
-            clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.diss)
+            clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.sequences)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
