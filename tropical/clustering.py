@@ -209,6 +209,13 @@ class ClusterSequences(object):
         self.cluster_method = 'kmeans'
         return
 
+    def agglomerative_clustering(self, n_clusters, linkage='average', **kwargs):
+        ac = cluster.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed',
+                                             linkage=linkage, **kwargs).fit(self.diss)
+        self.labels = ac.labels_
+        self.cluster_method = 'agglomerative'
+        return
+
     def silhouette_score(self):
         """
 
@@ -254,6 +261,37 @@ class ClusterSequences(object):
         cluster_silhouette = []
         for num_clusters in cluster_range:
             clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.sequences)
+            score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
+            cluster_silhouette.append(score)
+        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
+        return clusters_df
+
+    def silhouette_score_agglomerative_range(self, cluster_range, linkage='average', **kwargs):
+        """
+
+        Parameters
+        ----------
+        cluster_range : list-like or int
+            Range of the number of clusterings to obtain the silhouette score
+        n_jobs : int
+            Number of processors to use
+        random_state : seed for the random number generator
+        kwargs : keyd arguments to pass to the kmeans clustering function
+
+        Returns
+        -------
+
+        """
+        if isinstance(cluster_range, int):
+            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
+        elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
+            pass
+        else:
+            raise TypeError('Type not valid')
+        cluster_silhouette = []
+        for num_clusters in cluster_range:
+            clusters = cluster.AgglomerativeClustering(num_clusters, linkage=linkage,
+                                                       affinity='precomputed', **kwargs).fit(self.diss)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})

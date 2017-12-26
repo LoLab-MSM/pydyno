@@ -11,7 +11,7 @@ def get_cluster_percentage_color(signatures_idx):
     signatures = all_signatures[signatures_idx]['consumption']
     clus = clustering.ClusterSequences(seqdata=signatures, unique_sequences=False, truncate_seq=50)
     clus.diss_matrix(n_jobs=4)
-    sil_df = clus.silhouette_score_kmeans_range(cluster_range=range(2, 31), n_jobs=4, random_state=1234)
+    sil_df = clus.silhouette_score_agglomerative_range(cluster_range=range(2, 31))
     if sil_threshold:
         silh_diff = sil_df['cluster_silhouette'].max() - sil_threshold
         # Define n_clus to have the minimum number of clusters when silh scores are too similar
