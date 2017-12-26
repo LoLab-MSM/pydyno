@@ -202,10 +202,9 @@ class ClusterSequences(object):
         -------
 
         """
-        if self.diss is None:
-            raise Exception('Get the dissimilarity matrix first')
+        # Kmeans implementation of kmeans only uses Euclidean distance
         kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(
-            self.diss)
+            self.sequences)
         self.labels = kmeans.labels_
         self.cluster_method = 'kmeans'
         return
