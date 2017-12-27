@@ -216,6 +216,14 @@ class ClusterSequences(object):
         self.cluster_method = 'agglomerative'
         return
 
+    def spectral_clustering(self, n_clusters, random_state=None, n_jobs=1, **kwargs):
+        gamma = 1./ len(self.diss[0])
+        kernel = np.exp(-self.diss * gamma)
+        sc = cluster.SpectralClustering(n_clusters=n_clusters, random_state=random_state,
+                                        affinity='precomputed', n_jobs=n_jobs, **kwargs).fit(kernel)
+        self.labels = sc.labels_
+        self.cluster_method = 'spectral'
+
     def silhouette_score(self):
         """
 
