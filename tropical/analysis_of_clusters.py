@@ -231,6 +231,17 @@ class AnalysisCluster(object):
                                                                                     norm_trajectories,
                                                                                     color='blue',
                                                                                     alpha=0.2)
+
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
+                    # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
+                                                                                     format(self.model.species[sp]))
+                    final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
+                                                                                    format='png', dpi=700)
+
         else:
             for idx, clus in self.clusters.items():
                 y = self.all_simulations[clus]
@@ -239,17 +250,18 @@ class AnalysisCluster(object):
                     plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, sp_trajectory,
                                                                                 color='blue',
                                                                                 alpha=0.2)
-        for ii, sp in enumerate(species):
-            for clus in self.clusters:
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlabel('Time')
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_ylabel('Concentration')
-                # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
-                # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_ylim([0, 1])
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].suptitle('{0}'.
-                                                                                 format(self.model.species[sp]))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, clus))
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][0].savefig(final_save_path+'.png',
-                                                                                format='png', dpi=1000)
+
+                    sp_max_conc = np.amax(sp_trajectory)
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
+                    # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, sp_max_conc])
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
+                                                                                     format(self.model.species[sp]))
+                    final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
+                    plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
+                                                                                    format='png', dpi=700)
+
         return
 
     def hist_plot_clusters(self, ic_par_idxs, save_path=''):
