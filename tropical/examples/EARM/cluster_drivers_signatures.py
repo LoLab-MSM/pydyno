@@ -8,7 +8,7 @@ with open('earm_signatures.pickle', 'rb') as handle:
 sil_threshold = 0.025
 
 
-def get_cluster_percentage_color(signatures_idx):
+def cluster_percentage_color_aggomerative(signatures_idx):
     signatures = all_signatures[signatures_idx]['consumption']
     clus = clustering.ClusterSequences(seqdata=signatures, unique_sequences=False, truncate_seq=50)
     clus.diss_matrix(n_jobs=4)
@@ -21,7 +21,7 @@ def get_cluster_percentage_color(signatures_idx):
     else:
         best_silh, n_clus = sil_df.loc[sil_df['cluster_silhouette'].idxmax()]
     n_clus = int(n_clus)
-    clus.Kmeans(n_clusters=n_clus, random_state=1234)
+    clus.agglomerative_clustering(n_clusters=n_clus)
     cluster_information = {signatures_idx: clus.cluster_percentage_color(),
                            'best_silh': best_silh, 'labels': clus.labels}
     return cluster_information
@@ -55,10 +55,11 @@ def cluster_percentage_color_spectral(signatures_idx):
                            'best_silh': best_silh, 'labels': clus.labels}
     return cluster_information
 
+
 drivers = all_signatures.keys()
 drivers.remove('species_combinations')
 p = Pool(4)
-res = p.amap(get_cluster_percentage_color, drivers)
+res = p.amap(cluster_percentage_color_spectral, drivers)
 results = res.get()
 
 with open('results3.pickle', 'wb') as fp:

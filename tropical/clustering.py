@@ -188,26 +188,6 @@ class ClusterSequences(object):
         self.labels = labels
         return
 
-    def Kmeans(self, n_clusters, n_jobs=1, random_state=None, **kwargs):
-        """
-
-        Parameters
-        ----------
-        n_clusters
-        n_jobs
-        random_state
-        kwargs
-
-        Returns
-        -------
-
-        """
-        # Kmeans implementation of kmeans only uses Euclidean distance
-        kmeans = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(
-            self.sequences)
-        self.labels = kmeans.labels_
-        self.cluster_method = 'kmeans'
-        return
 
     def agglomerative_clustering(self, n_clusters, linkage='average', **kwargs):
         ac = cluster.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed',
@@ -263,35 +243,6 @@ class ClusterSequences(object):
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
         return clusters_df
 
-    def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
-        """
-
-        Parameters
-        ----------
-        cluster_range : list-like or int
-            Range of the number of clusterings to obtain the silhouette score
-        n_jobs : int
-            Number of processors to use
-        random_state : seed for the random number generator
-        kwargs : keyd arguments to pass to the kmeans clustering function
-
-        Returns
-        -------
-
-        """
-        if isinstance(cluster_range, int):
-            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
-        elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
-            pass
-        else:
-            raise TypeError('Type not valid')
-        cluster_silhouette = []
-        for num_clusters in cluster_range:
-            clusters = cluster.KMeans(num_clusters, n_jobs=n_jobs, random_state=random_state, **kwargs).fit(self.sequences)
-            score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
-            cluster_silhouette.append(score)
-        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
-        return clusters_df
 
     def silhouette_score_agglomerative_range(self, cluster_range, linkage='average', **kwargs):
         """
@@ -303,7 +254,7 @@ class ClusterSequences(object):
         n_jobs : int
             Number of processors to use
         random_state : seed for the random number generator
-        kwargs : keyd arguments to pass to the kmeans clustering function
+        kwargs : key arguments to pass to the aggomerative clustering function
 
         Returns
         -------
@@ -330,23 +281,23 @@ class ClusterSequences(object):
         score = metrics.calinski_harabaz_score(self.sequences, self.labels)
         return score
 
-    def elbow_plot_kmeans(self, cluster_range):
-        if self.cluster_method not in ['kmeans']:
-            raise ValueError('Analysis not valid for {0}'.format(self.cluster_method))
-        if isinstance(cluster_range, int):
-            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
-        elif isinstance(cluster_range, collections.Iterable):
-            pass
-        else:
-            raise TypeError('Type not valid')
-        cluster_errors = []
-        for num_clusters in cluster_range:
-            clusters = cluster.KMeans(num_clusters).fit(self.diss)
-            cluster_errors.append(clusters.inertia_)
-        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_errors': cluster_errors})
-        plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
-        plt.savefig('elbow_analysis.png', format='png')
-        return
+    # def elbow_plot_kmeans(self, cluster_range):
+    #     if self.cluster_method not in ['kmeans']:
+    #         raise ValueError('Analysis not valid for {0}'.format(self.cluster_method))
+    #     if isinstance(cluster_range, int):
+    #         cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
+    #     elif isinstance(cluster_range, collections.Iterable):
+    #         pass
+    #     else:
+    #         raise TypeError('Type not valid')
+    #     cluster_errors = []
+    #     for num_clusters in cluster_range:
+    #         clusters = cluster.KMeans(num_clusters).fit(self.diss)
+    #         cluster_errors.append(clusters.inertia_)
+    #     clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_errors': cluster_errors})
+    #     plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
+    #     plt.savefig('elbow_analysis.png', format='png')
+    #     return
 
     assign = lambda d, k: lambda f: d.setdefault(k, f)
     representativeness = {}
