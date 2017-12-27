@@ -256,7 +256,7 @@ class ClusterSequences(object):
         kernel = np.exp(-self.diss * gamma)
         cluster_silhouette = []
         for num_clusters in cluster_range:
-            clusters = cluster.SpectralClustering(num_clusters, n_jobs=n_jobs,
+            clusters = cluster.SpectralClustering(num_clusters, n_jobs=n_jobs, affinity='precomputed',
                                                   random_state=random_state, **kwargs).fit(kernel)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
