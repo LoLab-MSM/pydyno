@@ -105,7 +105,7 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_calinski_harabaz_score(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.agglomerative(2)
+        self.clus.agglomerative_clustering(2)
         score = self.clus.calinski_harabaz_score()
         assert score == 17.0
 
