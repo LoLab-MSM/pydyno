@@ -244,6 +244,25 @@ class ClusterSequences(object):
             score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
             return score
 
+    def silhouette_score_spectral_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
+        if isinstance(cluster_range, int):
+            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
+        elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
+            pass
+        else:
+            raise TypeError('Type not valid')
+
+        gamma = 1. / len(self.diss[0])
+        kernel = np.exp(-self.diss * gamma)
+        cluster_silhouette = []
+        for num_clusters in cluster_range:
+            clusters = cluster.SpectralClustering(num_clusters, n_jobs=n_jobs,
+                                                  random_state=random_state, **kwargs).fit(kernel)
+            score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
+            cluster_silhouette.append(score)
+        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
+        return
+
     def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
         """
 
