@@ -59,10 +59,10 @@ class TestClusteringSingle(TestClusteringBase):
     def test_kmedoids_no_diss_matrix(self):
         self.clus.Kmedoids(2)
 
-    def test_kmeans(self):
+    def test_agglomerative(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.Kmeans(2)
-        assert self.clus.cluster_method == 'kmeans'
+        self.clus.agglomerative_clustering(2)
+        assert self.clus.cluster_method == 'agglomerative'
         assert len(self.clus.labels) == len(self.clus.sequences)
         assert not np.isnan(self.clus.labels).any()
 
@@ -72,9 +72,9 @@ class TestClusteringSingle(TestClusteringBase):
         score = self.clus.silhouette_score()
         assert 1 > score > -1
 
-    def test_silhouette_score_kmeans(self):
+    def test_silhouette_score_agglomerative(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.Kmeans(2)
+        self.clus.agglomerative_clustering(2)
         score = self.clus.silhouette_score()
         assert 1 > score > -1
 
@@ -82,12 +82,12 @@ class TestClusteringSingle(TestClusteringBase):
     def test_silhouette_score_without_clustering(self):
         self.clus.silhouette_score()
 
-    def test_silhouette_score_kmeans_range_2_4(self):
+    def test_silhouette_score_agglomerative_range_2_4(self):
         self.clus.diss_matrix(metric='LCS')
         k_range = range(2, 4)
-        clus_info_range = self.clus.silhouette_score_kmeans_range(k_range)
+        clus_info_range = self.clus.silhouette_score_agglomerative_range(k_range)
         clust_n = k_range[-1]
-        clus_info_int = self.clus.silhouette_score_kmeans_range(clust_n)
+        clus_info_int = self.clus.silhouette_score_agglomerative_range(clust_n)
         assert len(k_range) == len(clus_info_range['num_clusters'])
         scores = np.array([True for i in clus_info_range['cluster_silhouette'] if 1 > i > -1])
         assert scores.all() == True
@@ -95,17 +95,17 @@ class TestClusteringSingle(TestClusteringBase):
                                    clus_info_int['cluster_silhouette'])
 
     @raises(TypeError)
-    def test_silhouette_score_wrong_type(self):
-        self.clus.silhouette_score_kmeans_range('4')
+    def test_silhouette_score_agglomerative_wrong_type(self):
+        self.clus.silhouette_score_agglomerative_range('4')
 
     @raises(TypeError)
-    def test_silhouette_score_kmeans_invalid_range(self):
+    def test_silhouette_score_agglomerative_invalid_range(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.silhouette_score_kmeans_range('bla')
+        self.clus.silhouette_score_agglomerative_range('bla')
 
     def test_calinski_harabaz_score(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.Kmeans(2)
+        self.clus.agglomerative(2)
         score = self.clus.calinski_harabaz_score()
         assert score == 17.0
 
@@ -116,7 +116,7 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_neighborhood_density(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.Kmeans(n_clusters=2, random_state=1234)
+        self.clus.agglomerative_clustering(n_clusters=2)
         clus_seqs0 = self.clus.sequences.iloc[self.clus.labels == 0]
         clus_seqs1 = self.clus.sequences.iloc[self.clus.labels == 1]
         clus_idx0 = clus_seqs0.index.get_level_values(0).values
@@ -128,7 +128,7 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_centrality(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.Kmeans(n_clusters=2, random_state=1234)
+        self.clus.agglomerative_clustering(n_clusters=2)
         clus_seqs0 = self.clus.sequences.iloc[self.clus.labels == 0]
         clus_seqs1 = self.clus.sequences.iloc[self.clus.labels == 1]
         clus_idx0 = clus_seqs0.index.get_level_values(0).values
@@ -140,7 +140,7 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_frequency(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.Kmeans(n_clusters=2, random_state=1234)
+        self.clus.agglomerative_clustering(n_clusters=2)
         clus_seqs0 = self.clus.sequences.iloc[self.clus.labels == 0]
         clus_seqs1 = self.clus.sequences.iloc[self.clus.labels == 1]
         clus_idx0 = clus_seqs0.index.get_level_values(0).values
