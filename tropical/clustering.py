@@ -261,7 +261,7 @@ class ClusterSequences(object):
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
-        return
+        return clusters_df
 
     def silhouette_score_kmeans_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
         """
