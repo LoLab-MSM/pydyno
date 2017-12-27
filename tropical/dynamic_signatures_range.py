@@ -339,7 +339,7 @@ def organize_dynsign_multi(signatures):
 # def signatures_to_hdf5(signatures):
 
 
-def run_tropical(model, simulations=None, passengers_by='imp_nodes', diff_par=1):
+def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_to_vis=None):
     """
 
     Parameters
@@ -361,10 +361,13 @@ def run_tropical(model, simulations=None, passengers_by='imp_nodes', diff_par=1)
     tro = Tropical(model)
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
+    if sp_to_vis is not None:
+        hf.visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
+                         all_signatures=signatures, all_comb=tro.all_comb, param_values=parameters[0])
     return signatures
 
 
-def run_tropical_multi(model, simulations=None, passengers_by='imp_nodes', diff_par=1, cpu_cores=1):
+def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1, cpu_cores=1):
     """
 
     Parameters
