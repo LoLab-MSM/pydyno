@@ -251,6 +251,21 @@ class AnalysisCluster(object):
                                                                                 color='blue',
                                                                                 alpha=0.2)
 
+                    ax = plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1]
+                    divider = make_axes_locatable(ax)
+                    # axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
+                    axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
+                    plt.setp(axHisty.get_yticklabels(), visible=False)
+                    hist_data = y[:, -1, sp]
+                    axHisty.hist(hist_data, normed=True, bins='auto', orientation='horizontal')
+                    shape = np.std(hist_data)
+                    scale = np.average(hist_data)
+
+                    pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
+                    anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=10))
+                    axHisty.add_artist(anchored_text)
+                    axHisty.ticklabel_format(axis='x', style='sci', scilimits=(-2, 2))
+
                     sp_max_conc = np.amax(sp_trajectory)
                     plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
                     plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
