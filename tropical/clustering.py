@@ -344,51 +344,51 @@ class ClusterSequences(object):
         decreasing_seqs = self.neighborhood_density(proportion=1, sequences_idx=sequences_idx)
         return decreasing_seqs
 
-    def transition_rate_matrix(self, time_varying=False, lag=1):
-        # this code comes from seqtrate from the TraMineR package in r
-        nbetat = len(self.unique_states)
-        sdur = self.sequences.shape[1]
-        alltransitions = np.arange(0, sdur - lag)
-        numtransition = len(alltransitions)
-        row_index = pd.MultiIndex.from_product([alltransitions, self.unique_states],
-                                               names=['time_idx', 'from_state'])  # , names=row_names)
-        col_index = pd.MultiIndex.from_product([self.unique_states], names=['to_state'])  # , names=column_names)
-        if time_varying:
-            array_zeros = np.zeros(shape=(nbetat * numtransition, nbetat))
-            tmat = pd.DataFrame(array_zeros, index=row_index, columns=col_index)
-            for sl in alltransitions:
-                for x in self.unique_states:
-                    colxcond = self.sequences[[sl]] == x
-                    PA = colxcond.sum().values[0]
-                    if PA == 0:
-                        tmat.loc[sl, x] = 0
-                    else:
-                        for y in self.unique_states:
-                            PAB_p = np.logical_and(colxcond, self.sequences[[sl + lag]] == y)
-                            PAB = PAB_p.sum().values[0]
-                            tmat.loc[sl, x][[y]] = PAB / PA
-        else:
-            tmat = pd.DataFrame(index=self.unique_states, columns=self.unique_states)
-            for x in self.unique_states:
-                # PA = 0
-                colxcond = self.sequences[alltransitions] == x
-                if numtransition > 1:
-                    PA = colxcond.sum(axis=1).sum()
-                else:
-                    PA = colxcond.sum()
-                if PA == 0:
-                    tmat.loc[x] = 0
-                else:
-                    for y in self.unique_states:
-                        if numtransition > 1:
-                            PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
-                            PAB = PAB_p.sum(axis=1).sum()
-                        else:
-                            PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
-                            PAB = PAB_p.sum()
-                        tmat.loc[x][[y]] = PAB / PA
-
-        return tmat
+    # def transition_rate_matrix(self, time_varying=False, lag=1):
+    #     # this code comes from seqtrate from the TraMineR package in r
+    #     nbetat = len(self.unique_states)
+    #     sdur = self.sequences.shape[1]
+    #     alltransitions = np.arange(0, sdur - lag)
+    #     numtransition = len(alltransitions)
+    #     row_index = pd.MultiIndex.from_product([alltransitions, self.unique_states],
+    #                                            names=['time_idx', 'from_state'])  # , names=row_names)
+    #     col_index = pd.MultiIndex.from_product([self.unique_states], names=['to_state'])  # , names=column_names)
+    #     if time_varying:
+    #         array_zeros = np.zeros(shape=(nbetat * numtransition, nbetat))
+    #         tmat = pd.DataFrame(array_zeros, index=row_index, columns=col_index)
+    #         for sl in alltransitions:
+    #             for x in self.unique_states:
+    #                 colxcond = self.sequences[[sl]] == x
+    #                 PA = colxcond.sum().values[0]
+    #                 if PA == 0:
+    #                     tmat.loc[sl, x] = 0
+    #                 else:
+    #                     for y in self.unique_states:
+    #                         PAB_p = np.logical_and(colxcond, self.sequences[[sl + lag]] == y)
+    #                         PAB = PAB_p.sum().values[0]
+    #                         tmat.loc[sl, x][[y]] = PAB / PA
+    #     else:
+    #         tmat = pd.DataFrame(index=self.unique_states, columns=self.unique_states)
+    #         for x in self.unique_states:
+    #             # PA = 0
+    #             colxcond = self.sequences[alltransitions] == x
+    #             if numtransition > 1:
+    #                 PA = colxcond.sum(axis=1).sum()
+    #             else:
+    #                 PA = colxcond.sum()
+    #             if PA == 0:
+    #                 tmat.loc[x] = 0
+    #             else:
+    #                 for y in self.unique_states:
+    #                     if numtransition > 1:
+    #                         PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
+    #                         PAB = PAB_p.sum(axis=1).sum()
+    #                     else:
+    #                         PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
+    #                         PAB = PAB_p.sum()
+    #                     tmat.loc[x][[y]] = PAB / PA
+    #
+    #     return tmat
 
     # def seqlogp(self, prob='trate', time_varying=True, begin='freq'):
     #     sl = self.sequences.shape[1]  # all sequences have the same length for our analysis
