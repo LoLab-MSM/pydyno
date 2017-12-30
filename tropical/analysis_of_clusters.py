@@ -183,7 +183,7 @@ class AnalysisCluster(object):
                 for idx, clus in self.clusters.items():
                     ftn_result = {}
                     y = self.all_simulations[clus]
-                    for i_sp, sp in enumerate(species):
+                    for sp in species:
                         sp_trajectory = y[:, :, sp]
                         norm_trajectories = np.divide(sp_trajectory.T, np.amax(sp_trajectory, axis=1))
                         plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
@@ -195,7 +195,7 @@ class AnalysisCluster(object):
                                                             ydata=sp_trajectory, **kwargs)
                             ftn_result[sp] = result_fit
 
-                    for ind, sp_dist in enumerate(sp_overlap):
+                    for sp_dist in sp_overlap:
                         ax = plots_dict['plot_sp{0}_cluster{1}'.format(sp_dist, idx)][1]
                         divider = make_axes_locatable(ax)
                         axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
@@ -346,7 +346,7 @@ class AnalysisCluster(object):
 
         """
 
-        for idx, sp_ic in enumerate(par_idxs):
+        for sp_ic in par_idxs:
             plt.figure(1)
             data_violin = [0]*len(self.clusters)
             d_count = 0

@@ -5,7 +5,7 @@ matplotlib.use('Agg')
 import os
 import pandas as pd
 import numpy as np
-from sklearn.metrics.pairwise import pairwise_distances, distance_metrics
+from sklearn.metrics.pairwise import pairwise_distances
 import sklearn.cluster as cluster
 import hdbscan
 import matplotlib.pyplot as plt

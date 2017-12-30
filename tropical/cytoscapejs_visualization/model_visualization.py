@@ -262,7 +262,7 @@ class ModelVisualization(object):
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
         # digraph only allows one edge between two nodes
 
-        for idx, cp in enumerate(self.model.species):
+        for idx in range(len(self.model.species)):
             species_node = 's%d' % idx
             # Setting the information about the node
             node_data = {}
@@ -312,7 +312,7 @@ class ModelVisualization(object):
     def _add_cluster_info(self, cluster_info):
         node_backgrounds = {}
         node_percentages = {}
-        # node_repres = {}
+        node_repres = {}
         node_clus_scores = {}
         for sp_info in cluster_info:
             sp = [idx for idx in sp_info.keys() if isinstance(idx, int)]
@@ -328,16 +328,16 @@ class ModelVisualization(object):
                     perc_r = perc[0]
                 percs.append(perc_r)
                 bgs.append(perc[1])
-                # repres.append(perc[2].tolist())
+                repres.append(perc[2].tolist())
                 scores.append(sp_info['best_silh'])
             node_percentages['s{}'.format(sp)] = percs
             node_backgrounds['s{}'.format(sp)] = bgs
-            # node_repres['s{}'.format(sp)] = repres
+            node_repres['s{}'.format(sp)] = repres
             node_clus_scores['s{}'.format(sp)] = scores
 
         nx.set_node_attributes(self.sp_graph, node_backgrounds, 'clus_colors')
         nx.set_node_attributes(self.sp_graph, node_percentages, 'clus_perc')
-        # nx.set_node_attributes(self.sp_graph, node_repres, 'clus_repres')
+        nx.set_node_attributes(self.sp_graph, node_repres, 'clus_repres')
         nx.set_node_attributes(self.sp_graph, node_clus_scores, 'clus_scores')
         return
 
@@ -453,7 +453,7 @@ class ModelVisualization(object):
 
             rxn_val_pos = numpy.where(rxns_matrix[rxns_idx_c] > 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
             rxn_val_neg = numpy.where(rxns_matrix[rxns_idx_c] < 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
-            rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
+            # rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
             for rx in rxns_idx_c:
                 products = all_products[rx]
                 for p in products:
@@ -476,7 +476,7 @@ class ModelVisualization(object):
         for sp in self.passengers:
             rxns_idx_c = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
 
-            rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
+            # rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
             for rx in rxns_idx_c:
                 products = all_products[rx]
                 for p in products:
