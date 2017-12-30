@@ -1,4 +1,4 @@
-from tropical.examples.double_enzymatic.mm_two_paths_model import model
+# from tropical.examples.double_enzymatic.mm_two_paths_model import model
 # from nose.tools import *
 import numpy as np
 from tropical import clustering
@@ -7,9 +7,13 @@ import os
 
 
 class TestClusteringBase(object):
-    # @classmethod
-    # def tearDownClass(cls):
-    #     os.remove('*.png')
+    @classmethod
+    def tearDownClass(cls):
+        dir_name = os.path.dirname(os.path.abspath(__file__))
+        test = os.listdir(dir_name)
+        for item in test:
+            if item.endswith(".png"):
+                os.remove(os.path.join(dir_name, item))
 
     def setUp(self):
         self.signatures = [[2, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -178,6 +182,11 @@ class TestClusteringSingle(TestClusteringBase):
         rep1 = self.clus.frequency(sequences_idx=clus_idx1)
         np.testing.assert_allclose(rep0, np.array([1, 2, 1, 1, 1, 1, 1, 1, 1, 1]))
         np.testing.assert_allclose(rep1, np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2]))
+
+    def test_cluster_percentage_color(self):
+        self.clus.diss_matrix(metric='LCS')
+        self.clus.agglomerative_clustering(n_clusters=2)
+        self.clus.cluster_percentage_color()
 
     def test_modal_plot(self):
         self.clus.diss_matrix(metric='LCS')

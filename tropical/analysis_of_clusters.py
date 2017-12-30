@@ -84,6 +84,8 @@ class AnalysisCluster(object):
                 self.clusters = clus_values
                 self.number_pars = number_pars
             elif all(isinstance(item, numbers.Number) for item in clusters):
+                if not isinstance(clusters, np.ndarray):
+                    clusters = np.array(clusters)
                 pars_clusters = clusters
                 num_of_clusters = set(pars_clusters)
                 clus_values = {}
@@ -204,7 +206,6 @@ class AnalysisCluster(object):
                         # This is specific for the time of death fitting in apoptosis
                         hist_data = hf.column(ftn_result[sp_dist], 1)
                         hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
-
                         # shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
                         # pdf = lognorm.pdf(np.sort(hist_data_filt), shape, loc, scale)
                         shape = np.std(hist_data_filt)
@@ -221,6 +222,18 @@ class AnalysisCluster(object):
                         # yticks = [v for v in np.linspace(0, pdf.max(), 3)]
                         axHistx.set_ylim(0, 1.5e-3)
                         axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+
+                    for i_sp, sp in enumerate(species):
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
+                        # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
+                                                                                        format(self.model.species[sp]))
+                        final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
+                        plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
+                                                                                       format='png', dpi=700)
+
             else:
                 for idx, clus in self.clusters.items():
                     y = self.all_simulations[clus]
