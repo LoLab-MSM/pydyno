@@ -1,148 +1,32 @@
-from earm.lopez_embedded import model
-import numpy as np
+from earm2_flat import model
 from tropical.analysis_of_clusters import AnalysisCluster
-# from DynSign.helper_functions import sig_apop
-import tropical.helper_functions as hf
-import os
-import csv
+from tropical import util
+import pickle
 
-directory = os.path.dirname(__file__)
-parameters_path = os.path.join(directory, "parameters_5000")
-all_parameters = hf.listdir_fullpath(parameters_path)
-parameters = hf.read_all_pars(all_parameters)
+with open('results_spectral.pickle', 'rb') as handle:
+    clusters = pickle.load(handle)
+clusters_sp37 = clusters[13]['labels']
 
-clusters = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/signatures_all_kpars/' \
-           'hdbscan_clusters.npy'
+sim_0_good = 'sim_kd/earm_scipyode_sims_good0.h5'
+sim_0_bad = 'sim_kd/earm_scipyode_sims_bad0.h5'
+sim_1_good = 'sim_kd/earm_scipyode_sims_good1.h5'
+sim_1_bad = 'sim_kd/earm_scipyode_sims_bad1.h5'
+sim_2_good = 'sim_kd/earm_scipyode_sims_good2.h5'
+sim_2_bad = 'sim_kd/earm_scipyode_sims_bad2.h5'
+sim_3_good = 'sim_kd/earm_scipyode_sims_good3.h5'
+sim_3_bad = 'sim_kd/earm_scipyode_sims_bad3.h5'
+sim_4_good = 'sim_kd/earm_scipyode_sims_good4.h5'
+sim_4_bad = 'sim_kd/earm_scipyode_sims_bad4.h5'
+sim_5_good = 'sim_kd/earm_scipyode_sims_good5.h5'
+sim_5_bad = 'sim_kd/earm_scipyode_sims_bad5.h5'
+sim_6_good = 'sim_kd/earm_scipyode_sims_good6.h5'
+sim_6_bad = 'sim_kd/earm_scipyode_sims_bad6.h5'
+a = AnalysisCluster(model, clusters=None, sim_results=sim_0_good)
 
-t = np.linspace(0, 20000, 100)
-pars_clusters = np.load(clusters)
-
-## ALL KPARS
-# parameters_cluster = parameters
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/signatures_all_kpars/simulations.npy'
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 KD bcl2 cluster 1
-
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_kd08_bcl2/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 1.8 oe bcl2 cluster 1
-
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_oe08_bcl2/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 kd bcl2 1.5 oe bax cluster 1
-
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_kd08_bcl2_bax/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-
-## ALL KPARS 0.8 kd bcl2 1.5 oe bak cluster 1
-
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_kd08_bcl2_bak/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 kd mcl1 cluster 2
-
-# item_index = np.where(pars_clusters == 2)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus2_kd08_mcl1/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 kd bcl2 cluster 2
-
-# item_index = np.where(pars_clusters == 2)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus2_kd08_bcl2/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 kd bcl2, bclxl cluster 2
-
-# item_index = np.where(pars_clusters == 2)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus2_kd08_bcl2_bclxl/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 kd bcl2, mcl1 cluster 2
-
-# item_index = np.where(pars_clusters == 2)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus2_kd08_mcl1_bcl2/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 KD mcl1 cluster 1
-#
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_kd08_mcl1/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 1.8 oe mcl1 cluster 1
-
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_oe08_mcl1/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-## ALL KPARS 0.8 KD bclxl cluster 1
-
-# item_index = np.where(pars_clusters == 1)
-# parameters_cluster = parameters[item_index]
-#
-# all_simulations_path = '/Users/dionisio/Documents/PhD/tropical_earm_IC/signatures_within_range_function/' \
-#                        'all_pars_clus1_kd08_bclxl/simulations.npy'
-#
-# simulations_result = np.load(all_simulations_path)
-
-# a = AnalysisCluster(model, t, parameters_cluster, clusters=None, sim_results=simulations_result)
-a = AnalysisCluster(model, t, parameters_cluster, clusters=None, sim_results=simulations_result)
-# a.plot_sp_ic_distributions([55, 56, 57, 58], save_path='/Users/dionisio/Documents/')
-# a.plot_clusters_ic_distributions([63, 64, 56], save_path='/Users/dionisio/Documents/')
-# a.violin_plot_sps([82, 83, 84, 85, 86, 87], save_path='/Users/dionisio/Documents/')
-a.plot_dynamics_cluster_types([39], save_path='/Users/dionisio/Documents/', species_to_fit=[39], fit_ftn=hf.sig_apop,
+# a.hist_plot_clusters([82, 83, 84, 85, 86, 87], save_path='figures/')
+# a.plot_sp_ic_overlap([82, 83, 84, 85, 86, 87], save_path='figures/')
+# a.violin_plot_sps([82, 83, 84, 85, 86, 87], save_path='figures/')
+a.plot_dynamics_cluster_types([39], save_path='figures/', species_ftn_fit={39: util.sig_apop},
                               norm=True, **{'p0': [100, 100, 100]})
 
-# a.plot_dynamics_cluster_types([39], save_path='/Users/dionisio/Documents/', norm=True)
-
-# a.plot_dynamics_cluster_types([13, 47, 15],  save_path='/Users/dionisio/Documents/', norm=True)
-
-# a.scatter_plot_pars(ic_par_idxs=[56, 64], cluster=3, save_path='/Users/dionisio/Documents/')
+# a.scatter_plot_pars(ic_par_idxs=[82, 85, 86, 87], cluster=3, save_path='figures/')
