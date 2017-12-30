@@ -3,9 +3,14 @@ from tropical.examples.double_enzymatic.mm_two_paths_model import model
 import numpy as np
 from tropical import clustering
 from pysb.testing import *
+import os
 
 
 class TestClusteringBase(object):
+    # @classmethod
+    # def tearDownClass(cls):
+    #     os.remove('*.png')
+
     def setUp(self):
         self.signatures = [[2, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
                            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]
@@ -173,3 +178,15 @@ class TestClusteringSingle(TestClusteringBase):
         rep1 = self.clus.frequency(sequences_idx=clus_idx1)
         np.testing.assert_allclose(rep0, np.array([1, 2, 1, 1, 1, 1, 1, 1, 1, 1]))
         np.testing.assert_allclose(rep1, np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2]))
+
+    def test_modal_plot(self):
+        self.clus.diss_matrix(metric='LCS')
+        self.clus.agglomerative_clustering(n_clusters=2)
+        pl = clustering.PlotSequences(self.clus)
+        pl.modal_plot()
+
+    def test_all_trajectories(self):
+        self.clus.diss_matrix(metric='LCS')
+        self.clus.agglomerative_clustering(n_clusters=2)
+        pl = clustering.PlotSequences(self.clus)
+        pl.all_trajectories_plot()
