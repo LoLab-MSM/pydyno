@@ -4,25 +4,29 @@
 
 # TroPy
 
-We present TroPy, a novel approach to study cellular signaling networks from a dynamic perspective. This method combines the Quasi-Steady State approach with max-plus algebra to find the driver species and the specific reactions that contribute the most to species concentration changes in time. Hence, it is possible to study how those driver species and reactions change for different parameter sets that fit the data equally well. Finally, it is possible to identify clusters of parameter that generate similar modes of signal execution in signal transduction pathways.
-
+The advent of quantitative techniques to probe biomolecular-signaling processes have led to increased use of 
+mathematical models to extract mechanistic insight from complex datasets. These complex mathematical models 
+can yield useful insights about intracellular signal execution but the task to identify key molecular drivers 
+in signal execution, within a complex network, remains a central challenge in quantitative biology. This challenge 
+is compounded by the fact that cell-to-cell variability within a cell population could yield multiple signal 
+execution modes and thus multiple potential drivers in signal execution. Here we present a novel approach to 
+identify signaling drivers and characterize dynamic signal processes within a network. Our method, TroPy, 
+combines physical chemistry, statistical clustering, and tropical algebra formalisms to identify interactions 
+that drive time-dependent behavior in signaling pathways. 
 ## Running TroPy
 
 TroPy depends on PySB so the easiest  way to use it is to have a PySB model and you can simply do:
 ```python
-from mymodel import model
-from tropicalize import Tropical
+# Import libraries
 import numpy as np
+from tropical.dynamic_signatures_range import run_tropical
+from tropical.examples.double_enzymatic.mm_two_paths_model import model
+from pysb.simulator.scipyode import ScipyOdeSimulator
 
-tr = Tropical(model)
-tspan = np.linspace(0,200, 200)
+# Run the model simulation to obtain the dynmics of the molecular species
+tspan = np.linspace(0, 50, 101)
+sim = ScipyOdeSimulator(model, tspan=tspan).run()
 
-#This commands runs the QSSA and the tropical algebra tools and identify the drivers and passenger species
-tr.tropicalize(tspan)
+tro = run_tropical(model, simulations=sim, passengers_by='imp_nodes', diff_par=0.5)
 
-#To get the driver species run:
-tr.get_drivers()
-
-#To visualize the dominant interactions at each time point por each species run:
-tr.visualization(tspan, parameters)
 ```
