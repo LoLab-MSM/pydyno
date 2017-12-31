@@ -28,5 +28,6 @@ tspan = np.linspace(0, 50, 101)
 sim = ScipyOdeSimulator(model, tspan=tspan).run()
 
 tro = run_tropical(model, simulations=sim, passengers_by='imp_nodes', diff_par=0.5)
-
 ```
+![alt text](https://github.com/LoLab-VU/tropical/blob/master/tropical/examples/double_enzymatic/figures/s0.png)
+
