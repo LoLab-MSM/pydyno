@@ -47,27 +47,42 @@ class AnalysisCluster(object):
 
         self.model = model
         generate_equations(model)
+        # Check simulation results
+        self.tspan, self.all_parameters, self.all_simulations = self.check_simulation_arg(sim_results)
+        # Check clusters
+        self.clusters, self.number_pars = self.check_clusters_arg(clusters)
+
+        if self.clusters is None:
+            no_clusters = {0: range(len(self.all_parameters))}
+            self.clusters = no_clusters
+            self.number_pars = len(self.all_parameters)
+
+    @staticmethod
+    def check_simulation_arg(sim_results):
         if isinstance(sim_results, SimulationResult):
             if all_equal(sim_results.tout):
-                self.tspan = sim_results.tout[0]
+                tspan = sim_results.tout[0]
             else:
                 raise Exception('Analysis is not supported for simulations with different time spans')
-            self.all_parameters = sim_results.param_values
-            self.all_simulations = np.array(sim_results.species)
+            all_parameters = sim_results.param_values
+            all_simulations = np.array(sim_results.species)
+            return tspan, all_parameters, all_simulations
         elif isinstance(sim_results, str):
             if h5py.is_hdf5(sim_results):
                 sims = h5py.File(sim_results)
-                self.all_parameters = sims.values()[0]['result']['param_values']
-                self.all_simulations = sims.values()[0]['result']['trajectories']
+                all_parameters = sims.values()[0]['result']['param_values']
+                all_simulations = sims.values()[0]['result']['trajectories']
                 sim_tout = sims.values()[0]['result']['tout']
                 if all_equal(sim_tout):
-                    self.tspan = sim_tout[0]
+                    tspan = sim_tout[0]
                 else:
                     raise Exception('Analysis is not supported for simulations with different time spans')
+                return tspan, all_parameters, all_simulations
         else:
             raise TypeError('Type of sim_results not supported')
 
-        # check clusters
+    @staticmethod
+    def check_clusters_arg(clusters):  # check clusters
         if isinstance(clusters, collections.Iterable):
             # check if clusters is a list of files containing the indices or idx of the IC that belong to that cluster
             if all(os.path.isfile(str(item)) for item in clusters):
@@ -81,8 +96,9 @@ class AnalysisCluster(object):
                     number_pars += len(pars_idx)
                 # self.clusters is a dictionary that contains the index of the parameter values that belong to different
                 # clusters
-                self.clusters = clus_values
-                self.number_pars = number_pars
+                clusters = clus_values
+                number_pars = number_pars
+                return clusters, number_pars
             elif all(isinstance(item, numbers.Number) for item in clusters):
                 if not isinstance(clusters, np.ndarray):
                     clusters = np.array(clusters)
@@ -92,8 +108,9 @@ class AnalysisCluster(object):
                 for j in num_of_clusters:
                     item_index = np.where(pars_clusters == j)
                     clus_values[j] = item_index[0].tolist()
-                self.clusters = clus_values
-                self.number_pars = len(pars_clusters)
+                clusters = clus_values
+                number_pars = len(pars_clusters)
+                return clusters, number_pars
             else:
                 raise ValueError('Mixed formats is not supported')
         # check is clusters is a file that contains the indices of the clusters for each parameter set
@@ -107,15 +124,14 @@ class AnalysisCluster(object):
                 for j in num_of_clusters:
                     item_index = np.where(pars_clusters == j)
                     clus_values[j] = item_index[0].tolist()
-                self.clusters = clus_values
-                self.number_pars = len(pars_clusters)
-
-        elif clusters is None:
-            no_clusters = {0: range(len(self.all_parameters))}
-            self.clusters = no_clusters
-            self.number_pars = len(self.all_parameters)
+                clusters = clus_values
+                number_pars = len(pars_clusters)
+                return clusters, number_pars
         else:
             raise TypeError('cluster data structure not supported')
+
+
+
 
     @staticmethod
     def curve_fit_ftn(fn, xdata, ydata, **kwargs):
