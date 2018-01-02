@@ -285,8 +285,8 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_va
         # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
         plt.scatter(tspan, signature)
         plt.yticks(list(set(signature)))
-        plt.ylabel('Monomials', fontsize=16)
-        plt.xlabel('Time(s)', fontsize=16)
+        plt.ylabel('Dominant terms', fontsize=14)
+        plt.xlabel('Time(s)', fontsize=14)
         plt.xlim(0, tspan[-1])
         # plt.ylim(0, max(y_pos))
         plt.subplot(312)
@@ -305,12 +305,14 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_va
             mon_values = f1(*arg_f1)
             mon_name = str(val)
             plt.plot(tspan, mon_values, label=mon_name)
-        plt.ylabel('Rate(m/sec)', fontsize=16)
-        plt.legend(bbox_to_anchor=(-0.1, 0.85), loc='upper right', ncol=3)
+        plt.ylabel('Rate(m/sec)', fontsize=14)
+        plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=3)
+        plt.xlim(0, tspan[-1])
 
         plt.subplot(311)
         plt.plot(tspan, y[:, sp], label=parse_name(model.species[sp]))
-        plt.ylabel('Molecules', fontsize=16)
+        plt.ylabel('Molecules', fontsize=14)
+        plt.xlim(0, tspan[-1])
         plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
         plt.suptitle('Tropicalization' + ' ' + str(model.species[sp]), y=1.08)
 
