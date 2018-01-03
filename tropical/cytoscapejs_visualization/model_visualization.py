@@ -61,9 +61,8 @@ def parse_name(spec):
         Name of species to parse
 
     Returns
-    Parsed name of species
     -------
-
+    Parsed name of species
     """
     m = spec.monomer_patterns
     lis_m = []
@@ -98,9 +97,8 @@ def find_nonimportant_nodes(model):
     model: pysb.Model
 
     Returns
-    a list of nodes that only have one incoming and outgoing edge
     -------
-
+    a list of nodes that only have one incoming and outgoing edge
     """
     if not model.odes:
         pysb.bng.generate_equations(model)
@@ -145,11 +143,11 @@ class ModelVisualization(object):
         ----------
         get_passengers : bool
             if True, nodes that only have one incoming or outgoing edge are painted with a different color
+        cluster_info : dict
 
         Examples
         --------
         >>> from pysb.examples.earm_1_0 import model
-        >>> import numpy as np
         >>> viz = ModelVisualization(model)
         >>> data = viz.static_view()
 
@@ -265,8 +263,7 @@ class ModelVisualization(object):
         for idx in range(len(self.model.species)):
             species_node = 's%d' % idx
             # Setting the information about the node
-            node_data = {}
-            node_data['label'] = parse_name(self.model.species[idx])
+            node_data = {'label': parse_name(self.model.species[idx])}
             if idx in self.passengers:
                 node_data['background_color'] = "#162899"
             else:
