@@ -381,7 +381,7 @@ class AnalysisCluster(object):
             plt.figure(1)
             data_violin = [0]*len(self.clusters)
             d_count = 0
-            for c_idx, clus in self.clusters.items():
+            for clus in self.clusters.values():
                 cluster_pars = self.all_parameters[clus]
                 sp_ic_values = cluster_pars[:, sp_ic]
                 data_violin[d_count] = sp_ic_values
@@ -422,7 +422,7 @@ class AnalysisCluster(object):
 
             cluster_ic_values = []
             cluster_ic_weights = []
-            for c_idx, clus in self.clusters.items():
+            for clus in self.clusters.values():
                 cluster_pars = self.all_parameters[clus]
                 sp_ic_values = cluster_pars[:, ic]
                 sp_ic_weights = np.ones_like(sp_ic_values) / len(sp_ic_values_all)

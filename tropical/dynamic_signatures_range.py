@@ -103,13 +103,12 @@ class Tropical(object):
 
         """
         mons_pos_neg = [numpy.where(array > 0)[0], numpy.where(array < 0)[0]]
-        signs = [1, -1]
         ascending_order = [False, True]
         mons_types = ['products', 'reactants']
 
         pos_neg_largest = [0] * 2
         range_0_1 = range(2)
-        for ii, mon_type, mons_idx, sign, ascending in zip(range_0_1, mons_types, mons_pos_neg, signs, ascending_order):
+        for ii, mon_type, mons_idx, ascending in zip(range_0_1, mons_types, mons_pos_neg, ascending_order):
             # largest_prod = 'NoDoms'
             # mons_comb_type = mon_comb[mon_type]
             # mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in mons_idx]

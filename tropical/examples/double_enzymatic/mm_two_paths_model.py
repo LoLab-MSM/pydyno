@@ -1,4 +1,4 @@
-from pysb import *
+from pysb import Model, Parameter, Monomer, Rule, Observable, Initial
 
 
 Model()
