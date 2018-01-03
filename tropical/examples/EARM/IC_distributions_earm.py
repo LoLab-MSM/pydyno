@@ -54,7 +54,7 @@ par_clus1 = parameters[0]
 repeated_parameter_values = np.tile(par_clus1, (samples, 1))
 for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
-
+np.save('earm_diff_IC.npy', repeated_parameter_values)
 
 t = np.linspace(0, 20000, 100)
 sims = ScipyOdeSimulator(model=model, tspan=t, param_values=repeated_parameter_values).run()
