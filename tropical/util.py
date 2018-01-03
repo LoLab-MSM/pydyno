@@ -18,9 +18,9 @@ def listdir_fullpath(d):
     d : str
         path to directory
 
-    Returns : a list of paths of the files in directory
+    Returns
     -------
-
+    a list of paths of the files in directory
     """
     return [os.path.join(d, f) for f in os.listdir(d)]
 
@@ -35,9 +35,9 @@ def list_pars_infile(f, new_path=None):
     new_path : str
         New path to assign to the parameter sets
 
-    Returns : list of parameter paths
+    Returns
     -------
-
+    list of parameter paths
     """
     par_sets = pd.read_csv(f, names=['parameters'])['parameters'].tolist()
     if new_path:
@@ -53,9 +53,9 @@ def read_pars(par_path):
     par_path : str
         Path to parameter file
 
-    Returns : a list of parameter values
+    Returns
     -------
-
+    a list of parameter values
     """
     if par_path.endswith('.txt') or par_path.endswith('.csv'):
         data = np.genfromtxt(par_path, delimiter=',', dtype=None)
@@ -111,9 +111,9 @@ def parse_name(spec):
     spec : pysb.ComplexPattern
         Species's whose name is going to be parsed
 
-    Returns : A shorter version of the species name
+    Returns
     -------
-
+    A shorter version of the species name
     """
     m = spec.monomer_patterns
     lis_m = []
@@ -186,12 +186,6 @@ def pre_equilibration(model, time_search, parameters, tolerance=1e-6):
         pysb model
     time_search : np.array
         Time span array used to find the equilibrium
-    ligand_value : dict
-        Name of ligand in model
-    ligand_idx : int
-        Index of ligand to see if it has reached equilibration
-    ligand_value : float
-        Initial condition of ligand
     parameters :  dict or np.array
         Model parameters used to find the equilibrium, it can be an array with all model parameters
         (this array must have the same order as model.parameters) or it can be a dictionary where the
@@ -238,7 +232,15 @@ def find_nonimportant_nodes(model):
     """
     This function looks a the bidirectional reactions and finds the nodes that only have one incoming and outgoing
     reaction (edge)
-    :return: a list of non-important nodes
+
+    Parameters
+    ----------
+    model : pysb.Model
+        PySB model to use
+
+    Returns
+    -------
+    a list of non-important nodes
     """
     if not model.odes:
         pysb.bng.generate_equations(model)

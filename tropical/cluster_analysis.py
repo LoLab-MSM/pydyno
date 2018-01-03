@@ -1,20 +1,23 @@
 from __future__ import division
 
-import h5py
-import numpy as np
-import csv
-import matplotlib.pyplot as plt
-import colorsys
-from scipy.optimize import curve_fit
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import os
-import util as hf
-from matplotlib.offsetbox import AnchoredText
-import seaborn as sns
 import collections
+import colorsys
+import csv
 import numbers
+import os
+
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from matplotlib.offsetbox import AnchoredText
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy.optimize import curve_fit
+
+import util as hf
 from pysb.bng import generate_equations
 from pysb.simulator.base import SimulationResult
+
 plt.ioff()
 
 
@@ -36,10 +39,11 @@ class AnalysisCluster(object):
     ----------
     model: pysb.Model
         Model passed to the constructor
-    clusters: list-like, str
+    clusters: vector-like or str or None
         Indices of the parameters that belong to an specific cluster. It can be a list of files that contain
         the indices of each cluster, a list of lists where each list has the parameter indices of a cluster or
-        a file that contains the cluster labels to which each parameter belongs to
+        a file that contains the cluster labels to which each parameter belongs to, or None if the user want to
+        analyse the sim_results as a single cluster.
     sim_results: SimulationResult or h5 file from PySB simulation
         SimulationResult object or h5 file with the dynamic solutions of the model for all the parameter sets
     """
@@ -49,10 +53,11 @@ class AnalysisCluster(object):
         generate_equations(model)
         # Check simulation results
         self.tspan, self.all_parameters, self.all_simulations = self.check_simulation_arg(sim_results)
-        # Check clusters
-        self.clusters, self.number_pars = self.check_clusters_arg(clusters)
 
-        if self.clusters is None:
+        if clusters is not None:
+            # Check clusters
+            self.clusters, self.number_pars = self.check_clusters_arg(clusters)
+        else:
             no_clusters = {0: range(len(self.all_parameters))}
             self.clusters = no_clusters
             self.number_pars = len(self.all_parameters)
@@ -321,7 +326,6 @@ class AnalysisCluster(object):
             # yticks = [v for v in np.linspace(0, pdf.max(), 3)]
             axHistx.set_ylim(0, 1.5e-3)
             axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
-
 
     def hist_plot_clusters(self, ic_par_idxs, save_path=''):
         """

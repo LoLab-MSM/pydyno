@@ -351,6 +351,8 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
         It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
     diff_par : float
         Magnitude difference that defines that a reaction is dominant over others.
+    sp_to_vis : vector-like
+        Indices of species to visualize
 
     Returns
     -------

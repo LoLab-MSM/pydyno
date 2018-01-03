@@ -1,5 +1,6 @@
 import pickle
 from tropical import clustering
+
 with open('signatures.pickle', 'rb') as handle:
     all_signatures = pickle.load(handle)
 

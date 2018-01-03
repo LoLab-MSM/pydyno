@@ -1,6 +1,5 @@
 from __future__ import division
 import matplotlib
-
 matplotlib.use('Agg')
 import os
 import pandas as pd
@@ -62,8 +61,8 @@ class ClusterSequences(object):
     Parameters
     ----------
     data: str file or np.ndarray
-        file of pandas dataframe or ndarray where rows are DynSign signatures and columns are dominant states at specific
-        time points
+        file of pandas dataframe or ndarray where rows are DynSign signatures and columns are
+         dominant states at specific  time points
     unique_sequences: bool, optional
         Drop repeated sequences
     truncate_seq: int
@@ -124,10 +123,9 @@ class ClusterSequences(object):
         n_jobs : int
             Number of processors to use
 
-        Returns : numpy array
-            Dissimilarity matrix
+        Returns
         -------
-
+        A Dissimilarity matrix
         """
         # TODO check if ndarray have sequences of different lengths
         if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
@@ -188,7 +186,6 @@ class ClusterSequences(object):
         self.labels = labels
         return
 
-
     def agglomerative_clustering(self, n_clusters, linkage='average', **kwargs):
         ac = cluster.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed',
                                              linkage=linkage, **kwargs).fit(self.diss)
@@ -197,7 +194,7 @@ class ClusterSequences(object):
         return
 
     def spectral_clustering(self, n_clusters, random_state=None, n_jobs=1, **kwargs):
-        gamma = 1./ len(self.diss[0])
+        gamma = 1. / len(self.diss[0])
         kernel = np.exp(-self.diss * gamma)
         sc = cluster.SpectralClustering(n_clusters=n_clusters, random_state=random_state,
                                         affinity='precomputed', n_jobs=n_jobs, **kwargs).fit(kernel)
@@ -243,7 +240,6 @@ class ClusterSequences(object):
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
         return clusters_df
 
-
     def silhouette_score_agglomerative_range(self, cluster_range, linkage='average', **kwargs):
         """
 
@@ -251,9 +247,8 @@ class ClusterSequences(object):
         ----------
         cluster_range : list-like or int
             Range of the number of clusterings to obtain the silhouette score
-        n_jobs : int
-            Number of processors to use
-        random_state : seed for the random number generator
+        linkage : str
+            Type of agglomerative linkage
         kwargs : key arguments to pass to the aggomerative clustering function
 
         Returns
@@ -461,7 +456,7 @@ class PlotSequences(object):
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
-    def modal_plot(self, title=''):  #, legend_plot=False):
+    def modal_plot(self, title=''):  # , legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
             clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
