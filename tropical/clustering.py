@@ -461,7 +461,7 @@ class PlotSequences(object):
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
-    def modal_plot(self, title='', legend_plot=False):
+    def modal_plot(self, title=''):  #, legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
             clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
@@ -543,12 +543,12 @@ class PlotSequences(object):
             xx = self.sequences.columns
             count_seqs = 0
 
-            for index, seq in clus_seqs.iterrows():
+            for seq in clus_seqs.itertuples(index=False):
                 y = np.array([count_seqs] * (clus_seqs.shape[1]))
                 points = np.array([xx, y]).T.reshape(-1, 1, 2)
                 segments = np.concatenate([points[:-1], points[1:]], axis=1)
                 lc = LineCollection(segments, cmap=self.cmap, norm=self.norm)
-                lc.set_array(seq.values)
+                lc.set_array(np.array(seq))
                 lc.set_linewidth(10)
                 axs[clus].add_collection(lc)
                 axs[clus].set_ylabel('Trajectories (n={0})'.format(total_seqs), fontsize='xx-small')
