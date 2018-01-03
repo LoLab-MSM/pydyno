@@ -1,14 +1,11 @@
 from __future__ import print_function
-
 import math
-import os
-
 import numpy as np
+import pickle
 from numpy.random import lognormal
-
-import tropical.helper_functions as hf
-from earm.lopez_embedded import model
-from old_functions.max_plus_global import run_tropical_multiprocessing
+from earm2_flat import model
+from tropical.dynamic_signatures_range import run_tropical_multi
+from pysb.simulator.scipyode import ScipyOdeSimulator
 
 
 def normal_mu_sigma(log_mean, cv):
@@ -46,18 +43,22 @@ def sample_lognormal(parameter_ic, size, cv=0.25):
 
     return lognormal(mean_normal, mu_normal, size)
 
+
 parameters_ic = {idx: p for idx, p in enumerate(model.parameters) if p in model.parameters_initial_conditions()[1:]}
 samples = 4
 
-directory = os.path.dirname(__file__)
-parameters_path = os.path.join(directory, "parameters_5000")
-all_parameters = hf.listdir_fullpath(parameters_path)
-parameters = hf.read_pars(all_parameters[541])
 
-repeated_parameter_values = np.tile(parameters, (samples, 1))
+parameters = np.load('calibrated_6572pars.npy')
+par_clus1 = parameters[0]
+
+repeated_parameter_values = np.tile(par_clus1, (samples, 1))
 for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
 
+
 t = np.linspace(0, 20000, 100)
-a = run_tropical_multiprocessing(model, t, repeated_parameter_values, type_sign='consumption', global_signature=True,
-                                 find_passengers_by='imp_nodes', to_data_frame=False, dir_path=directory)
+sims = ScipyOdeSimulator(model=model, tspan=t, param_values=repeated_parameter_values).run()
+signatures = run_tropical_multi(model=model, simulations=sims, cpu_cores=25)
+
+with open('earm_signatures_ic.pickle', 'wb') as handle:
+    pickle.dump(signatures, handle, protocol=pickle.HIGHEST_PROTOCOL)
