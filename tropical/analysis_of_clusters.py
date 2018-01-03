@@ -193,7 +193,8 @@ class AnalysisCluster(object):
             if species_ftn_fit:
                 # checking if species_to_fit are present in the species that are going to be plotted
                 self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict, species=species,
-                                                                   species_ftn_fit=species_ftn_fit, save_path=save_path)
+                                                                   species_ftn_fit=species_ftn_fit,
+                                                                   save_path=save_path, **kwargs)
 
             else:
                 self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species, save_path=save_path)
@@ -249,15 +250,15 @@ class AnalysisCluster(object):
                                                                             color='blue',
                                                                             alpha=0.2)
 
-            plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
-            plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
-            # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
-            plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
-            plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
-                                                                            format(self.model.species[sp]))
-            final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
-            plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
-                                                                           format='png', dpi=700)
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
+                # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
+                                                                                format(self.model.species[sp]))
+                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
+                                                                               format='png', dpi=700)
 
     def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit, save_path, **kwargs):
         sp_overlap = [ii for ii in species_ftn_fit if ii in species]
@@ -278,34 +279,8 @@ class AnalysisCluster(object):
                     result_fit = self.curve_fit_ftn(fn=species_ftn_fit[sp], xdata=self.tspan,
                                                     ydata=sp_trajectory, **kwargs)
                     ftn_result[sp] = result_fit
+            self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
 
-            for sp_dist in sp_overlap:
-                ax = plots_dict['plot_sp{0}_cluster{1}'.format(sp_dist, idx)][1]
-                divider = make_axes_locatable(ax)
-                axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
-                # axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
-                plt.setp(axHistx.get_xticklabels(),
-                         visible=False)  # + axHisty.get_yticklabels(), visible=False)
-
-                # This is specific for the time of death fitting in apoptosis
-                hist_data = hf.column(ftn_result[sp_dist], 1)
-                hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
-                # shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
-                # pdf = lognorm.pdf(np.sort(hist_data_filt), shape, loc, scale)
-                shape = np.std(hist_data_filt)
-                scale = np.average(hist_data_filt)
-
-                pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
-                anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=12))
-                axHistx.add_artist(anchored_text)
-                axHistx.hist(hist_data_filt, normed=True, bins=20)
-                axHistx.vlines(10230.96, -0.05, 1.05, color='r', linestyle=':', linewidth=2)  # MOMP data
-                # axHistx.plot(np.sort(hist_data_filt), pdf) # log fitting to histogram data
-                for tl in axHistx.get_xticklabels():
-                    tl.set_visible(False)
-                # yticks = [v for v in np.linspace(0, pdf.max(), 3)]
-                axHistx.set_ylim(0, 1.5e-3)
-                axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
 
             for sp in species:
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
@@ -317,6 +292,36 @@ class AnalysisCluster(object):
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
+
+    def _add_function_hist(self, plots_dict, idx, sp_overlap, ftn_result):
+        for sp_dist in sp_overlap:
+            ax = plots_dict['plot_sp{0}_cluster{1}'.format(sp_dist, idx)][1]
+            divider = make_axes_locatable(ax)
+            axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
+            # axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
+            plt.setp(axHistx.get_xticklabels(),
+                     visible=False)  # + axHisty.get_yticklabels(), visible=False)
+
+            # This is specific for the time of death fitting in apoptosis
+            hist_data = hf.column(ftn_result[sp_dist], 1)
+            hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
+            # shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
+            # pdf = lognorm.pdf(np.sort(hist_data_filt), shape, loc, scale)
+            shape = np.std(hist_data_filt)
+            scale = np.average(hist_data_filt)
+
+            pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
+            anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=12))
+            axHistx.add_artist(anchored_text)
+            axHistx.hist(hist_data_filt, normed=True, bins=20)
+            axHistx.vlines(10230.96, -0.05, 1.05, color='r', linestyle=':', linewidth=2)  # MOMP data
+            # axHistx.plot(np.sort(hist_data_filt), pdf) # log fitting to histogram data
+            for tl in axHistx.get_xticklabels():
+                tl.set_visible(False)
+            # yticks = [v for v in np.linspace(0, pdf.max(), 3)]
+            axHistx.set_ylim(0, 1.5e-3)
+            axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
+
 
     def hist_plot_clusters(self, ic_par_idxs, save_path=''):
         """
