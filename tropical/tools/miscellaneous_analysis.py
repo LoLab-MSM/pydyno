@@ -10,14 +10,29 @@ from pysb.integrate import ScipyOdeSimulator
 def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_change, fold_change, param_values=None):
     """
 
-    :param model:
-    :param tspan:
-    :param time_change:
-    :param specie:
-    :param parameters_to_change:
-    :param fold_change:
-    :param param_values:
-    :return:
+    Parameters
+    ----------
+    model : pysb.Model
+        PySB model to use
+    tspan : vector-like
+        Time values over which to simulate.
+    time_change : int
+        Index in tspan at which the paramater is going to be changed
+    specie : int
+        Index of species that is going to be plotted
+    parameters_to_change : str
+        Name of the parameter whose value is going to be changed
+    fold_change : float
+        Fold change of the parameter values
+    param_values : vector-like, optional
+        Values to use for every parameter in the model. Ordering is
+        determined by the order of model.parameters.
+        If not specified, parameter values will be taken directly from
+        model.parameters.
+
+    Returns
+    -------
+
     """
     if param_values is not None:
         # accept vector of parameter values as an argument
@@ -51,16 +66,39 @@ def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_ch
 
 
 def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=None, file_path=''):
+    """
+
+    Parameters
+    ----------
+    model : pysb.Model
+        PySB model to use
+    tspan : vector-like
+        Time values over which to simulate.
+    sp_to_analyze: vector-like
+        Species whose dynamic signature is going to be obtained
+    parameters : vector-like or dict, optional
+        Values to use for every parameter in the model. Ordering is
+        determined by the order of model.parameters.
+        If passed as a dictionary, keys must be parameter names.
+        If not specified, parameter values will be taken directly from
+        model.parameters.
+    file_path : str
+        Path for saving the file
+
+    Returns
+    -------
+
+    """
     # TODO: make sure this functions works
-    y = ScipyOdeSimulator(model, tspan=tspan, param_values=parameters).run().dataframe
+    sim_result = ScipyOdeSimulator(model, tspan=tspan, param_values=parameters).run()
+    y = sim_result.dataframe
     observables = [obs.name for obs in model.observables]
     y.drop(observables, axis=1, inplace=True)
     sp_short_names = [hf.parse_name(sp) for sp in model.species]
     y.columns = sp_short_names
-    # y['time'] = tspan
-    signatures = run_tropical(model, tspan, parameters, diff_par=1, type_sign='consumption')
+    signatures = run_tropical(model, simulations=sim_result, diff_par=1)
     for sp in sp_to_analyze:
-        y[hf.parse_name(model.species[sp])+'_truncated'] = signatures[sp]
+        y[hf.parse_name(model.species[sp])+'_truncated'] = signatures[sp][0]
     y.to_csv(file_path+'tr_sig.txt')
 
     if parameters is not None:
@@ -73,10 +111,6 @@ def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=No
                 ic_name = hf.parse_name(model.initial_conditions[idx][0])
                 ic_value = parameters[i]
                 initials_df[ic_name] = ic_value
-        # initials_idx_in_pars = np.array([i for i, j in enumerate(model.parameters)
-        #                                  if j in [par[1] for par in model.initial_conditions]])
-        # initials[0][initials_idx_in_pars] = parameters[initials_idx_in_pars]
-        # initials_df = pd.DataFrame(data=initials, columns=sp_short_names)
         initials_df.to_csv(file_path+'initials.txt', index=False)
     return
 
