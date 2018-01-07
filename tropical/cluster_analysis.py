@@ -238,8 +238,9 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, sp_max_conc])
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
-                                                                                format(self.model.species[sp]))
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
+                                                                                format(self.model.species[sp],
+                                                                                       idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
@@ -361,7 +362,7 @@ class AnalysisCluster(object):
             plt.ylabel('Percentage')
             plt.legend(loc=0)
             final_save_path = os.path.join(save_path, 'hist_ic_type{0}'.format(c_idx))
-            plt.savefig(final_save_path+'.png', format='png')
+            plt.savefig(final_save_path+'.png', format='png', dpi=700)
             plt.clf()
         return
 
@@ -384,18 +385,18 @@ class AnalysisCluster(object):
         for sp_ic in par_idxs:
             plt.figure(1)
             data_violin = [0]*len(self.clusters)
-            d_count = 0
-            for clus in self.clusters.values():
+            for idx, clus in self.clusters.items():
                 cluster_pars = self.all_parameters[clus]
                 sp_ic_values = cluster_pars[:, sp_ic]
-                data_violin[d_count] = sp_ic_values
-                d_count += 1
+                data_violin[idx] = np.log10(sp_ic_values)
 
             g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='area', inner='box')
-            g.set_yticklabels(self.clusters.keys())
-            plt.xlabel('Parameter Units')
+            # g.set_yticklabels(self.clusters.keys())
+            plt.xlabel('Parameter Range')
+            plt.ylabel('Clusters')
+            plt.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
-            plt.savefig(final_save_path+'.png', format='png')
+            plt.savefig(final_save_path+'.png', format='png', dpi=700)
             plt.clf()
         return
 
@@ -443,7 +444,7 @@ class AnalysisCluster(object):
             plt.legend(loc=0)
 
             final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
-            plt.savefig(final_save_path+'.png', format='png')
+            plt.savefig(final_save_path+'.png', format='png', dpi=700)
         return
 
     def scatter_plot_pars(self, ic_par_idxs, cluster,  save_path=''):
@@ -477,7 +478,7 @@ class AnalysisCluster(object):
         plt.ylabel(ic_name1)
         final_save_path = os.path.join(save_path, 'scatter_{0}_{1}_cluster_{2}'.format(ic_name0, ic_name1,
                                                                                                  cluster))
-        plt.savefig(final_save_path+'.png', format='png')
+        plt.savefig(final_save_path+'.png', format='png', dpi=700)
 
     @staticmethod
     def _get_colors(num_colors):
