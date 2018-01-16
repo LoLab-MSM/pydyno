@@ -1,6 +1,6 @@
 from __future__ import division
-import matplotlib
-matplotlib.use('Agg')
+# import matplotlib
+# matplotlib.use('Agg')
 import os
 import pandas as pd
 import numpy as np
@@ -69,7 +69,16 @@ class ClusterSequences(object):
         Index of where to truncate a sequence
     """
 
-    def __init__(self, seqdata, unique_sequences=True, truncate_seq=None):
+    def __init__(self, seqdata, unique_sequences=False, truncate_seq=None):
+        """
+
+        Parameters
+        ----------
+        seqdata
+        unique_sequences: boolean,
+            Determines it the dissimilarity matrix is calculated only for the unique sequences or all of the sequences
+        truncate_seq
+        """
         if isinstance(seqdata, str):
             if os.path.isfile(seqdata):
                 data_seqs = pd.read_csv(seqdata, header=0, index_col=0)
@@ -109,7 +118,7 @@ class ClusterSequences(object):
 
     @staticmethod
     def get_unique_sequences(data_seqs):
-        data_seqs = data_seqs.groupby(data_seqs.columns.tolist()).size().rename('count').reset_index()
+        data_seqs = data_seqs.groupby(data_seqs.columns.tolist(), sort=False).size().rename('count').reset_index()
         data_seqs.set_index([range(len(data_seqs)), 'count'], inplace=True)
         return data_seqs
 
@@ -127,18 +136,54 @@ class ClusterSequences(object):
         -------
         A Dissimilarity matrix
         """
-        # TODO check if ndarray have sequences of different lengths
-        if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
-            diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
-        elif metric == 'LCS':
-            diss = pairwise_distances(self.sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
-        elif metric == 'levenshtein':
-            diss = pairwise_distances(self.sequences.values, metric=levenshtein, n_jobs=n_jobs)
-        elif callable(metric):
-            diss = pairwise_distances(self.sequences.values, metric=metric, n_jobs=n_jobs)
+        # TODO, there must be a better way to do this. Also, make sure that unique and complete sequences are the same
+        if self.unique:
+            unique_sequences = self.sequences.sort_values(by=self.sequences.columns.tolist(), inplace=False)
+            old_sorted_idxs = np.argsort(unique_sequences.index)
+
+            if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
+                diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+            elif metric == 'LCS':
+                diss = pairwise_distances(unique_sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
+            elif metric == 'levenshtein':
+                diss = pairwise_distances(unique_sequences.values, metric=levenshtein, n_jobs=n_jobs)
+            elif callable(metric):
+                diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+            else:
+                raise ValueError('metric not supported')
+
+            # This is to be able to math cluster idxs with the parameter idxs
+            diss = diss[old_sorted_idxs]
+            diss = diss.T
+            diss = diss[old_sorted_idxs]
+            self.diss = diss
+
         else:
-            raise ValueError('metric not supported')
-        self.diss = diss
+            unique_sequences = self.sequences.sort_values(by=self.sequences.columns.tolist(), inplace=False)
+            old_sorted_idxs = np.argsort(unique_sequences.index)
+            unique_sequences = self.get_unique_sequences(unique_sequences)
+
+            if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
+                diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+            elif metric == 'LCS':
+                diss = pairwise_distances(unique_sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
+            elif metric == 'levenshtein':
+                diss = pairwise_distances(unique_sequences.values, metric=levenshtein, n_jobs=n_jobs)
+            elif callable(metric):
+                diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+            else:
+                raise ValueError('metric not supported')
+
+            count_seqs = unique_sequences.index.get_level_values(1).values
+            seq_idxs = unique_sequences.index.get_level_values(0).values
+            repeat_idxs = np.repeat(seq_idxs, count_seqs)
+            diss = diss[repeat_idxs]
+            # This is to be able to math cluster idxs with the parameter idxs
+            diss = diss[old_sorted_idxs]
+            diss = diss.T
+            diss = diss[repeat_idxs]
+            diss = diss[old_sorted_idxs]
+            self.diss = diss
 
     def hdbscan(self, min_cluster_size=50, min_samples=5, alpha=1.0, cluster_selection_method='eom', **kwargs):
         """
@@ -161,6 +206,7 @@ class ClusterSequences(object):
                               alpha=alpha, cluster_selection_method=cluster_selection_method,
                               metric='precomputed', **kwargs).fit(self.diss)
         self.labels = hdb.labels_
+
         self.cluster_method = 'hdbscan'
         return
 
@@ -430,24 +476,28 @@ class PlotSequences(object):
     Class to plot dynamic signatures sequences
     """
 
-    def __init__(self, sequence_obj):
+    def __init__(self, sequence_obj, no_clustering=False):
         """
 
         Parameters
         ----------
         sequence_obj
         """
-        if sequence_obj.diss is None or sequence_obj.labels is None:
-            raise Exception('Clustering has not been done in the ClusterSequence class')
-
+        # TODO: find a way to make repeated sequences a big lane proportional to the number of repetitions
         self.unique = sequence_obj.unique
         self.sequences = sequence_obj.sequences
-        self.diss = sequence_obj.diss
-        self.cluster_labels = sequence_obj.labels
         self.unique_states = sequence_obj.unique_states
+        self.diss = sequence_obj.diss
         colors = distinct_colors(len(self.unique_states))
         self.states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self.unique_states))
         self.cmap, self.norm = self.cmap_norm()
+
+        if no_clustering:
+            self.cluster_labels = np.zeros(len(self.sequences), dtype=np.int)
+        else:
+            if sequence_obj.diss is None or sequence_obj.labels is None:
+                raise Exception('Clustering has not been done in the ClusterSequence class')
+            self.cluster_labels = sequence_obj.labels
 
     def cmap_norm(self):
         cmap = ListedColormap(self.states_colors.values())
@@ -459,23 +509,29 @@ class PlotSequences(object):
     def modal_plot(self, title=''):  # , legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
-            clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
+            clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :( from hdbscan
         else:
             clusters = list(clusters)
         n_rows = int(math.ceil(len(clusters) / 3))
-        f, axs = plt.subplots(n_rows, 3, sharex=True, sharey=True, figsize=(8, 6))
-        f.subplots_adjust(hspace=.5)
-        axs = axs.reshape(n_rows * 3)
+        if len(clusters) == 1:
+            f, axs = plt.subplots(n_rows, 1, sharex=True, figsize=(8, 6))
+            axs = [axs]
+        elif len(clusters) == 2:
+            f, axs = plt.subplots(n_rows, 2, sharex=True, figsize=(8, 6))
+        else:
+            f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
+            f.subplots_adjust(hspace=.6, wspace=.4)
+            axs = axs.reshape(n_rows * 3)
+
+            plots_off = (n_rows * 3) - len(clusters)
+            for i in range(1, plots_off + 1):
+                axs[-i].axis('off')
 
         # if legend_plot:
         #     fig_legend = plt.figure(100, figsize=(2, 1.25))
         #     legend_patches = [mpatches.Patch(color=c, label=l) for l, c in self.states_color_dict.items()]
         #     fig_legend.legend(legend_patches, self.states_color_dict.keys(), loc='center', frameon=False, ncol=4)
         #     plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
-
-        plots_off = (n_rows * 3) - len(clusters)
-        for i in range(1, plots_off + 1):
-            axs[-i].axis('off')
 
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
@@ -502,24 +558,45 @@ class PlotSequences(object):
         plt.savefig('cluster_modal', bbox_inches='tight', dpi=1000)
         return
 
-    def all_trajectories_plot(self, title='', sort_seq='silhouette'):
+    def all_trajectories_plot(self, title='', sort_seq=None):
+        """
+
+        Parameters
+        ----------
+        title : str, optional
+            Title of the plot
+        sort_seq : str, optional
+            Algorithm to sort the sequences in the plot, currently it can only be 'silhouette'
+
+        Returns
+        -------
+
+        """
         clusters = set(self.cluster_labels)
         if -1 in clusters:
             clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
         else:
             clusters = list(clusters)
         n_rows = int(math.ceil(len(clusters) / 3))
-        f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
-        f.subplots_adjust(hspace=.6, wspace=.4)
-        axs = axs.reshape(n_rows * 3)
+        if len(clusters) == 1:
+            f, axs = plt.subplots(n_rows, 1, sharex=True, figsize=(8, 6))
+            axs = [axs]
+        elif len(clusters) == 2:
+            f, axs = plt.subplots(n_rows, 2, sharex=True, figsize=(8, 6))
+        else:
+            f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
+            f.subplots_adjust(hspace=.6, wspace=.4)
+            axs = axs.reshape(n_rows * 3)
 
-        plots_off = (n_rows * 3) - len(clusters)
-        for i in range(1, plots_off + 1):
-            axs[-i].axis('off')
+            plots_off = (n_rows * 3) - len(clusters)
+            for i in range(1, plots_off + 1):
+                axs[-i].axis('off')
 
         # TODO search for other types of sorting
         if sort_seq == 'silhouette':
-            sil_samples = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
+            sort_values = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
+        else:
+            sort_values = np.random.rand(len(self.cluster_labels))
 
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
@@ -531,9 +608,8 @@ class PlotSequences(object):
             else:
                 total_seqs = n_seqs
 
-            clus_sil_samples = sil_samples[
-                self.cluster_labels == clus]  # FIXME varible sil_samples can be referenced without assignment
-            clus_sil_sort = np.argsort(clus_sil_samples)
+            clus_sort_samples = sort_values[self.cluster_labels == clus]
+            clus_sil_sort = np.argsort(clus_sort_samples)
             clus_seqs = clus_seqs.iloc[clus_sil_sort]
             xx = self.sequences.columns
             count_seqs = 0

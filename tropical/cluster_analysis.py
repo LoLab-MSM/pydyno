@@ -260,8 +260,8 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
-                                                                                format(self.model.species[sp]))
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
+                                                                                format(self.model.species[sp], idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
@@ -287,14 +287,13 @@ class AnalysisCluster(object):
                     ftn_result[sp] = result_fit
             self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
 
-
             for sp in species:
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}'.
-                                                                                format(self.model.species[sp]))
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
+                                                                                format(self.model.species[sp], idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
@@ -383,21 +382,20 @@ class AnalysisCluster(object):
         """
 
         for sp_ic in par_idxs:
-            plt.figure(1)
+            plt.figure()
             data_violin = [0]*len(self.clusters)
             for idx, clus in self.clusters.items():
                 cluster_pars = self.all_parameters[clus]
                 sp_ic_values = cluster_pars[:, sp_ic]
                 data_violin[idx] = np.log10(sp_ic_values)
 
-            g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='area', inner='box')
+            g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
             # g.set_yticklabels(self.clusters.keys())
             plt.xlabel('Parameter Range')
             plt.ylabel('Clusters')
             plt.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
             plt.savefig(final_save_path+'.png', format='png', dpi=700)
-            plt.clf()
         return
 
     def plot_sp_ic_overlap(self, ic_par_idxs, save_path=''):
