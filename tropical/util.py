@@ -9,6 +9,12 @@ from pysb.simulator import ScipyOdeSimulator
 from itertools import compress
 import matplotlib.pyplot as plt
 import sympy
+from scipy.optimize import curve_fit
+
+try:
+    from pathos.multiprocessing import ProcessingPool as Pool
+except ImportError:
+    Pool = None
 
 def listdir_fullpath(d):
     """
@@ -177,6 +183,36 @@ def sig_apop(t, f, td, ts):
     return f - f / (1 + np.exp((t - td) / (4 * ts)))
 
 
+def curve_fit_ftn(fn, xdata, ydata, **kwargs):
+    """
+    Fit simulation data to specific function
+
+    Parameters
+    ----------
+    fn: callable
+        function that would be used for fitting the data
+    xdata: list-like,
+        x-axis data points (usually time span of the simulation)
+    ydata: list-like,
+        y-axis data points (usually concentration of species in time)
+    kwargs: dict,
+        Key arguments to use in curve-fit
+
+    Returns
+    -------
+    Parameter values of the functions used to fit the data
+
+    """
+
+    # TODO change to use for loop
+    def curve_fit2(data):
+        c = curve_fit(f=fn, xdata=xdata, ydata=data, **kwargs)
+        return c[0]
+
+    fit_all = np.apply_along_axis(curve_fit2, axis=1, arr=ydata)
+    return fit_all
+
+
 def pre_equilibration(model, time_search, parameters, tolerance=1e-6):
     """
 
@@ -320,4 +356,47 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_va
 
         plt.tight_layout()
         plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
-        plt.clf()
+
+
+def species_effect_tdeath(solver, cluster_pars, perturbations, ftn, num_processors=1):
+    """
+    This works only for EARM 2.0 Model
+    Parameters
+    ----------
+    solver : pysb solver
+    cluster_pars : dict
+        A dictionary whose keys are the cluster label and the values are the
+        parameter sets in each cluster
+    perturbations : dict
+        A dictionary whose keys are the indices of the parameters to be perturbed
+        and the values are the percentage of perturbation
+    sp_analysis : vector-like
+        Indices of species to analyze
+    ftn : callable
+        Function to apply to trajectories to have a experimental value
+    metric : str
+        Metric to analyze results from function
+    num_processors
+    kwargs
+
+    Returns
+    -------
+
+    """
+    labels = [str(l) for l in cluster_pars.keys()]
+    sp_ic = [str(ic) for ic in perturbations.keys()]
+    effects = pd.DataFrame(columns=labels, index=sp_ic)
+    for clus, pars in cluster_pars.items():
+        print (clus)
+        for par_idx, perc in perturbations.items():
+            param_values = np.array(pars)
+            param_values[:, par_idx] = param_values[:, par_idx] * perc
+            sims = solver.run(param_values=param_values, num_processors=num_processors).all
+            cparp = [sim['__s39'] for sim in sims]
+            td = curve_fit_ftn(fn=ftn, xdata=solver.tspan, ydata=cparp, p0=[100,100,100])
+            td_hist = column(td, 1)
+            std = np.std(td_hist)
+            mean = np.average(td_hist)
+            effects.loc[str(par_idx), str(clus)] = mean
+
+    return effects

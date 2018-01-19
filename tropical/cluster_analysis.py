@@ -12,7 +12,6 @@ import numpy as np
 import seaborn as sns
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from scipy.optimize import curve_fit
 
 import util as hf
 from pysb.bng import generate_equations
@@ -135,37 +134,6 @@ class AnalysisCluster(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-
-
-
-    @staticmethod
-    def curve_fit_ftn(fn, xdata, ydata, **kwargs):
-        """
-        Fit simulation data to specific function
-
-        Parameters
-        ----------
-        fn: callable
-            function that would be used for fitting the data
-        xdata: list-like,
-            x-axis data points (usually time span of the simulation)
-        ydata: list-like,
-            y-axis data points (usually concentration of species in time)
-        kwargs: dict,
-            Key arguments to use in curve-fit
-
-        Returns
-        -------
-        Parameter values of the functions used to fit the data
-
-        """
-        # TODO change to use for loop
-        def curve_fit2(data):
-            c = curve_fit(f=fn, xdata=xdata, ydata=data, **kwargs)
-            return c[0]
-        fit_all = np.apply_along_axis(curve_fit2, axis=1, arr=ydata)
-        return fit_all
-
     def plot_dynamics_cluster_types(self, species, save_path='', species_ftn_fit=None, norm=False, **kwargs):
         """
         Plots the dynamics of the species for each cluster
@@ -282,7 +250,7 @@ class AnalysisCluster(object):
                                                                             color='blue',
                                                                             alpha=0.2)
                 if sp in sp_overlap:
-                    result_fit = self.curve_fit_ftn(fn=species_ftn_fit[sp], xdata=self.tspan,
+                    result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[sp], xdata=self.tspan,
                                                     ydata=sp_trajectory, **kwargs)
                     ftn_result[sp] = result_fit
             self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
@@ -309,6 +277,7 @@ class AnalysisCluster(object):
 
             # This is specific for the time of death fitting in apoptosis
             hist_data = hf.column(ftn_result[sp_dist], 1)
+            # TODO I should look deeper into how many trajectories have different dynamics
             hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
             # shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
             # pdf = lognorm.pdf(np.sort(hist_data_filt), shape, loc, scale)
