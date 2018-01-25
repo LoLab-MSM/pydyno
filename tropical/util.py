@@ -7,14 +7,7 @@ from pysb.bng import generate_equations
 import pysb
 from pysb.simulator import ScipyOdeSimulator
 from itertools import compress
-import matplotlib.pyplot as plt
-import sympy
 from scipy.optimize import curve_fit
-
-try:
-    from pathos.multiprocessing import ProcessingPool as Pool
-except ImportError:
-    Pool = None
 
 def listdir_fullpath(d):
     """
@@ -145,74 +138,6 @@ def parse_name(spec):
     return parsed_name[:len(parsed_name) - 1]
 
 
-def column(matrix, i):
-    """
-
-    Parameters
-    ----------
-    matrix : np.ndarray
-        Array to get the column from
-    i : int
-        Column index to get from array
-
-    Returns
-    -------
-
-    """
-    return np.array([row[i] for row in matrix])
-
-
-def sig_apop(t, f, td, ts):
-    """
-
-    Parameters
-    ----------
-    t : list-like
-        Time variable in the function
-    f : float
-        is the fraction cleaved at the end of the reaction
-    td : float
-        is the delay period between TRAIL addition and half-maximal substrate cleavage
-    ts : float
-        is the switching time between initial and complete effector substrate  cleavage
-
-    Returns
-    -------
-
-    """
-    return f - f / (1 + np.exp((t - td) / (4 * ts)))
-
-
-def curve_fit_ftn(fn, xdata, ydata, **kwargs):
-    """
-    Fit simulation data to specific function
-
-    Parameters
-    ----------
-    fn: callable
-        function that would be used for fitting the data
-    xdata: list-like,
-        x-axis data points (usually time span of the simulation)
-    ydata: list-like,
-        y-axis data points (usually concentration of species in time)
-    kwargs: dict,
-        Key arguments to use in curve-fit
-
-    Returns
-    -------
-    Parameter values of the functions used to fit the data
-
-    """
-
-    # TODO change to use for loop
-    def curve_fit2(data):
-        c = curve_fit(f=fn, xdata=xdata, ydata=data, **kwargs)
-        return c[0]
-
-    fit_all = np.apply_along_axis(curve_fit2, axis=1, arr=ydata)
-    return fit_all
-
-
 def pre_equilibration(model, time_search, parameters, tolerance=1e-6):
     """
 
@@ -292,111 +217,69 @@ def find_nonimportant_nodes(model):
     return passengers
 
 
-def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_values):
-    mach_eps = np.finfo(float).eps
-    species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
-    par_name_idx = {j.name: i for i, j in enumerate(model.parameters)}
-    if not species_ready:
-        raise Exception('None of the input species is a driver')
-
-    for sp in species_ready:
-
-        # Setting up figure
-        plt.figure(1)
-        plt.subplot(313)
-
-        signature = all_signatures[sp][1]
-
-        # if not signature:
-        #     continue
-
-        # mon_val = OrderedDict()
-        # merged_mon_comb = self.merge_dicts(*self.all_comb[sp].values())
-        # merged_mon_comb.update({'ND': 'N'})
-        #
-        # for idx, mon in enumerate(list(set(signature))):
-        #     mon_val[merged_mon_comb[mon]] = idx
-        #
-        # mon_rep = [0] * len(signature)
-        # for i, m in enumerate(signature):
-        #     mon_rep[i] = mon_val[merged_mon_comb[m]]
-        # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
-        plt.scatter(tspan, signature)
-        plt.yticks(list(set(signature)))
-        plt.ylabel('Dominant terms', fontsize=14)
-        plt.xlabel('Time(s)', fontsize=14)
-        plt.xlim(0, tspan[-1])
-        # plt.ylim(0, max(y_pos))
-        plt.subplot(312)
-        for val, rr in all_comb[sp]['reactants'][1].items():
-            mon = rr[0]
-            var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
-            arg_f1 = [0] * len(var_to_study)
-            for idx, va in enumerate(var_to_study):
-                if str(va).startswith('__'):
-                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                    arg_f1[idx] = np.maximum(mach_eps, y[:, sp_idx])
-                else:
-                    arg_f1[idx] = param_values[par_name_idx[va.name]]
-
-            f1 = sympy.lambdify(var_to_study, mon)
-            mon_values = f1(*arg_f1)
-            mon_name = str(val)
-            plt.plot(tspan, mon_values, label=mon_name)
-        plt.ylabel('Rate(m/sec)', fontsize=14)
-        plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=3)
-        plt.xlim(0, tspan[-1])
-
-        plt.subplot(311)
-        plt.plot(tspan, y[:, sp], label=parse_name(model.species[sp]))
-        plt.ylabel('Molecules', fontsize=14)
-        plt.xlim(0, tspan[-1])
-        plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
-        plt.suptitle('Tropicalization' + ' ' + str(model.species[sp]), y=1.08)
-
-        plt.tight_layout()
-        plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
-
-
-def species_effect_tdeath(solver, cluster_pars, perturbations, ftn, num_processors=1):
+def column(matrix, i):
     """
-    This works only for EARM 2.0 Model
+
     Parameters
     ----------
-    solver : pysb solver
-    cluster_pars : dict
-        A dictionary whose keys are the cluster label and the values are the
-        parameter sets in each cluster
-    perturbations : dict
-        A dictionary whose keys are the indices of the parameters to be perturbed
-        and the values are the percentage of perturbation
-    sp_analysis : vector-like
-        Indices of species to analyze
-    ftn : callable
-        Function to apply to trajectories to have a experimental value
-    metric : str
-        Metric to analyze results from function
-    num_processors
-    kwargs
+    matrix : np.ndarray
+        Array to get the column from
+    i : int
+        Column index to get from array
 
     Returns
     -------
 
     """
-    labels = [str(l) for l in cluster_pars.keys()]
-    sp_ic = [str(ic) for ic in perturbations.keys()]
-    effects = pd.DataFrame(columns=labels, index=sp_ic)
-    for clus, pars in cluster_pars.items():
-        print (clus)
-        for par_idx, perc in perturbations.items():
-            param_values = np.array(pars)
-            param_values[:, par_idx] = param_values[:, par_idx] * perc
-            sims = solver.run(param_values=param_values, num_processors=num_processors).all
-            cparp = [sim['__s39'] for sim in sims]
-            td = curve_fit_ftn(fn=ftn, xdata=solver.tspan, ydata=cparp, p0=[100,100,100])
-            td_hist = column(td, 1)
-            std = np.std(td_hist)
-            mean = np.average(td_hist)
-            effects.loc[str(par_idx), str(clus)] = mean
+    return np.array([row[i] for row in matrix])
 
-    return effects
+
+def sig_apop(t, f, td, ts):
+    """
+
+    Parameters
+    ----------
+    t : list-like
+        Time variable in the function
+    f : float
+        is the fraction cleaved at the end of the reaction
+    td : float
+        is the delay period between TRAIL addition and half-maximal substrate cleavage
+    ts : float
+        is the switching time between initial and complete effector substrate  cleavage
+
+    Returns
+    -------
+
+    """
+    return f - f / (1 + np.exp((t - td) / (4 * ts)))
+
+
+def curve_fit_ftn(fn, xdata, ydata, **kwargs):
+    """
+    Fit simulation data to specific function
+
+    Parameters
+    ----------
+    fn: callable
+        function that would be used for fitting the data
+    xdata: list-like,
+        x-axis data points (usually time span of the simulation)
+    ydata: list-like,
+        y-axis data points (usually concentration of species in time)
+    kwargs: dict,
+        Key arguments to use in curve-fit
+
+    Returns
+    -------
+    Parameter values of the functions used to fit the data
+
+    """
+
+    # TODO change to use for loop
+    def curve_fit2(data):
+        c = curve_fit(f=fn, xdata=xdata, ydata=data, **kwargs)
+        return c[0]
+
+    fit_all = np.apply_along_axis(curve_fit2, axis=1, arr=ydata)
+    return fit_all
