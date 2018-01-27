@@ -20,7 +20,7 @@ import editdistance
 import tropical.lcs as lcs
 import collections
 from kmedoids import kMedoids
-
+from tropical.util import rate_2_interactions
 
 def lcs_dist_same_length(seq1, seq2):
     """
@@ -111,7 +111,6 @@ class ClusterSequences(object):
         self.diss = None
         self.labels = None
         self.cluster_method = ''
-
     def __repr__(self):
         return (
             '{} (Sequences:{}, Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
@@ -506,6 +505,56 @@ class PlotSequences(object):
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
+    def legend_plot(self, model, reactions_comb, combs=None):
+        """
+        Creates a plot with the legend of the Colors and the proteins involved in interactions
+        Parameters
+        ----------
+        model : PySB model
+        reactions_comb : dict,
+            A dictionary whose keys are the level of the combination and the values are
+            dictionaries with labels as keys and reaction rates as values
+        combs : vector-like
+            Labels (integers) of the dominant combination rates
+
+        Returns
+        -------
+
+        """
+        fig_legend = plt.figure(100, figsize=(2, 1.25))
+        comb_flat = {}
+        #Flatten reactions_comb dict to search by label key
+        for com in reactions_comb.values():
+            comb_flat.update(com)
+
+        legend_patches = []
+        labels = []
+        if combs:
+            for l in combs:
+                if l != -1:
+                    label = " ".join(rate_2_interactions(model, str(rate)) for rate in comb_flat[l])
+                    # Delete repeated proteins
+                    words = label.split()
+                    label = ", ".join(sorted(set(words), key=words.index))
+                    label = '{}: {}'.format(l, label)
+
+                    labels.append(label)
+                    legend_patches.append(mpatches.Patch(color=self.states_colors[l], label=label))
+        else:
+            for l, c in self.states_colors.items():
+                if l != -1:
+                    label = " ".join(rate_2_interactions(model, str(rate)) for rate in comb_flat[l])
+                    # Delete repeated proteins
+                    words = label.split()
+                    label=", ".join(sorted(set(words), key=words.index))
+                    label = '{}: {}'.format(l, label)
+
+                    labels.append(label)
+                    legend_patches.append(mpatches.Patch(color=c, label=label))
+        fig_legend.legend(legend_patches, labels, loc='center', frameon=False, ncol=4)
+        plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
+        return
+
     def modal_plot(self, title=''):  # , legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
@@ -526,12 +575,6 @@ class PlotSequences(object):
             plots_off = (n_rows * 3) - len(clusters)
             for i in range(1, plots_off + 1):
                 axs[-i].axis('off')
-
-        # if legend_plot:
-        #     fig_legend = plt.figure(100, figsize=(2, 1.25))
-        #     legend_patches = [mpatches.Patch(color=c, label=l) for l, c in self.states_color_dict.items()]
-        #     fig_legend.legend(legend_patches, self.states_color_dict.keys(), loc='center', frameon=False, ncol=4)
-        #     plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
 
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
