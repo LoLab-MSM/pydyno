@@ -353,13 +353,17 @@ class AnalysisCluster(object):
         for sp_ic in par_idxs:
             plt.figure()
             data_violin = [0]*len(self.clusters)
+            clus_labels = [0] * len(self.clusters)
+            count = 0
             for idx, clus in self.clusters.items():
                 cluster_pars = self.all_parameters[clus]
                 sp_ic_values = cluster_pars[:, sp_ic]
-                data_violin[idx] = np.log10(sp_ic_values)
+                data_violin[count] = np.log10(sp_ic_values)
+                clus_labels[count] = idx
+                count += 1
 
             g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
-            # g.set_yticklabels(self.clusters.keys())
+            g.set_yticklabels(clus_labels)
             plt.xlabel('Parameter Range')
             plt.ylabel('Clusters')
             plt.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
