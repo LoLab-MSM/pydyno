@@ -1,4 +1,5 @@
 import util as hf
+from visualize_discretization import visualization
 from pysb.simulator import SimulationResult
 import numpy
 import sympy
@@ -287,6 +288,7 @@ def all_equal(iterator):
     except StopIteration:
         return True
 
+
 def get_simulations(simulations):
     """
     Obtains trajectories, parameters, tspan from a SimulationResult object
@@ -363,7 +365,7 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
     if sp_to_vis is not None:
-        hf.visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
+        visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
                          all_signatures=signatures, all_comb=tro.all_comb, param_values=parameters[0])
     return signatures
 
