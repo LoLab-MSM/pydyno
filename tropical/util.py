@@ -8,7 +8,7 @@ import pysb
 from pysb.simulator import ScipyOdeSimulator
 from itertools import compress
 from scipy.optimize import curve_fit
-
+from sympy import Add
 def listdir_fullpath(d):
     """
 
@@ -136,6 +136,30 @@ def parse_name(spec):
         else:
             parsed_name += str(counts) + sp + '_'
     return parsed_name[:len(parsed_name) - 1]
+
+
+def rate_2_interactions(model, rate):
+    """
+
+    Parameters
+    ----------
+    model : PySB model
+    rate : str
+    Returns
+    -------
+
+    """
+
+    generate_equations(model)
+    species_idxs = re.findall('(?<=__s)\d+', rate)
+    species_idxs = [int(i) for i in species_idxs]
+    if len(species_idxs) == 1:
+        interaction = parse_name(model.species[species_idxs[0]])
+    else:
+        sp_monomers ={sp: model.species[sp].monomer_patterns for sp in species_idxs }
+        sorted_intn = sorted(sp_monomers.items(), key=lambda value: len(value[1]))
+        interaction = " ".join(parse_name(model.species[mons[0]]) for mons in sorted_intn[:2])
+    return interaction
 
 
 def pre_equilibration(model, time_search, parameters, tolerance=1e-6):
