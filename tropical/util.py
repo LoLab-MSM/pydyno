@@ -104,15 +104,18 @@ def read_all_pars(pars_path, new_path=None):
 
 def parse_name(spec):
     """
+    Function that writes short names of the species to name the nodes.
+    It counts how many times a monomer_pattern is present in the complex pattern an its states
+    then it takes only the monomer name and its state to write a shorter name to name the nodes.
 
     Parameters
     ----------
     spec : pysb.ComplexPattern
-        Species's whose name is going to be parsed
+        Name of species to parse
 
     Returns
     -------
-    A shorter version of the species name
+    Parsed name of species
     """
     m = spec.monomer_patterns
     lis_m = []
@@ -121,7 +124,8 @@ def parse_name(spec):
     for i in range(len(m)):
         tmp_1 = str(m[i]).partition('(')
         tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
-
+        print (tmp_1)
+        print (tmp_2)
         if not tmp_2:
             lis_m.append(tmp_1[0])
         else:

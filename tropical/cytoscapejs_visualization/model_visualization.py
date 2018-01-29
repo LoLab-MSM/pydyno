@@ -164,7 +164,7 @@ class ModelVisualization(object):
 
         # Gets passenger species to visualize in the network
         if get_passengers:
-            self.passengers = find_nonimportant_nodes(self.model)
+            self.passengers = hf.find_nonimportant_nodes(self.model)
 
         # Solution of the differential equations
         sim_result = ScipyOdeSimulator(self.model, tspan=self.tspan, param_values=self.param_dict).run()
