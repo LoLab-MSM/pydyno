@@ -11,7 +11,7 @@ import pysb
 import re
 import matplotlib.colors as colors
 import matplotlib.cm as cm
-
+import tropical.util as hf
 # try:
 #     import matplotlib.colors as colors
 # except ImportError:
@@ -47,71 +47,6 @@ class MidpointNormalize(colors.Normalize):
         # simple example...
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return numpy.ma.masked_array(numpy.interp(value, x, y))
-
-
-def parse_name(spec):
-    """
-    Function that writes short names of the species to name the nodes.
-    It counts how many times a monomer_pattern is present in the complex pattern an its states
-    then it takes only the monomer name and its state to write a shorter name to name the nodes.
-
-    Parameters
-    ----------
-    spec : pysb.ComplexPattern
-        Name of species to parse
-
-    Returns
-    -------
-    Parsed name of species
-    """
-    m = spec.monomer_patterns
-    lis_m = []
-    name_counts = OrderedDict()
-    parsed_name = ''
-    for i in range(len(m)):
-        tmp_1 = str(m[i]).partition('(')
-        tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
-
-        if not tmp_2:
-            lis_m.append(tmp_1[0])
-        else:
-            lis_m.append(''.join([tmp_1[0], tmp_2[0]]))
-
-    for name in lis_m:
-        name_counts[name] = lis_m.count(name)
-
-    for sp, counts in name_counts.items():
-        if counts == 1:
-            parsed_name += sp + '_'
-        else:
-            parsed_name += str(counts) + sp + '_'
-    return parsed_name[:len(parsed_name) - 1]
-
-
-def find_nonimportant_nodes(model):
-    """
-    Function that finds nodes that only have one incoming and outgoing edge
-
-    Parameters
-    ----------
-    model: pysb.Model
-
-    Returns
-    -------
-    a list of nodes that only have one incoming and outgoing edge
-    """
-    if not model.odes:
-        pysb.bng.generate_equations(model)
-
-    # gets the reactant and product species in the reactions
-    rcts_sp = sum([i['reactants'] for i in model.reactions_bidirectional], ())
-    pdts_sp = sum([i['products'] for i in model.reactions_bidirectional], ())
-    # find the reactants and products that are only used once
-    non_imp_rcts = set([x for x in range(len(model.species)) if rcts_sp.count(x) < 2])
-    non_imp_pdts = set([x for x in range(len(model.species)) if pdts_sp.count(x) < 2])
-    non_imp_nodes = set.intersection(non_imp_pdts, non_imp_rcts)
-    passengers = non_imp_nodes
-    return passengers
 
 
 class ModelVisualization(object):
@@ -156,7 +91,7 @@ class ModelVisualization(object):
         A Dictionary Object that can be converted into Cytoscape.js JSON
         """
         if get_passengers:
-            self.passengers = find_nonimportant_nodes(self.model)
+            self.passengers = hf.find_nonimportant_nodes(self.model)
         self.species_graph(view='static')
         if cluster_info:
             # TODO check structure of cluster_info
@@ -263,7 +198,7 @@ class ModelVisualization(object):
         for idx in range(len(self.model.species)):
             species_node = 's%d' % idx
             # Setting the information about the node
-            node_data = {'label': parse_name(self.model.species[idx])}
+            node_data = {'label': hf.parse_name(self.model.species[idx])}
             if idx in self.passengers:
                 node_data['background_color'] = "#162899"
             else:
@@ -444,10 +379,10 @@ class ModelVisualization(object):
         all_reactants = [rx['reactants'] for rx in self.model.reactions_bidirectional]
         sp_imp = set(range(len(self.model.species))) - self.passengers  # species with more than one edge
 
+        # TODO, switch between reactant to product, in order to see how a product is being made
         for sp in sp_imp:
             # Getting the indices of the reactions_bidirectional in which sp is a reactant
-            rxns_idx_c = [all_reactants.index(rx) for rx in all_reactants if sp in rx]
-
+            rxns_idx_c = [i for i, rx in enumerate(all_reactants) if sp in rx]
             rxn_val_pos = numpy.where(rxns_matrix[rxns_idx_c] > 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
             rxn_val_neg = numpy.where(rxns_matrix[rxns_idx_c] < 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
             # rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
