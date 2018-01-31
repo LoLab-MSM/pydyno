@@ -123,13 +123,13 @@ def parse_name(spec):
     parsed_name = ''
     for i in range(len(m)):
         tmp_1 = str(m[i]).partition('(')
-        tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
-        print (tmp_1)
-        print (tmp_2)
+        tmp_2 = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
+        # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
         if not tmp_2:
             lis_m.append(tmp_1[0])
         else:
-            lis_m.append(''.join([tmp_1[0], tmp_2[0]]))
+            tmp_2.insert(0, tmp_1[0])
+            lis_m.append(''.join(tmp_2))
 
     for name in lis_m:
         name_counts[name] = lis_m.count(name)
