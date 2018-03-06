@@ -54,11 +54,11 @@ par_clus1 = parameters[0]
 repeated_parameter_values = np.tile(par_clus1, (samples, 1))
 for idx, par in parameters_ic.items():
     repeated_parameter_values[:, idx] = sample_lognormal(par, size=samples)
-np.save('earm_diff_IC.npy', repeated_parameter_values)
+np.save('earm_diff_IC_par0.npy', repeated_parameter_values)
 
 t = np.linspace(0, 20000, 100)
 sims = ScipyOdeSimulator(model=model, tspan=t, param_values=repeated_parameter_values).run()
 signatures = run_tropical_multi(model=model, simulations=sims, cpu_cores=25)
 
-with open('earm_signatures_ic.pickle', 'wb') as handle:
+with open('earm_signatures_ic_par0.pickle', 'wb') as handle:
     pickle.dump(signatures, handle, protocol=pickle.HIGHEST_PROTOCOL)
