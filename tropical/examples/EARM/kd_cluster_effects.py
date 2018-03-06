@@ -78,8 +78,12 @@ def species_effect_tdeath(cluster_pars, perturbations, ftn, violinplot=True, num
     if violinplot:
         for par in perturbations.keys():
             par_data = [td[par] for td in effects_total.values()]
-            g = sns.violinplot(data=par_data, orient='h', bw='silverman', cut=0, scale='count', inner='box')
+            g = sns.boxplot(data=par_data, orient='h')
+            g.set_xlabel('Time to MOMP')
+            g.set_ylabel('Cluster label')
+            # g = sns.violinplot(data=par_data, orient='h', bw='silverman', cut=0, scale='count', inner='box')
             g.set_yticklabels(effects_total.keys())
+            g.set_xlim(2000, 12000)
             fig = g.get_figure()
             fig.savefig('par_{}.png'.format(par))
             fig.clf()

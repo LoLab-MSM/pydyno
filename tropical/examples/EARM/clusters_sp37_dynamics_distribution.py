@@ -1,5 +1,5 @@
 from earm2_flat import model
-from tropical.analysis_of_clusters import AnalysisCluster
+from tropical.cluster_analysis import AnalysisCluster
 from tropical import util
 import pickle
 
