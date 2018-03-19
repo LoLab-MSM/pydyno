@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta charset=utf-8 />
-    <link href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.0/jquery.qtip.min.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         body {
             font: 14px helvetica neue, helvetica, arial, sans-serif;
@@ -125,31 +124,51 @@
                     boxSelectionEnabled: true
                 });
 
+                cy.on('tap', function(evt){
+                    var ele = evt.target;
+                    if (ele.data()['tip']['state']['visible']){
+                        ele.data()['tip'].hide();
+                    } else {
+                        ele.data()['tip'].show();
+                    }
+                });
+
+                var makeTippy = function(target, text){
+                    return tippy( target.popperRef(), {
+                        html: (function(){
+                            var div = document.createElement('div');
+                            div.innerHTML = text;
+                            return div;
+                        })(),
+                        trigger: 'manual',
+                        arrow: true,
+                        placement: 'top',
+                        hideOnClick: false,
+                        interactive: true,
+                        multiple: true,
+                        sticky: true
+                    } ).tooltips[0];
+                };
+
                 var dynamics_vis = function(){
-                    // setting qtip style
-                    cy.elements().qtip({
-                        content: ' ',
-                        position: {
-                            my: 'bottom right',
-                            at: 'bottom left'
-                        },
-                        style: {
-                            classes: 'qtip-bootstrap',
-                            tip: {
-                                width: 8,
-                                height: 4
-                            }
-                        }
-                    });
+
                     var tspan = all_data.data.tspan;
                     var text = $('#{{textid}}')[0];
                     var rangeInput = $('#{{rangeid}}')[0];
                     rangeInput.max = tspan.length;
 
+                    cy.edges().forEach(function(e){
+                        e.data()['tip'] = makeTippy(e, '');
+                    });
+
+                    cy.nodes().forEach(function(n){
+                        n.data()['tip'] = makeTippy(n, '');
+                    });
 
                     function update_nodes(t){
                         rangeInput.value = t;
                         text.value = tspan[t].toFixed(2);
+
                         cy.batch(function(){
                             cy.edges().forEach(function (e) {
                                 var c = e.data('edge_color')[t];
@@ -168,7 +187,8 @@
                                 //     duration: 100,
                                 //     queue: false
                                 // });
-                                e.qtip('api').set('content.text', a.toString());
+
+                                e.data()['tip']['popper'].querySelector('.tippy-content').textContent = a.toString();
                                 // n.animate({style: {'width': s}})
 
                             });
@@ -182,10 +202,11 @@
                                 //     duration: 100,
                                 //     queue: false
                                 // });
+                                n.data()['tip']['popper'].querySelector('.tippy-content').textContent = p.toString();
 
-                                n.qtip('api').set('content.text', q.toString())
+
                             });
-                        })
+                        });
                     }
 
                     var currentTime = 0;
@@ -241,19 +262,7 @@
                 };
 
                 var cluster_info = function () {
-                    cy.nodes("[clus_colors]").qtip({
-                        content: ' ',
-                        position: {
-                            viewport: $(window)
-                        },
-                        style: {
-                            classes: 'qtip-bootstrap',
-                            tip: {
-                                width: 800,
-                                height: 4
-                            }
-                        }
-                    });
+
                     var divClone = $('#{{clusid}}').clone();
                     cy.batch(function () {
                         cy.nodes("[clus_colors]").forEach(function (n) {
@@ -276,8 +285,8 @@
 
                             }
                             n.style(pie_bg);
-                            n.qtip('api').set('content.text', $('#{{clusid}}'));
-                            n.qtip('api').set('content.title', n.data('label')+', score: ' +scores[0].toFixed(2));
+//                            n.qtip('api').set('content.text', $('#{{clusid}}'));
+//                            n.qtip('api').set('content.title', n.data('label')+', score: ' +scores[0].toFixed(2));
                             $('#{{clusid}}').replaceWith(divClone.clone());
 
                         })
@@ -292,7 +301,7 @@
                     $('#{{resetid}}')[0].style.display = 'none';
                 };
 
-                if(all_data.data.view == 'dynamic'){
+                if(all_data.data.view === 'dynamic'){
                     dynamics_vis();
                 } else {
                     static_vis();
