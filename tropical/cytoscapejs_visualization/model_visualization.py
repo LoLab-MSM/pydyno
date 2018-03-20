@@ -8,7 +8,6 @@ import numpy
 from pysb.simulator.base import SimulatorException
 from pysb.simulator import ScipyOdeSimulator
 import pysb
-import re
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 import tropical.util as hf
@@ -187,9 +186,9 @@ class ModelVisualization(object):
         A :class: nx.Digraph graph that has the information for the visualization of the model
         """
         if view == 'static':
-            self.sp_graph = OrderedGraph(name=self.model.name, view=view)
+            self.sp_graph = OrderedGraph(name=self.model.name, view=view, graph={'rankdir':'LR'})
         elif view == 'dynamic':
-            self.sp_graph = OrderedGraph(name=self.model.name, tspan=self.tspan.tolist(), view=view)
+            self.sp_graph = OrderedGraph(name=self.model.name, tspan=self.tspan.tolist(), view=view, graph={'rankdir':'LR'})
         else:
             raise ValueError('View is not valid')
         # TODO: there are reactions that generate parallel edges that are not taken into account because netowrkx
@@ -309,7 +308,7 @@ class ModelVisualization(object):
         ----------
         sp_graph : nx.Digraph graph
             A graph to be converted into cytoscapejs json format
-        layout: str
+        layout: str or dict
             Name of the layout algorithm to use for the visualization
         path: str
             Path to save the file
@@ -338,7 +337,7 @@ class ModelVisualization(object):
         An OrderedDict containing the node position according to the dot layout
         """
 
-        pos = nx.drawing.nx_agraph.pygraphviz_layout(sp_graph, prog='dot', args="-Grankdir=LR")
+        pos = nx.nx_pydot.graphviz_layout(sp_graph, prog='dot')
         ordered_pos = collections.OrderedDict((node, pos[node]) for node in sp_graph.nodes())
         return ordered_pos
 
