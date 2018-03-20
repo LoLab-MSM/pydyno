@@ -7,22 +7,18 @@ addons:
     sources:
     - libgraphviz-dev
 before_install:
-- wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
+- wget http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh
     -O miniconda.sh
 - chmod +x miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
-- conda update --yes conda
-- conda install --yes -c omnia python="$TRAVIS_PYTHON_VERSION"
-    numpy=1.13 scipy seaborn sympy networkx nose h5py pexpect pandas pydot theano ipython scikit-learn
+- conda install --yes -c conda-forge python="$TRAVIS_PYTHON_VERSION"
+    numpy=1.13 scipy matplotlib seaborn sympy networkx nose h5py pexpect pandas pydot ipython scikit-learn coveralls
 - pip install git+https://github.com/pysb/pysb.git
 - pip install python-coveralls pathos hdbscan editdistance
 - mkdir -p ~/.config/matplotlib
 - echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
-- wget "http://www.csb.pitt.edu/Faculty/Faeder/wp-content/uploads/2017/04/BioNetGen-2.2.6-stable_Linux.tar.gz"
-    -O bionetgen.tar.gz
-- tar xzf bionetgen.tar.gz
-- export BNGPATH=`pwd`/BioNetGen-2.2.6-stable
+- conda install --yes -c alubbock bionetgen
 
 install:
   python setup.py build --build-lib=build/lib
