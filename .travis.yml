@@ -15,7 +15,6 @@ before_install:
 - conda update --yes conda
 - conda install --yes -c omnia python="$TRAVIS_PYTHON_VERSION"
     numpy=1.13 scipy seaborn sympy networkx nose h5py pexpect pandas pydot theano ipython scikit-learn
-- pip install -i https://pypi.binstar.org/pypi/simple pygraphviz
 - pip install git+https://github.com/pysb/pysb.git
 - pip install python-coveralls pathos hdbscan editdistance
 - mkdir -p ~/.config/matplotlib
