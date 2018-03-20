@@ -89,6 +89,7 @@ def render(network,
 
     display(HTML(cyjs_widget))
 
+# TODO: Figure out a way to delete the div elements created by tippy.
 
 # List of available layout algorithms
 def get_layouts():

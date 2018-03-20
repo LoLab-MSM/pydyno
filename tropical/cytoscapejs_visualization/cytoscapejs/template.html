@@ -138,11 +138,15 @@
                         html: (function(){
                             var div = document.createElement('div');
                             div.innerHTML = text;
+//                            $('#{{uuid}}')[0].appendChild(div);
+//                            console.log($('#{{uuid}}')[0]);
                             return div;
                         })(),
+//                        appendTo: document.getElementById(target.id).parentNode,
+//                        offset: '0, 450',
                         trigger: 'manual',
                         arrow: true,
-                        placement: 'top',
+                        placement: 'bottom',
                         hideOnClick: false,
                         interactive: true,
                         multiple: true,
@@ -188,7 +192,7 @@
                                 //     queue: false
                                 // });
 
-                                e.data()['tip']['popper'].querySelector('.tippy-content').textContent = a.toString();
+                                e.data()['tip']['popper'].querySelector('.tippy-content').textContent = a.toFixed(2).toString();
                                 // n.animate({style: {'width': s}})
 
                             });
@@ -202,7 +206,7 @@
                                 //     duration: 100,
                                 //     queue: false
                                 // });
-                                n.data()['tip']['popper'].querySelector('.tippy-content').textContent = p.toString();
+                                n.data()['tip']['popper'].querySelector('.tippy-content').textContent = p.toFixed(2).toString();
 
 
                             });
