@@ -142,7 +142,7 @@
 //                            console.log($('#{{uuid}}')[0]);
                             return div;
                         })(),
-//                        appendTo: document.getElementById(target.id).parentNode,
+//                        appendTo: document.body,
 //                        offset: '0, 450',
                         trigger: 'manual',
                         arrow: true,
@@ -192,7 +192,7 @@
                                 //     queue: false
                                 // });
 
-                                e.data()['tip']['popper'].querySelector('.tippy-content').textContent = a.toFixed(2).toString();
+                                e.data()['tip']['popper'].querySelector('.tippy-content').textContent = a.toExponential(2).toString();
                                 // n.animate({style: {'width': s}})
 
                             });
@@ -206,7 +206,7 @@
                                 //     duration: 100,
                                 //     queue: false
                                 // });
-                                n.data()['tip']['popper'].querySelector('.tippy-content').textContent = p.toFixed(2).toString();
+                                n.data()['tip']['popper'].querySelector('.tippy-content').textContent = q.toExponential(2).toString();
 
 
                             });
