@@ -357,7 +357,7 @@ class ModelVisualization(object):
         all_rate_abs_val = {}
         rxns_matrix = numpy.zeros((len(self.model.reactions_bidirectional), len(self.tspan)))
 
-        # Calculates matrix of reaction rates
+        # Calculates matrix of bidirectional reaction rates
         for idx, reac in enumerate(self.model.reactions_bidirectional):
             rate_reac = reac['rate']
             for p in self.param_dict:
@@ -379,26 +379,88 @@ class ModelVisualization(object):
         sp_imp = set(range(len(self.model.species))) - self.passengers  # species with more than one edge
 
         # TODO, switch between reactant to product, in order to see how a product is being made
+        # it only calculates the proportion of flux out of a node but it doesnt do it to see the
+        # proportion of flux that goes into a node.
+
+        #  TODO: i should put diff_par as a parameter of the funcion
+        diff_par = 1
         for sp in sp_imp:
             # Getting the indices of the reactions_bidirectional in which sp is a reactant
             rxns_idx_c = [i for i, rx in enumerate(all_reactants) if sp in rx]
-            rxn_val_pos = numpy.where(rxns_matrix[rxns_idx_c] > 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
-            rxn_val_neg = numpy.where(rxns_matrix[rxns_idx_c] < 0, rxns_matrix[rxns_idx_c], 0).sum(axis=0)
+            rxn_val_pos = numpy.where(rxns_matrix[rxns_idx_c] > 0, rxns_matrix[rxns_idx_c], 0)
+            rxn_val_neg = numpy.where(rxns_matrix[rxns_idx_c] < 0, rxns_matrix[rxns_idx_c], 0)
+
+            # An array with the total of reaction rates at each time point
+            rxn_val_pos_total = rxn_val_pos.sum(axis=0)
+            rxn_val_neg_total = rxn_val_neg.sum(axis=0)
+
+            # The max and min of the group of reaction rates
+            rxn_val_pos_max = numpy.amax(rxn_val_pos)
+            rxn_val_pos_min = numpy.amin(rxn_val_pos)
+            rxn_val_neg_max = numpy.amax(numpy.abs(rxn_val_neg))
+            rxn_val_neg_min = numpy.amax(numpy.abs(rxn_val_neg))
+
+            # Tropicalization
+            sp_rr = rxns_matrix[rxns_idx_c]
+            sp_rr_dom = numpy.zeros(sp_rr.shape)
+            # sp_rr_neg = numpy.zeros(sp_rr.shape)
+            for col in range(len(self.tspan)):
+                # Indices of positive and negative rates at each time point
+                # log10 of the positive and negative reaction rates
+                pos_idx = numpy.where(sp_rr[:, col] > 0)[0]
+                neg_idx = numpy.where(sp_rr[:, col] < 0)[0]
+                rr_pos = numpy.log10(sp_rr[:, col][pos_idx])
+                rr_neg = numpy.log10(numpy.abs(sp_rr[:, col][neg_idx]))
+
+                if rr_neg.size != 0:
+                    max_val_neg = numpy.amax(rr_neg)
+                    dom_rr_neg = [neg_idx[n] for n, i in enumerate(rr_neg)
+                                  if i > (max_val_neg - diff_par) and max_val_neg > -5]
+                    if not dom_rr_neg:
+                        dom_rr_neg = neg_idx
+                    sp_rr_dom[:, col][dom_rr_neg] = sp_rr[:, col][dom_rr_neg]
+
+                if rr_pos.size != 0:
+                    max_val_pos = numpy.amax(rr_pos)
+                    dom_rr_pos = [pos_idx[n] for n, i in enumerate(rr_pos)
+                                  if i > (max_val_pos - diff_par) and max_val_pos > -5]
+                    if not dom_rr_pos:
+                        dom_rr_pos = pos_idx
+                    sp_rr_dom[:, col][dom_rr_pos] = sp_rr[:, col][dom_rr_pos]
+
+
             # rxn_val_total = rxns_matrix[rxns_idx_c].sum(axis=0)
-            for rx in rxns_idx_c:
+            for rx_idx, rx in enumerate(rxns_idx_c):
                 products = all_products[rx]
                 for p in products:
-                    react_rate_color = rxns_matrix[rx] / rxn_val_pos
+                    # Normalizing by the total flux in a node
+                    react_rate_color = rxns_matrix[rx] / rxn_val_pos_total
                     rxn_neg_idx = numpy.where(react_rate_color < 0)
-                    react_rate_color[rxn_neg_idx] = -1 * (react_rate_color[rxn_neg_idx] / rxn_val_neg[rxn_neg_idx])
+                    react_rate_color[rxn_neg_idx] = -1 * (react_rate_color[rxn_neg_idx] / rxn_val_neg_total[rxn_neg_idx])
                     numpy.nan_to_num(react_rate_color, copy=False)
                     rate_colors = self.f2hex_edges(react_rate_color)
 
-                    rxn_eps = rxns_matrix[rx] + self.mach_eps
-                    rxn_max = rxn_eps.max()
-                    rxn_min = abs(rxn_eps.min())
-                    react_rate_size = vals_norm(rxn_eps, rxn_max, rxn_min)
+                    rxn_eps = sp_rr_dom[rx_idx] + self.mach_eps #rxns_matrix[rx] + self.mach_eps
+                    react_rate_size = numpy.zeros(len(rxn_eps))
+                    tro_pos_idx = numpy.where(rxn_eps > 0)[0]
+                    tro_neg_idx = numpy.where(rxn_eps < 0)[0]
+
+                    if tro_neg_idx.size != 0:
+                        # rxn_max_neg = numpy.abs(rxn_eps[tro_neg_idx]).max()
+                        # rxn_min_neg = numpy.abs(rxn_eps[tro_neg_idx]).min()
+                        react_rate_size[tro_neg_idx] = vals_norm(numpy.abs(rxn_eps[tro_neg_idx]),
+                                                                 rxn_val_neg_max, rxn_val_neg_min)
+
+                    if tro_pos_idx.size != 0:
+                        # rxn_max_pos = rxn_eps[tro_pos_idx].max()
+                        # rxn_min_pos = rxn_eps[tro_pos_idx].min()
+                        react_rate_size[tro_pos_idx] = vals_norm(rxn_eps[tro_pos_idx],
+                                                                 rxn_val_pos_max, rxn_val_pos_min)
+
                     rate_sizes = self.range_normalization(numpy.abs(react_rate_size), min_x=0, max_x=1)
+                    if sp == 14 and p == 57:
+                        print (rxn_eps)
+                        print (rxns_matrix[rx])
                     edges_id = ('s' + str(sp), 's' + str(p))
                     all_rate_colors[edges_id] = rate_colors
                     all_rate_sizes[edges_id] = rate_sizes.tolist()
