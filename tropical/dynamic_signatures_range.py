@@ -197,14 +197,10 @@ class Tropical(object):
             all_signatures[sp] = list(signature_species)
         return all_signatures
 
-    def set_combinations_sm(self, max_comb=None):
+    def set_combinations_sm(self):
         """
         Obtain all possible combinations of the reactions in which a species is involved
 
-        Parameters
-        ----------
-        max_comb: int
-            Maximum level of combinations
 
         Returns
         -------
@@ -253,12 +249,6 @@ class Tropical(object):
                         monomials.append(sp_count * signs[rev_parts] * term['rate'])
                 # remove zeros from reactions in which the species shows up both in reactants and products
                 monomials = [value for value in monomials if value != 0]
-                # This is suppose to reduce the number of combinations to max_comb. But it's not working
-                # TODO: Make this work
-                # if max_comb:
-                #     combs = max_comb
-                # else:
-                #     combs = len(monomials) + 1
                 combs = len(monomials) + 1
 
                 mon_comb = OrderedDict()
@@ -340,11 +330,12 @@ def organize_dynsign_multi(signatures):
 # def signatures_to_hdf5(signatures):
 
 
-def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_to_vis=None):
+def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_to_vis=None, plot_type=0):
     """
 
     Parameters
     ----------
+    plot_type : 0 to plot production of a species, 1 to plot consumption
     model: pysb.model
         model to analyze
     simulations: pysb.SimulationResult, or str
@@ -365,8 +356,9 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
     if sp_to_vis is not None:
-        visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
-                         all_signatures=signatures, all_comb=tro.all_comb, param_values=parameters[0])
+        visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis, all_signatures=signatures,
+                      all_comb=tro.all_comb, plot_type=plot_type, param_values=parameters[0])
+    signatures['species_combinations'] = tro.all_comb
     return signatures
 
 
