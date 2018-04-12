@@ -8,7 +8,8 @@ import pysb
 from pysb.simulator import ScipyOdeSimulator
 from itertools import compress
 from scipy.optimize import curve_fit
-from sympy import Add
+
+
 def listdir_fullpath(d):
     """
 
@@ -124,27 +125,28 @@ def parse_name(spec):
     for i in range(len(m)):
         tmp_1 = str(m[i]).partition('(')
         tmp_2 = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
+        tmp_2 = [s.lower() for s in tmp_2]
         # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
         if not tmp_2:
             lis_m.append(tmp_1[0])
         else:
             tmp_2.insert(0, tmp_1[0])
+            tmp_2.reverse()
             lis_m.append(''.join(tmp_2))
-
     for name in lis_m:
         name_counts[name] = lis_m.count(name)
 
     for sp, counts in name_counts.items():
         if counts == 1:
-            parsed_name += sp + '_'
+            parsed_name += sp + ':'
         else:
-            parsed_name += str(counts) + sp + '_'
+            parsed_name += str(counts) + sp + ':'
     return parsed_name[:len(parsed_name) - 1]
 
 
 def rate_2_interactions(model, rate):
     """
-
+    Obtains the interacting protein from a rection rate
     Parameters
     ----------
     model : PySB model
@@ -162,7 +164,7 @@ def rate_2_interactions(model, rate):
     else:
         sp_monomers ={sp: model.species[sp].monomer_patterns for sp in species_idxs }
         sorted_intn = sorted(sp_monomers.items(), key=lambda value: len(value[1]))
-        interaction = " ".join(parse_name(model.species[mons[0]]) for mons in sorted_intn[:2])
+        interaction = ", ".join(parse_name(model.species[mons[0]]) for mons in sorted_intn[:2])
     return interaction
 
 

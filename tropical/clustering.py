@@ -593,7 +593,7 @@ class PlotSequences(object):
             legend_patches = [mpatches.Patch(color=self.states_colors[c], label=c) for c in set(modal_states[0])]
             axs[clus].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
             axs[clus].legend(handles=legend_patches, fontsize='x-small')
-            axs[clus].set_ylabel('frequency (n={0})'.format(total_seqs), fontsize='x-small')
+            axs[clus].set_ylabel('frequency (n={0})'.format(total_seqs), fontsize='small')
             axs[clus].set_title('Cluster {0}'.format(clus))
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
@@ -626,6 +626,7 @@ class PlotSequences(object):
             axs = [axs]
         elif len(clusters) == 2:
             f, axs = plt.subplots(n_rows, 2, sharex=True, figsize=(8, 6))
+            f.subplots_adjust(hspace=.6, wspace=.4)
         else:
             f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
             f.subplots_adjust(hspace=.6, wspace=.4)
@@ -665,7 +666,7 @@ class PlotSequences(object):
                 lc.set_array(np.array(seq))
                 lc.set_linewidth(10)
                 axs[clus].add_collection(lc)
-                axs[clus].set_ylabel('Trajectories (n={0})'.format(total_seqs), fontsize='xx-small')
+                axs[clus].set_ylabel('Trajectories (n={0})'.format(total_seqs), fontsize='small')
                 axs[clus].set_ylim(0, len(clus_seqs))
                 axs[clus].set_xlim(xx.min(), xx.max())
                 axs[clus].set_title('Cluster {0}'.format(clus))
