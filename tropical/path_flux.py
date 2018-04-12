@@ -60,6 +60,19 @@ def r_link(graph, s, r, **attrs):
     graph.add_edge(*nodes, **attrs)
 
 
+def get_graph_pathways(graph, source, target):
+    return nx.all_simple_paths(graph, source, target)
+
+
+def remove_duplicated_paths(paths):
+    # To remove the duplicated paths we take only the reactions from the path and take
+    # the paths of reactions that are note duplicated
+    paths = np.array(list(paths))
+    reaction_paths = np.array([get_r_nodes(path) for path in paths])
+    unique_paths_idxs = np.unique(reaction_paths, return_index=True)
+    return paths[unique_paths_idxs]
+
+
 def get_edges_name(reactants, products):
     edge_str = ''
     for r in reactants:
@@ -113,94 +126,95 @@ def get_r_nodes(path):
     r_nodes = [node for node in path if node.startswith('r')]
     return r_nodes
 
-def get_paths_flux(model, tspan, param_values, paths, network, total_flux=True):
+def get_paths_flux(model, tspan, param_values, network, source, target):
 
     reaction_flux_df = get_reaction_flux_df(model, tspan, param_values)
-    inst_flux_df = pd.DataFrame(columns=tspan, index=range(len(paths)))
     paths_flux = {}
-    for path_idx, path in enumerate(paths):
-        # checked_path = check_path(model, path)
-        # if not checked_path:
-        #     print ('path {0} is not allowed'.format(path_idx))
-        #     continue
-        if total_flux:
-            path_flux = 1
+
+    bla = []
+    for t in tspan:
+        # Get reaction rates that are negative
+        neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
+        if not neg_rr or bla == neg_rr:
+            continue
+        else:
+            rr_changes = list(set(neg_rr).symmetric_difference(set(bla)))
+
+            # Now we are going to flip the edges whose reaction rate value is negative
+            for edge in rr_changes:
+                in_edges = network.in_edges(edge)
+                out_edges = network.out_edges(edge)
+                edges_to_remove = list(in_edges) + list(out_edges)
+                network.remove_edges_from(edges_to_remove)
+                edges_to_add = [edge[::-1] for edge in edges_to_remove]
+                network.add_edges_from(edges_to_add)
+
+            bla = neg_rr
+        updated_paths = list(nx.all_simple_paths(network, source, target))
+        inst_flux_df = pd.DataFrame(columns=tspan, index=range(len(updated_paths)))
+        for path_idx, path in enumerate(updated_paths):
             sp_nodes = get_sp_nodes(path)
             r_nodes = get_r_nodes(path)
-            node_flux = 1
-            for sp_node, r_node in zip(sp_nodes[1:-1], r_nodes[:-1]):
-                in_edges = network.in_edges(sp_node)
-                out_edges = network.out_edges(sp_node)
-                total_flux_in_l = np.array([reaction_flux_df.loc[edge[0], 'Total'] for edge in in_edges])
-                total_flux_in = np.sum(total_flux_in_l[np.where(total_flux_in_l > 0)])
-                flux_in_negative = np.sum(total_flux_in_l[np.where(total_flux_in_l < 0)])
-                total_flux_out_l = np.array([reaction_flux_df.loc[edge[1], 'Total'] for edge in out_edges])
-                total_flux_out = np.sum(total_flux_out_l[np.where(total_flux_out_l > 0)])
-                flux_out_negative = np.sum(total_flux_out_l[np.where(total_flux_out_l < 0)])
-                total_flux_in += flux_out_negative * -1
-                total_flux_out += flux_in_negative * -1
-                # print ('in', sp_node, flux_in_negative)
-                # print('out', sp_node, flux_out_negative)
+            sp_nodes.reverse()
+            r_nodes.reverse()
+            print(r_nodes)
 
-                flux_in = np.sum(reaction_flux_df.loc[r_node, 'Total'])
-                next_r_node = r_nodes.index(r_node) + 1
-                flux_out = np.sum(reaction_flux_df.loc[r_nodes[next_r_node], 'Total'])
-                if total_flux_out < np.finfo(float).eps:
-                    percentage_out = 0
-                else:
-                    percentage_out = flux_out / total_flux_out
+            path_percentage = 1
+            for sp_node, r_node in zip(sp_nodes[:-1], r_nodes):
+                in_edges = network.in_edges(sp_node)
+                # print (path_idx, r_node, r_node_edges_correction)
+
+                total_flux_in_l = np.array([reaction_flux_df.loc[edge[0], t] for edge in in_edges])
+                total_flux_in = np.sum(np.abs(total_flux_in_l))
+                # total_flux_in = np.sum(total_flux_in_l[np.where(total_flux_in_l > 0)])
+                # print (path_idx, total_flux_in_l)
+                # print (path_idx, reaction_flux_df.loc[r_node, t])
+                flux_in = np.sum(np.abs(reaction_flux_df.loc[r_node, t]))
 
                 if total_flux_in < np.finfo(float).eps:
                     percentage_in = 0
                 else:
                     percentage_in = flux_in / total_flux_in
 
-                node_flux = percentage_in * total_flux_out * percentage_out
+                # if path_idx == 2 or path_idx==3:
+                #     print (r_node, r_nodes, in_edges)
+                #     print ('total', total_flux_in_l)
+                #     print('flux in',flux_in)
+                #     print ('perc', percentage_in)
 
-                path_flux *= node_flux
-            if path_flux <= 0:
-                continue
-            paths_flux[path_idx] = path_flux
-        else:
-            cum_path_flux = 0
-            sp_nodes = get_sp_nodes(path)
-            r_nodes = get_r_nodes(path)
-            for t in tspan:
-                path_flux = 1
-                for sp_node, r_node in zip(sp_nodes[1:-1], r_nodes[:-1]):
-                    in_edges = network.in_edges(sp_node)
-                    out_edges = network.out_edges(sp_node)
+                node_percentage = percentage_in
 
-                    total_flux_in = np.sum(
-                        [reaction_flux_df.loc[edge[0], t] for edge in in_edges])
-                    total_flux_out = np.sum(
-                        [reaction_flux_df.loc[edge[1], t] for edge in out_edges])
-                    flux_in = np.sum(
-                        reaction_flux_df.loc[r_node, t])
-                    next_r_node = r_nodes.index(r_node) + 1
-                    flux_out = np.sum(
-                        reaction_flux_df.loc[r_nodes[next_r_node], t])
+                path_percentage *= node_percentage
 
-                    if total_flux_out < np.finfo(float).eps:
-                        percentage_out = 0
-                    else:
-                        percentage_out = flux_out / total_flux_out
+            inst_flux_df.loc[path_idx][t] = path_percentage
+        print (t, inst_flux_df[t].values.sum())
 
-                    if total_flux_in < np.finfo(float).eps:
-                        percentage_in = 0
-                    else:
-                        percentage_in = flux_in / total_flux_in
-
-                    node_flux = percentage_in * flux_out * percentage_out
-                    # print (total_flux_in)
-                    # print (total_flux_out)
-                    # print (flux_in)
-                    # print (flux_out)
-
-                    path_flux *= node_flux
-                cum_path_flux += path_flux
-
-                inst_flux_df.loc[path_idx][t] = path_flux
+    # for path_idx, path in enumerate(paths):
+    #
+    #     sp_nodes = get_sp_nodes(path)
+    #     r_nodes = get_r_nodes(path)
+    #
+    #     for t in tspan:
+    #
+    #         path_percentage = 1
+    #         for sp_node, r_node in zip(sp_nodes[:-1], r_nodes):
+    #             in_edges = network.in_edges(sp_node)
+    #
+    #             total_flux_in_l = np.array([reaction_flux_df.loc[edge[0], tspan[5]] for edge in in_edges])
+    #             total_flux_in = np.sum(total_flux_in_l[np.where(total_flux_in_l > 0)])
+    #
+    #             flux_in = np.sum(reaction_flux_df.loc[r_node, t])
+    #
+    #             if total_flux_in < np.finfo(float).eps:
+    #                 percentage_in = 0
+    #             else:
+    #                 percentage_in = flux_in / total_flux_in
+    #
+    #             node_percentage = percentage_in
+    #
+    #             path_percentage *= node_percentage
+    #
+    #         inst_flux_df.loc[path_idx][t] = path_percentage
 
         # path_edges = zip(path[:-1],path[1:])
         # if total_flux:
@@ -224,10 +238,8 @@ def get_paths_flux(model, tspan, param_values, paths, network, total_flux=True):
         #         #     path_flux += flux
         #         # cum_path_flux += path_flux
         #         # inst_flux_df.loc[path_idx][t] = cum_path_flux
-    if total_flux:
-        return paths_flux
-    else:
-        return inst_flux_df
+
+    return inst_flux_df
 
 
 def check_path(model, path):
