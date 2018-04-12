@@ -2,13 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sympy
 from tropical.util import parse_name
+from tropical.util import rate_2_interactions
 
-def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_values):
+def visualization(model, tspan, y, sp_to_vis, all_signatures, plot_type, all_comb, param_values):
     mach_eps = np.finfo(float).eps
     species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
     par_name_idx = {j.name: i for i, j in enumerate(model.parameters)}
     if not species_ready:
         raise Exception('None of the input species is a driver')
+    type_plot = {0: 'products', 1: 'reactants'}
 
     for sp in species_ready:
 
@@ -16,7 +18,7 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_va
         plt.figure(1)
         plt.subplot(313)
 
-        signature = all_signatures[sp][1]
+        signature = all_signatures[sp][plot_type]
         # if not signature:
         #     continue
 
@@ -33,12 +35,12 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_va
         # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
         plt.scatter(tspan, signature)
         plt.yticks(list(set(signature)))
-        plt.ylabel('Dominant terms', fontsize=14)
+        plt.ylabel('Dominant terms', fontsize=12)
         plt.xlabel('Time(s)', fontsize=14)
         plt.xlim(0, tspan[-1])
         # plt.ylim(0, max(y_pos))
         plt.subplot(312)
-        for val, rr in all_comb[sp]['reactants'][1].items():
+        for val, rr in all_comb[sp][type_plot[plot_type]][1].items():
             mon = rr[0]
             var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
             arg_f1 = [0] * len(var_to_study)
@@ -51,18 +53,18 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, all_comb, param_va
 
             f1 = sympy.lambdify(var_to_study, mon)
             mon_values = f1(*arg_f1)
-            mon_name = str(val)
+            mon_name = rate_2_interactions(model, str(mon))
             plt.plot(tspan, mon_values, label=mon_name)
-        plt.ylabel('Rate(m/sec)', fontsize=14)
-        plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=3)
+        plt.ylabel(r'Rate [$\mu$M/s]', fontsize=12)
+        plt.legend(bbox_to_anchor=(1., 0.85), ncol=3, title='Reaction rates')
         plt.xlim(0, tspan[-1])
 
         plt.subplot(311)
         plt.plot(tspan, y[:, sp], label=parse_name(model.species[sp]))
-        plt.ylabel('Molecules', fontsize=14)
+        plt.ylabel(r'Concentration [$\mu$M]', fontsize=12)
         plt.xlim(0, tspan[-1])
-        plt.legend(bbox_to_anchor=(-0.15, 0.85), loc='upper right', ncol=1)
-        plt.suptitle('Tropicalization' + ' ' + str(model.species[sp]), y=1.08)
+        plt.legend(bbox_to_anchor=(1.23, 0.85), ncol=1)
+        plt.suptitle('Discretization' + ' ' + parse_name(model.species[sp]), y=1.08)
 
         plt.tight_layout()
-        plt.savefig('s%d' % sp + '.png', bbox_inches='tight', dpi=400)
+        plt.savefig('s%d' % sp + '.pdf', format='pdf', bbox_inches='tight')
