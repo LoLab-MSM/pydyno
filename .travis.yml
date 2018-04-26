@@ -15,11 +15,10 @@ before_install:
 - conda install --yes -c conda-forge python="$TRAVIS_PYTHON_VERSION"
     numpy=1.13 scipy matplotlib seaborn sympy networkx nose h5py pexpect
     pandas pydot ipython scikit-learn coveralls graphviz
-- pip install git+https://github.com/pysb/pysb.git
+- conda install --yes -c alubbock pysb
 - pip install python-coveralls pathos hdbscan editdistance
 - mkdir -p ~/.config/matplotlib
 - echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
-- conda install --yes -c alubbock bionetgen
 
 install:
   python setup.py build --build-lib=build/lib
