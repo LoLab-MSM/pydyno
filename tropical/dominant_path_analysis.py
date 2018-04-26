@@ -6,6 +6,7 @@ import re
 import pandas as pd
 from math import log10
 import sympy
+from itertools import chain
 
 def create_bipartite_graph(model):
     generate_equations(model)
@@ -92,6 +93,12 @@ def get_reaction_flux_df(model, tspan, param_values=None):
     return rxns_df
 
 
+def get_reaction_incoming_species(network, r):
+    in_edges = network.in_edges(r)
+    sp_nodes = [n[0] for n in in_edges]
+    return sp_nodes
+
+
 def get_dominant_paths(model, tspan, param_values, network, target, depth):
     """
 
@@ -111,8 +118,10 @@ def get_dominant_paths(model, tspan, param_values, network, target, depth):
     dom_om = 0.5 # Order of magnitude to consider dominancy
     reaction_flux_df = get_reaction_flux_df(model, tspan, param_values)
 
+    path_labels = {0:[]}
+    signature = [0] * len(tspan[1:])
     prev_neg_rr = []
-    for t in tspan[1:]:
+    for label, t in enumerate(tspan[1:]):
         # Get reaction rates that are negative
         neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
         if not neg_rr or prev_neg_rr == neg_rr:
@@ -131,21 +140,36 @@ def get_dominant_paths(model, tspan, param_values, network, target, depth):
 
             prev_neg_rr = neg_rr
 
-        dom_nodes = [{target: [target]}]
+        dom_nodes = {target: [[target]]}
+        all_rdom_noodes = []
+        t_paths = [0] * depth
         for d in range(depth):
-            all_dom_nodes = []
-            for node in dom_nodes[-1].values()[0]:
-                in_edges = network.in_edges(node)
-                # for edge in in_edges: print (node, edge)
-                fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t])) for edge in in_edges}
-                # print (fluxes_in)
-                max_val = np.amax(fluxes_in.values())
-                dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - dom_om) and max_val > -5]
-                dom_sp_nodes = [n[0] for reaction_nodes in dom_r_nodes for n in network.in_edges(reaction_nodes)]
-                # Get the species nodes from the reaction nodes to keep back tracking the pathway
-                all_dom_nodes.append({node: dom_sp_nodes})
-            dom_nodes = all_dom_nodes
-            print (t, all_dom_nodes)
+            all_dom_nodes = {}
+            for node_doms in dom_nodes.values():
+                flat_node_doms = [item for items in node_doms for item in items]
+                for node in flat_node_doms:
+                    in_edges = network.in_edges(node)
+                    # for edge in in_edges: print (node, edge)
+                    fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t])) for edge in in_edges}
+                    max_val = np.amax(fluxes_in.values())
+                    dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - dom_om) and max_val > -5]
+                    dom_sp_nodes = [get_reaction_incoming_species(network, reaction_nodes) for reaction_nodes in dom_r_nodes]
+                        # [n[0] for reaction_nodes in dom_r_nodes for n in network.in_edges(reaction_nodes)]
+                    # Get the species nodes from the reaction nodes to keep back tracking the pathway
+                    all_dom_nodes[node] = dom_sp_nodes
+                    all_rdom_noodes.append(dom_r_nodes)
+                dom_nodes = all_dom_nodes
+
+            t_paths[d] = dom_nodes
+        check_paths = [all_rdom_noodes == path for path in path_labels.values()]
+        if not any(check_paths):
+            path_labels[label] = all_rdom_noodes
+            signature[label] = label
+        else:
+            signature[label] = np.array(path_labels.keys())[check_paths][0]
+
+    print(path_labels.keys())
+    print(signature)
 
 
 
