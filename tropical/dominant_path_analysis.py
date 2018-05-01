@@ -135,8 +135,6 @@ class DomPath(object):
         # y_df = sim_result.all
         for idx, reac in enumerate(self.model.reactions_bidirectional):
             rate_reac = reac['rate']
-            for p in param_dict:
-                rate_reac = rate_reac.subs(p, param_dict[p])
             variables = [atom for atom in rate_reac.atoms(sympy.Symbol)]
             args = [0] * len(variables)  # arguments to put in the lambdify function
             for idx2, va in enumerate(variables):
@@ -230,6 +228,12 @@ class DomPath(object):
 
         return signature, path_labels
 
+
+def run_dompath_single(simulations, ref, target, depth):
+    model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
+    dompath = DomPath(model, tspan, ref, target, depth)
+    signatures = dompath.get_dominant_paths(trajectories, parameters[0])
+    return signatures
 
 def run_dompath_multi(simulations, ref, target, depth, cpu_cores=1):
     if Pool is None:
