@@ -284,8 +284,8 @@ def get_simulations(simulations):
     Obtains trajectories, parameters, tspan from a SimulationResult object
     Parameters
     ----------
-    simulations: pysb.SimulationResult
-        Simulation result
+    simulations: pysb.SimulationResult, str
+        Simulation result instance or h5py file with the simulation data
 
     Returns
     -------
@@ -393,8 +393,7 @@ def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1
     p = Pool(cpu_cores)
     if nsims == 1:
         trajectories = [trajectories]
-    else:
-        trajectories = trajectories
+
     res = p.amap(tro.signature, trajectories, parameters)
     signatures = res.get()
     signatures = organize_dynsign_multi(signatures)

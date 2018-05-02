@@ -72,17 +72,17 @@ class DomPath(object):
 
     Parameters
     ----------
-    model: PySB modekl
-        Modekl
-    tspan
-    ref
+    model: PySB model
+        Model to analyze
+    tspan: vector-like
+        Time of the simulation
     target
     depth
     """
-    def __init__(self, model, tspan, ref, target, depth):
+    def __init__(self, model, tspan, target, depth):
         self.model = model
         self.tspan = tspan
-        self.ref = ref
+        self.ref = len(tspan)
         self.target = target
         self.depth = depth
         self.network = self.create_bipartite_graph()
@@ -173,8 +173,6 @@ class DomPath(object):
 
         Parameters
         ----------
-        ref: int, A number that is added to the dictionary values of the path_labels so they can be distinguished in
-        different simulations
         target : Node label from network, Node from which the pathway starts
         depth : int, The depth of the pathway
 
@@ -240,9 +238,9 @@ class DomPath(object):
         return signature, path_labels
 
 
-def run_dompath_single(simulations, ref, target, depth):
+def run_dompath_single(simulations, target, depth):
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
-    dompath = DomPath(model, tspan, ref, target, depth)
+    dompath = DomPath(model, tspan, target, depth)
 
     if nsims == 1:
         signatures = dompath.get_dominant_paths(trajectories, parameters[0])
@@ -258,11 +256,11 @@ def run_dompath_single(simulations, ref, target, depth):
         return signatures_labels
 
 
-def run_dompath_multi(simulations, ref, target, depth, cpu_cores=1):
+def run_dompath_multi(simulations, target, depth, cpu_cores=1):
     if Pool is None:
         raise Exception('Plese install the pathos package for this feature')
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
-    dompath = DomPath(model, tspan, ref, target, depth)
+    dompath = DomPath(model, tspan, target, depth)
     if nsims == 1:
         trajectories = [trajectories]
     p = Pool(cpu_cores)
