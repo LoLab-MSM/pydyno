@@ -68,10 +68,21 @@ def get_simulations(simulations):
 
 
 class DomPath(object):
-    def __init__(self, model, tspan, ref, target, depth):
+    """
+
+    Parameters
+    ----------
+    model: PySB model
+        Model to analyze
+    tspan: vector-like
+        Time of the simulation
+    target
+    depth
+    """
+    def __init__(self, model, tspan, target, depth):
         self.model = model
         self.tspan = tspan
-        self.ref = ref
+        self.ref = len(tspan)
         self.target = target
         self.depth = depth
         self.network = self.create_bipartite_graph()
@@ -162,8 +173,6 @@ class DomPath(object):
 
         Parameters
         ----------
-        ref: int, A number that is added to the dictionary values of the path_labels so they can be distinguished in
-        different simulations
         target : Node label from network, Node from which the pathway starts
         depth : int, The depth of the pathway
 
@@ -229,17 +238,29 @@ class DomPath(object):
         return signature, path_labels
 
 
-def run_dompath_single(simulations, ref, target, depth):
+def run_dompath_single(simulations, target, depth):
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
-    dompath = DomPath(model, tspan, ref, target, depth)
-    signatures = dompath.get_dominant_paths(trajectories, parameters[0])
-    return signatures
+    dompath = DomPath(model, tspan, target, depth)
 
-def run_dompath_multi(simulations, ref, target, depth, cpu_cores=1):
+    if nsims == 1:
+        signatures = dompath.get_dominant_paths(trajectories, parameters[0])
+        return signatures
+    elif nsims > 1:
+        all_signatures = [0] * len(nsims)
+        all_labels = [0] * len(nsims)
+        for i in range(nsims):
+            all_signatures[i], all_labels[i] = dompath.get_dominant_paths(trajectories[i], parameters[i])
+        all_labels = {k: v for d in all_labels for k, v in d.items()}
+        all_signatures = [[all_labels[label] for label in signa] for signa in all_signatures]
+        signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
+        return signatures_labels
+
+
+def run_dompath_multi(simulations, target, depth, cpu_cores=1):
     if Pool is None:
         raise Exception('Plese install the pathos package for this feature')
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
-    dompath = DomPath(model, tspan, ref, target, depth)
+    dompath = DomPath(model, tspan, target, depth)
     if nsims == 1:
         trajectories = [trajectories]
     p = Pool(cpu_cores)
@@ -252,4 +273,5 @@ def run_dompath_multi(simulations, ref, target, depth, cpu_cores=1):
         labels[idx] = sl[1]
     labels = {k: v for d in labels for k, v in d.items()}
     signatures = [[labels[label] for label in signa] for signa in signatures]
-    return signatures
+    signatures_labels = {'signatures': signatures, 'labels': labels}
+    return signatures_labels
