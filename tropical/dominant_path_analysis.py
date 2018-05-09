@@ -269,7 +269,7 @@ def run_dompath_multi(simulations, target, depth, cpu_cores=1, verbose=False):
     if verbose:
         while not res.ready():
             print ('We\'re not done yet, %s tasks to go!' % res._number_left)
-            time.sleep(5)
+            time.sleep(60)
     signatures_labels = res.get()
     signatures = [0] * len(signatures_labels)
     labels = [0] * len(signatures_labels)
