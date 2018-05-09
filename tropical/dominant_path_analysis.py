@@ -1,4 +1,3 @@
-from pysb.simulator import ScipyOdeSimulator
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
@@ -8,6 +7,7 @@ from math import log10
 import sympy
 from pysb.simulator import SimulationResult
 import pickle
+import time
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
@@ -215,7 +215,9 @@ class DomPath(object):
                     flat_node_doms = [item for items in node_doms for item in items]
                     for node in flat_node_doms:
                         in_edges = self.network.in_edges(node)
-                        # for edge in in_edges: print (node, edge)
+                        if not in_edges:
+                            continue
+
                         fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t])) for edge in in_edges}
                         max_val = np.amax(fluxes_in.values())
                         dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - dom_om) and max_val > -5]
@@ -241,7 +243,6 @@ class DomPath(object):
 def run_dompath_single(simulations, target, depth):
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
     dompath = DomPath(model, tspan, target, depth)
-
     if nsims == 1:
         signatures = dompath.get_dominant_paths(trajectories, parameters[0])
         return signatures
@@ -256,7 +257,7 @@ def run_dompath_single(simulations, target, depth):
         return signatures_labels
 
 
-def run_dompath_multi(simulations, target, depth, cpu_cores=1):
+def run_dompath_multi(simulations, target, depth, cpu_cores=1, verbose=False):
     if Pool is None:
         raise Exception('Plese install the pathos package for this feature')
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
@@ -265,6 +266,10 @@ def run_dompath_multi(simulations, target, depth, cpu_cores=1):
         trajectories = [trajectories]
     p = Pool(cpu_cores)
     res = p.amap(dompath.get_dominant_paths, trajectories, parameters)
+    if verbose:
+        while not res.ready():
+            print ('We\'re not done yet, %s tasks to go!' % res._number_left)
+            time.sleep(5)
     signatures_labels = res.get()
     signatures = [0] * len(signatures_labels)
     labels = [0] * len(signatures_labels)
