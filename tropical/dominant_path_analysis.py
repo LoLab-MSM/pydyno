@@ -265,7 +265,7 @@ def run_dompath_multi(simulations, target, depth, cpu_cores=1, verbose=False):
     if nsims == 1:
         trajectories = [trajectories]
     p = Pool(cpu_cores)
-    res = p.amap(dompath.get_dominant_paths, trajectories, parameters)
+    res = p.amap(dompath.get_dominant_paths, trajectories[:], parameters[:])
     if verbose:
         while not res.ready():
             print ('We\'re not done yet, %s tasks to go!' % res._number_left)
