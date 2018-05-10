@@ -8,6 +8,8 @@ import sympy
 from pysb.simulator import SimulationResult
 import pickle
 import time
+import operator
+from future.utils import listvalues
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
@@ -44,11 +46,12 @@ def get_simulations(simulations):
         if h5py is None:
             raise Exception('please install the h5py package for this feature')
         if h5py.is_hdf5(simulations):
-            sims = h5py.File(simulations)
+            sims = h5py.File(simulations, 'r')
             model = pickle.loads(sims.values()[0]['_model'][()])
-            parameters = sims.values()[0]['result']['param_values']
-            trajectories = sims.values()[0]['result']['trajectories']
-            sim_tout = sims.values()[0]['result']['tout']
+            parameters = sims.values()[0]['result']['param_values'][:]
+            trajectories = sims.values()[0]['result']['trajectories'][:]
+            sim_tout = sims.values()[0]['result']['tout'][:]
+            sims.close()
             if all_equal(sim_tout):
                 tspan = sim_tout[0]
             else:
@@ -82,10 +85,9 @@ class DomPath(object):
     def __init__(self, model, tspan, target, depth):
         self.model = model
         self.tspan = tspan
-        self.ref = len(tspan)
         self.target = target
         self.depth = depth
-        self.network = self.create_bipartite_graph()
+        self.eps = np.finfo(float).eps
 
     def create_bipartite_graph(self):
         generate_equations(self.model)
@@ -168,25 +170,32 @@ class DomPath(object):
         sp_nodes = [n[0] for n in in_edges]
         return sp_nodes
 
-    def get_dominant_paths(self, trajectories, parameters):
+    def get_dominant_paths(self, trajectories, parameters, ref=0):
         """
 
         Parameters
         ----------
-        target : Node label from network, Node from which the pathway starts
-        depth : int, The depth of the pathway
+        trajectories: vector-like
+            Simulated trajectories from a model
+        parameters: vector-like
+            Model parameters
+        ref: int
+            A value that allows different labels for different simulations of the same pathway
 
         Returns
         -------
+        Return the dominant pathway at each time point up to the depth defined by the user
 
         """
-        self.create_bipartite_graph()
-        dom_om = 0.5 # Order of magnitude to consider dominancy
+        network = self.create_bipartite_graph()
+        dom_om = 1 # Order of magnitude to consider dominancy
         reaction_flux_df = self.get_reaction_flux_df(trajectories, parameters)
 
         path_labels = {}
         signature = [0] * len(self.tspan[1:])
         prev_neg_rr = []
+
+        # Updating graph edges depending on the values of the reaction rates
         for label, t in enumerate(self.tspan[1:]):
             # Get reaction rates that are negative
             neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
@@ -197,45 +206,63 @@ class DomPath(object):
 
                 # Now we are going to flip the edges whose reaction rate value is negative
                 for r_node in rr_changes:
-                    in_edges = self.network.in_edges(r_node)
-                    out_edges = self.network.out_edges(r_node)
+                    in_edges = network.in_edges(r_node)
+                    out_edges = network.out_edges(r_node)
                     edges_to_remove = list(in_edges) + list(out_edges)
-                    self.network.remove_edges_from(edges_to_remove)
+                    network.remove_edges_from(edges_to_remove)
                     edges_to_add = [edge[::-1] for edge in edges_to_remove]
-                    self.network.add_edges_from(edges_to_add)
-
+                    network.add_edges_from(edges_to_add)
                 prev_neg_rr = neg_rr
 
             dom_nodes = {self.target: [[self.target]]}
-            all_rdom_noodes = []
-            t_paths = [0] * self.depth
+            all_rdom_nodes = []
             for d in range(self.depth):
                 all_dom_nodes = {}
-                for node_doms in dom_nodes.values():
+                for node_doms in listvalues(dom_nodes):
                     flat_node_doms = [item for items in node_doms for item in items]
                     for node in flat_node_doms:
-                        in_edges = self.network.in_edges(node)
+                        in_edges = network.in_edges(node)
                         if not in_edges:
+                            dom_r_nodes = ['NI']
+                            all_rdom_nodes.append(dom_r_nodes)
                             continue
 
-                        fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t])) for edge in in_edges}
-                        max_val = np.amax(fluxes_in.values())
-                        dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - dom_om) and max_val > -5]
-                        dom_sp_nodes = [self.get_reaction_incoming_species(self.network, reaction_nodes) for reaction_nodes in dom_r_nodes]
-                            # [n[0] for reaction_nodes in dom_r_nodes for n in network.in_edges(reaction_nodes)]
+                        fluxes_in = {edge[0]: log10(abs(reaction_flux_df.loc[edge[0], t] + self.eps)) for edge in in_edges}
+                        sorted_fluxes = sorted(fluxes_in.items(), key=operator.itemgetter(1))[::-1]
+
+                        max_val = sorted_fluxes[0][1]
+                        # TODO: Should i include a minimum order of magnitude to be consider in the analysis?
+                        # TODO: Do a recursive function for cases where a node is repeated
+                        dom_r_nodes = [n for n, i in sorted_fluxes if i > (max_val - dom_om)]
+                        if dom_r_nodes in all_rdom_nodes:
+                            dom_to_remove = len(dom_r_nodes)
+                            del sorted_fluxes[:dom_to_remove]
+                            if not sorted_fluxes:
+                                continue
+                            max_val = sorted_fluxes[0][1]
+                            dom_r_nodes = [n for n, i in sorted_fluxes if i > (max_val - dom_om)]
+
+                            if dom_r_nodes in all_rdom_nodes:
+                                dom_to_remove = len(dom_r_nodes)
+                                del sorted_fluxes[:dom_to_remove]
+                                if not sorted_fluxes:
+                                    continue
+                                max_val = sorted_fluxes[0][1]
+                                dom_r_nodes = [n for n, i in sorted_fluxes if i > (max_val - dom_om)]
+
+                        dom_sp_nodes = [self.get_reaction_incoming_species(network, reaction_nodes) for reaction_nodes in dom_r_nodes]
                         # Get the species nodes from the reaction nodes to keep back tracking the pathway
                         all_dom_nodes[node] = dom_sp_nodes
-                        all_rdom_noodes.append(dom_r_nodes)
+                        all_rdom_nodes.append(dom_r_nodes)
                     dom_nodes = all_dom_nodes
 
-                t_paths[d] = dom_nodes
-            all_rdom_noodes_str = str(all_rdom_noodes)
-            check_paths = [all_rdom_noodes_str == path for path in path_labels.keys()]
+            all_rdom_noodes_str = str(all_rdom_nodes)
+            check_paths = [all_rdom_noodes_str == path for path in list(path_labels)]
             if not any(check_paths):
-                path_labels[all_rdom_noodes_str] = label + self.ref
+                path_labels[all_rdom_noodes_str] = label + ref
                 signature[label] = all_rdom_noodes_str
             else:
-                signature[label] = np.array(path_labels.keys())[check_paths][0]
+                signature[label] = np.array(list(path_labels))[check_paths][0]
 
         return signature, path_labels
 
@@ -243,14 +270,21 @@ class DomPath(object):
 def run_dompath_single(simulations, target, depth):
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
     dompath = DomPath(model, tspan, target, depth)
+    start = len(tspan)
+    end = nsims * len(tspan)
+    ref = range(start, end, start)
+
     if nsims == 1:
-        signatures = dompath.get_dominant_paths(trajectories, parameters[0])
-        return signatures
+        signatures, labels = dompath.get_dominant_paths(trajectories, parameters[0])
+        signatures = [[labels[label] for label in signatures]]
+        signatures_labels = {'signatures': signatures, 'labels': labels}
+        return signatures_labels
+
     elif nsims > 1:
-        all_signatures = [0] * len(nsims)
-        all_labels = [0] * len(nsims)
+        all_signatures = [0] * nsims
+        all_labels = [0] * nsims
         for i in range(nsims):
-            all_signatures[i], all_labels[i] = dompath.get_dominant_paths(trajectories[i], parameters[i])
+            all_signatures[i], all_labels[i] = dompath.get_dominant_paths(trajectories[i], parameters[i], ref[i])
         all_labels = {k: v for d in all_labels for k, v in d.items()}
         all_signatures = [[all_labels[label] for label in signa] for signa in all_signatures]
         signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
@@ -265,7 +299,11 @@ def run_dompath_multi(simulations, target, depth, cpu_cores=1, verbose=False):
     if nsims == 1:
         trajectories = [trajectories]
     p = Pool(cpu_cores)
-    res = p.amap(dompath.get_dominant_paths, trajectories[:], parameters[:])
+    start = len(tspan)
+    end = nsims * len(tspan)
+    ref = range(start, end, start)
+
+    res = p.amap(dompath.get_dominant_paths, trajectories, parameters, ref)
     if verbose:
         while not res.ready():
             print ('We\'re not done yet, %s tasks to go!' % res._number_left)
