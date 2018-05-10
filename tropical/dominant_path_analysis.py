@@ -226,8 +226,7 @@ class DomPath(object):
                             dom_r_nodes = ['NI']
                             all_rdom_nodes.append(dom_r_nodes)
                             continue
-
-                        fluxes_in = {edge[0]: log10(abs(reaction_flux_df.loc[edge[0], t] + self.eps)) for edge in in_edges}
+                        fluxes_in = {edge[0]: log10(abs(reaction_flux_df.loc[edge[0], t]) + self.eps) for edge in in_edges}
                         sorted_fluxes = sorted(fluxes_in.items(), key=operator.itemgetter(1))[::-1]
 
                         max_val = sorted_fluxes[0][1]
@@ -267,7 +266,7 @@ class DomPath(object):
         return signature, path_labels
 
 
-def run_dompath_single(simulations, target, depth):
+def run_dompath_single(simulations, target, depth, verbose=False):
     model, trajectories, parameters, nsims, tspan = get_simulations(simulations)
     dompath = DomPath(model, tspan, target, depth)
     start = len(tspan)
