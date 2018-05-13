@@ -1,10 +1,13 @@
-import util as hf
-from visualize_discretization import visualization
+import tropical.util as hf
+from tropical.visualize_discretization import visualization
 from pysb.simulator import SimulationResult
 import numpy
 import sympy
 import itertools
 from collections import OrderedDict
+from future.utils import iteritems, listvalues
+import time
+
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
@@ -119,16 +122,16 @@ class Tropical(object):
             else:
                 monomials_values = {mon_names[idx]:
                                         numpy.log10(numpy.abs(array[idx])) for idx in mons_idx}
-                max_val = numpy.amax(monomials_values.values())
-                rr_monomials = [n for n, i in monomials_values.items() if i > (max_val - diff_par) and max_val > -5]
+                max_val = numpy.amax(listvalues(monomials_values))
+                rr_monomials = [n for n, i in iteritems(monomials_values) if i > (max_val - diff_par) and max_val > -5]
 
-                if not rr_monomials or len(rr_monomials) == mon_comb_type.keys()[-1]:
-                    largest_prod = mon_comb_type.values()[-1].keys()[0]
+                if not rr_monomials or len(rr_monomials) == list(mon_comb_type)[-1]:
+                    largest_prod = list(listvalues(mon_comb_type)[-1])[0]
                 else:
                     rr_monomials.sort(key=sympy.default_sort_key)
                     rr_monomials = tuple(rr_monomials)
-                    largest_prod = mon_comb_type[len(rr_monomials)].keys()[
-                        mon_comb_type[len(rr_monomials)].values().index(rr_monomials)]
+                    largest_prod = list(mon_comb_type[len(rr_monomials)])[
+                                    listvalues(mon_comb_type[len(rr_monomials)]).index(rr_monomials)]
             pos_neg_largest[ii] = largest_prod
         return pos_neg_largest
 
@@ -152,7 +155,8 @@ class Tropical(object):
         # Dictionary that will contain the signature of each of the species to study
         all_signatures = {}
         for sp in self.eqs_for_tropicalization:
-            # reaction terms of all reaction rates in which species sp is involved
+            # reaction terms of all reaction rates in which species sp is involved and assign sign to see
+            # if species is being consumed or produced.
             monomials = []
             for term in self.model.reactions_bidirectional:
                 total_rate = 0
@@ -295,14 +299,23 @@ def get_simulations(simulations):
         if h5py is None:
             raise Exception('please install the h5py package for this feature')
         if h5py.is_hdf5(simulations):
-            sims = h5py.File(simulations)
-            parameters = sims.values()[0]['result']['param_values']
-            trajectories = sims.values()[0]['result']['trajectories']
-            sim_tout = sims.values()[0]['result']['tout']
-            if all_equal(sim_tout):
-                tspan = sim_tout[0]
-            else:
-                raise Exception('Analysis is not supported for simulations with different time spans')
+            with h5py.File(simulations, 'r') as hdf:
+                group_name = next(iter(hdf))
+                grp = hdf[group_name]
+
+                datasets = list(grp.keys())
+                datasets.remove('_model')
+                dataset_name = datasets[0]
+
+                dset = grp[dataset_name]
+
+                parameters = dset['param_values'][:]
+                trajectories = dset['trajectories'][:]
+                sim_tout = dset['tout'][:]
+                if all_equal(sim_tout):
+                    tspan = sim_tout[0]
+                else:
+                    raise Exception('Analysis is not supported for simulations with different time spans')
         else:
             raise TypeError('File format not supported')
     elif isinstance(simulations, SimulationResult):
@@ -362,7 +375,7 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     return signatures
 
 
-def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1, cpu_cores=1):
+def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1, cpu_cores=1, verbose=False):
     """
 
     Parameters
@@ -395,6 +408,10 @@ def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1
         trajectories = [trajectories]
 
     res = p.amap(tro.signature, trajectories, parameters)
+    if verbose:
+        while not res.ready():
+            print ('We\'re not done yet, %s tasks to go!' % res._number_left)
+            time.sleep(60)
     signatures = res.get()
     signatures = organize_dynsign_multi(signatures)
     signatures['species_combinations'] = tro.all_comb
