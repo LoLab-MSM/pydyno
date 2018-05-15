@@ -13,7 +13,7 @@ import seaborn as sns
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import util as hf
+import tropical.util as hf
 from pysb.bng import generate_equations
 from pysb.simulator.base import SimulationResult
 
