@@ -73,14 +73,23 @@ class AnalysisCluster(object):
             return tspan, all_parameters, all_simulations
         elif isinstance(sim_results, str):
             if h5py.is_hdf5(sim_results):
-                sims = h5py.File(sim_results)
-                all_parameters = sims.values()[0]['result']['param_values']
-                all_simulations = sims.values()[0]['result']['trajectories']
-                sim_tout = sims.values()[0]['result']['tout']
-                if all_equal(sim_tout):
-                    tspan = sim_tout[0]
-                else:
-                    raise Exception('Analysis is not supported for simulations with different time spans')
+                with h5py.File(sim_results, 'r') as hdf:
+                    group_name = next(iter(hdf))
+                    grp = hdf[group_name]
+
+                    datasets = list(grp.keys())
+                    datasets.remove('_model')
+                    dataset_name = datasets[0]
+
+                    dset = grp[dataset_name]
+
+                    all_parameters = dset['param_values'][:]
+                    all_simulations = dset['trajectories'][:]
+                    sim_tout = dset['tout'][:]
+                    if all_equal(sim_tout):
+                        tspan = sim_tout[0]
+                    else:
+                        raise Exception('Analysis is not supported for simulations with different time spans')
                 return tspan, all_parameters, all_simulations
         else:
             raise TypeError('Type of sim_results not supported')
