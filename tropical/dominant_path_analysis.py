@@ -5,69 +5,15 @@ import re
 import pandas as pd
 from math import log10
 import sympy
-from pysb.simulator import SimulationResult
-import pickle
 import time
 import operator
 from future.utils import listvalues
+from tropical.util import get_simulations
+
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
     Pool = None
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
-
-def all_equal(iterator):
-    try:
-        iterator = iter(iterator)
-        first = next(iterator)
-        return all(np.array_equal(first, rest) for rest in iterator)
-    except StopIteration:
-        return True
-
-
-def get_simulations(simulations):
-    """
-    Obtains trajectories, parameters, tspan from a SimulationResult object
-    Parameters
-    ----------
-    simulations: pysb.SimulationResult, str
-        Simulation result instance or h5py file with the simulation data
-
-    Returns
-    -------
-
-    """
-    if isinstance(simulations, str):
-        if h5py is None:
-            raise Exception('please install the h5py package for this feature')
-        if h5py.is_hdf5(simulations):
-            sims = h5py.File(simulations, 'r')
-            model = pickle.loads(sims.values()[0]['_model'][()])
-            parameters = sims.values()[0]['result']['param_values'][:]
-            trajectories = sims.values()[0]['result']['trajectories'][:]
-            sim_tout = sims.values()[0]['result']['tout'][:]
-            sims.close()
-            if all_equal(sim_tout):
-                tspan = sim_tout[0]
-            else:
-                raise Exception('Analysis is not supported for simulations with different time spans')
-        else:
-            raise TypeError('File format not supported')
-    elif isinstance(simulations, SimulationResult):
-        sims = simulations
-        model = sims._model
-        parameters = sims.param_values
-        trajectories = sims.species
-        tspan = sims.tout[0]
-    else:
-        raise TypeError('format not supported')
-    nsims = len(parameters)
-    return model, trajectories, parameters, nsims, tspan
 
 
 class DomPath(object):
@@ -272,7 +218,9 @@ def run_dompath_single(simulations, target, depth, verbose=False):
     start = len(tspan)
     end = nsims * len(tspan)
     ref = range(start, end, start)
-
+    trajectories = trajectories[:10]
+    parameters = parameters[:10]
+    nsims = 10
     if nsims == 1:
         signatures, labels = dompath.get_dominant_paths(trajectories, parameters[0])
         signatures = [[labels[label] for label in signatures]]

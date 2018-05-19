@@ -5,9 +5,68 @@ import numpy as np
 from collections import OrderedDict
 from pysb.bng import generate_equations
 import pysb
-from pysb.simulator import ScipyOdeSimulator
+from pysb.simulator import SimulationResult
 from itertools import compress
 from scipy.optimize import curve_fit
+try:
+    import h5py
+except ImportError:
+    h5py = None
+
+
+def all_equal(iterator):
+    try:
+        iterator = iter(iterator)
+        first = next(iterator)
+        return all(np.array_equal(first, rest) for rest in iterator)
+    except StopIteration:
+        return True
+
+
+def get_simulations(simulations):
+    """
+    Obtains trajectories, parameters, tspan from a SimulationResult object
+    Parameters
+    ----------
+    simulations: pysb.SimulationResult, str
+        Simulation result instance or h5py file with the simulation data
+
+    Returns
+    -------
+
+    """
+    if isinstance(simulations, str):
+        if h5py is None:
+            raise Exception('please install the h5py package for this feature')
+        if h5py.is_hdf5(simulations):
+            with h5py.File(simulations, 'r') as hdf:
+                group_name = next(iter(hdf))
+                grp = hdf[group_name]
+
+                datasets = list(grp.keys())
+                datasets.remove('_model')
+                dataset_name = datasets[0]
+
+                dset = grp[dataset_name]
+
+                parameters = dset['param_values'][:]
+                trajectories = dset['trajectories'][:]
+                sim_tout = dset['tout'][:]
+                if all_equal(sim_tout):
+                    tspan = sim_tout[0]
+                else:
+                    raise Exception('Analysis is not supported for simulations with different time spans')
+        else:
+            raise TypeError('File format not supported')
+    elif isinstance(simulations, SimulationResult):
+        sims = simulations
+        parameters = sims.param_values
+        trajectories = sims.species
+        tspan = sims.tout[0]
+    else:
+        raise TypeError('format not supported')
+    nsims = len(parameters)
+    return trajectories, parameters, nsims, tspan
 
 
 def listdir_fullpath(d):
@@ -168,20 +227,20 @@ def rate_2_interactions(model, rate):
     return interaction
 
 
-def pre_equilibration(model, time_search, parameters, tolerance=1e-6):
+def pre_equilibration(solver, time_search=None, param_values=None, tolerance=1e-6):
     """
 
     Parameters
     ----------
-    model : pysb.Model
-        pysb model
-    time_search : np.array
-        Time span array used to find the equilibrium
-    parameters :  dict or np.array
+    solver : pysb solver
+        a pysb solver object
+    time_search : np.array, optional
+        Time span array used to find the equilibrium. If not provided, function will use tspan from the solver
+    param_values :  dict or np.array, optional
         Model parameters used to find the equilibrium, it can be an array with all model parameters
         (this array must have the same order as model.parameters) or it can be a dictionary where the
-        keys are the parameter names that want to be changed and the values are the new parameter
-        values.
+        keys are the parameter names thatpara want to be changed and the values are the new parameter
+        values. If not provided, function will use param_values from the solver
     tolerance : float
         Tolerance to define when the equilibrium has been reached
 
@@ -190,33 +249,48 @@ def pre_equilibration(model, time_search, parameters, tolerance=1e-6):
 
     """
     # Solve system for the time span provided
-    solver = ScipyOdeSimulator(model, tspan=time_search, param_values=parameters).run()
-    y = solver.species.T
+    sims = solver.run(tspan=time_search, param_values=param_values)
+    if not time_search:
+        time_search = solver.tspan
+
+    if sims.nsims == 1:
+        simulations = [sims.species]
+    else:
+        simulations = sims.species
+
     dt = time_search[1] - time_search[0]
 
-    time_to_equilibration = [0, 0]
-    for idx, sp in enumerate(y):
-        sp_eq = False
-        derivative = np.diff(sp) / dt
-        derivative_range = ((derivative < tolerance) & (derivative > -tolerance))
-        # Indexes of values less than tolerance and greater than -tolerance
-        derivative_range_idxs = list(compress(range(len(derivative_range)), derivative_range))
-        for i in derivative_range_idxs:
-            # Check if derivative is close to zero in the time points ahead
-            if (derivative[i + 3] < tolerance) | (derivative[i + 3] > -tolerance):
-                sp_eq = True
-                if time_search[i] > time_to_equilibration[0]:
-                    time_to_equilibration[0] = time_search[i]
-                    time_to_equilibration[1] = i
-            if not sp_eq:
-                raise Exception('Equilibrium can not be reached within the time_search input')
-            if sp_eq:
-                break
-        else:
-            raise Exception('Species s{0} has not reached equilibrium'.format(idx))
+    all_times_eq = [0] * sims.nsims
+    all_conc_eq = [0] * sims.nsims
+    for n, y in enumerate(simulations):
+        time_to_equilibration = [0, 0]
+        for idx in range(y.shape[1]):
+            sp_eq = False
+            derivative = np.diff(y[:, idx]) / dt
+            derivative_range = ((derivative < tolerance) & (derivative > -tolerance))
+            # Indexes of values less than tolerance and greater than -tolerance
+            derivative_range_idxs = list(compress(range(len(derivative_range)), derivative_range))
+            for i in derivative_range_idxs:
+                # Check if derivative is close to zero in the time points ahead
+                if i + 3 > len(time_search):
+                    raise Exception('Equilibrium can not be reached within the time_search input')
+                if (derivative[i + 3] < tolerance) | (derivative[i + 3] > -tolerance):
+                    sp_eq = True
+                    if time_search[i] > time_to_equilibration[0]:
+                        time_to_equilibration[0] = time_search[i]
+                        time_to_equilibration[1] = i
+                if not sp_eq:
+                    raise Exception('Equilibrium can not be reached within the time_search input')
+                if sp_eq:
+                    break
+            else:
+                raise Exception('Species s{0} has not reached equilibrium'.format(idx))
 
-    conc_eq = y[:, time_to_equilibration[1]]
-    return time_to_equilibration, conc_eq
+        conc_eq = y[time_to_equilibration[1]]
+        all_times_eq[n] = time_to_equilibration
+        all_conc_eq[n] = conc_eq
+
+    return all_times_eq, all_conc_eq
 
 
 def find_nonimportant_nodes(model):

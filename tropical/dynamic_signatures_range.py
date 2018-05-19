@@ -1,6 +1,5 @@
 import tropical.util as hf
 from tropical.visualize_discretization import visualization
-from pysb.simulator import SimulationResult
 import numpy
 import sympy
 import itertools
@@ -12,11 +11,6 @@ try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
     Pool = None
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
 
 
 class Tropical(object):
@@ -274,61 +268,6 @@ class Tropical(object):
         return
 
 
-def all_equal(iterator):
-    try:
-        iterator = iter(iterator)
-        first = next(iterator)
-        return all(numpy.array_equal(first, rest) for rest in iterator)
-    except StopIteration:
-        return True
-
-
-def get_simulations(simulations):
-    """
-    Obtains trajectories, parameters, tspan from a SimulationResult object
-    Parameters
-    ----------
-    simulations: pysb.SimulationResult, str
-        Simulation result instance or h5py file with the simulation data
-
-    Returns
-    -------
-
-    """
-    if isinstance(simulations, str):
-        if h5py is None:
-            raise Exception('please install the h5py package for this feature')
-        if h5py.is_hdf5(simulations):
-            with h5py.File(simulations, 'r') as hdf:
-                group_name = next(iter(hdf))
-                grp = hdf[group_name]
-
-                datasets = list(grp.keys())
-                datasets.remove('_model')
-                dataset_name = datasets[0]
-
-                dset = grp[dataset_name]
-
-                parameters = dset['param_values'][:]
-                trajectories = dset['trajectories'][:]
-                sim_tout = dset['tout'][:]
-                if all_equal(sim_tout):
-                    tspan = sim_tout[0]
-                else:
-                    raise Exception('Analysis is not supported for simulations with different time spans')
-        else:
-            raise TypeError('File format not supported')
-    elif isinstance(simulations, SimulationResult):
-        sims = simulations
-        parameters = sims.param_values
-        trajectories = sims.species
-        tspan = sims.tout[0]
-    else:
-        raise TypeError('format not supported')
-    nsims = len(parameters)
-    return trajectories, parameters, nsims, tspan
-
-
 def organize_dynsign_multi(signatures):
     species = signatures[0].keys()
     nsims = [0]*len(signatures)
@@ -364,7 +303,7 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     -------
     Dynamic signatures of dominant species of the model
     """
-    trajectories, parameters, nsims, tspan = get_simulations(simulations)
+    trajectories, parameters, nsims, tspan = hf.get_simulations(simulations)
     tro = Tropical(model)
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
@@ -399,7 +338,7 @@ def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1
     if Pool is None:
         raise Exception('Please install the pathos package for this feature')
 
-    trajectories, parameters, nsims, tspan = get_simulations(simulations)
+    trajectories, parameters, nsims, tspan = hf.get_simulations(simulations)
     tro = Tropical(model)
 
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
