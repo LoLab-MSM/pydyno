@@ -58,11 +58,18 @@ def get_simulations(simulations):
                     raise Exception('Analysis is not supported for simulations with different time spans')
         else:
             raise TypeError('File format not supported')
+
     elif isinstance(simulations, SimulationResult):
         sims = simulations
         parameters = sims.param_values
         trajectories = sims.species
         tspan = sims.tout[0]
+
+    elif isinstance(simulations, dict):
+        trajectories = simulations['trajectories']
+        parameters = simulations['param_values']
+        tspan = simulations['tspan']
+
     else:
         raise TypeError('format not supported')
     nsims = len(parameters)

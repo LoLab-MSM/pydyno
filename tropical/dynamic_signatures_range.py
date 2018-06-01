@@ -291,7 +291,7 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     model: pysb.model
         model to analyze
     simulations: pysb.SimulationResult, or str
-        Simulation result of model
+        Simulation result of model or path to SimualtionResult file
     passengers_by : str
         It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
     diff_par : float
@@ -322,7 +322,7 @@ def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1
     model: pysb.model
         model to analyze
     simulations: pysb.SimulationResult, or str
-        Simulation result of model
+        Simulation result of model or path to SimualtionResult file
     passengers_by : str
         It can be 'qssa' or 'imp_nodes'. It defines the method to use for finding passenger species
     diff_par : float
