@@ -68,7 +68,8 @@ def get_simulations(simulations):
         trajectories = simulations.species
 
     elif isinstance(simulations, dict):
-        trajectories = simulations['trajectories']
+        if isinstance(simulations['trajectories'], list):
+            trajectories = np.array(simulations['trajectories'])
         parameters = simulations['param_values']
         tspan = simulations['tspan']
 
