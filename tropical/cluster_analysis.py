@@ -49,7 +49,7 @@ class AnalysisCluster(object):
         self.model = model
         generate_equations(model)
         # Check simulation results
-        self.tspan, self.all_parameters, self.all_simulations = hf.get_simulations(sim_results)
+        self.all_simulations, self.all_parameters, nsims,  self.tspan = hf.get_simulations(sim_results)
 
         if clusters is not None:
             # Check clusters
