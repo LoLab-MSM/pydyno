@@ -65,11 +65,16 @@ def get_simulations(simulations):
         else:
             raise Exception('Analysis is not supported for simulations with different time spans')
         parameters = simulations.param_values
-        trajectories = simulations.species
+        # SimulationResult always return a list
+        trajectories = np.array(simulations.species)
 
     elif isinstance(simulations, dict):
         if isinstance(simulations['trajectories'], list):
             trajectories = np.array(simulations['trajectories'])
+        elif isinstance(simulations['trajectories', np.array]):
+            trajectories = simulations['trajectories']
+        else:
+            raise TypeError('Simulation results should be in a numpy array or list format')
         parameters = simulations['param_values']
         tspan = simulations['tspan']
 
