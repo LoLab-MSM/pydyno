@@ -60,10 +60,12 @@ def get_simulations(simulations):
             raise TypeError('File format not supported')
 
     elif isinstance(simulations, SimulationResult):
-        sims = simulations
-        parameters = sims.param_values
-        trajectories = sims.species
-        tspan = sims.tout[0]
+        if all_equal(simulations.tout):
+            tspan = simulations.tout[0]
+        else:
+            raise Exception('Analysis is not supported for simulations with different time spans')
+        parameters = simulations.param_values
+        trajectories = simulations.species
 
     elif isinstance(simulations, dict):
         trajectories = simulations['trajectories']

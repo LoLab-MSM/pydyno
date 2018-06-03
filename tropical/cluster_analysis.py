@@ -6,7 +6,6 @@ import csv
 import numbers
 import os
 
-import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -15,7 +14,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import tropical.util as hf
 from pysb.bng import generate_equations
-from pysb.simulator.base import SimulationResult
 
 plt.ioff()
 
@@ -51,7 +49,7 @@ class AnalysisCluster(object):
         self.model = model
         generate_equations(model)
         # Check simulation results
-        self.tspan, self.all_parameters, self.all_simulations = self.check_simulation_arg(sim_results)
+        self.tspan, self.all_parameters, self.all_simulations = hf.get_simulations(sim_results)
 
         if clusters is not None:
             # Check clusters
@@ -60,39 +58,6 @@ class AnalysisCluster(object):
             no_clusters = {0: range(len(self.all_parameters))}
             self.clusters = no_clusters
             self.number_pars = len(self.all_parameters)
-
-    @staticmethod
-    def check_simulation_arg(sim_results):
-        if isinstance(sim_results, SimulationResult):
-            if all_equal(sim_results.tout):
-                tspan = sim_results.tout[0]
-            else:
-                raise Exception('Analysis is not supported for simulations with different time spans')
-            all_parameters = sim_results.param_values
-            all_simulations = np.array(sim_results.species)
-            return tspan, all_parameters, all_simulations
-        elif isinstance(sim_results, str):
-            if h5py.is_hdf5(sim_results):
-                with h5py.File(sim_results, 'r') as hdf:
-                    group_name = next(iter(hdf))
-                    grp = hdf[group_name]
-
-                    datasets = list(grp.keys())
-                    datasets.remove('_model')
-                    dataset_name = datasets[0]
-
-                    dset = grp[dataset_name]
-
-                    all_parameters = dset['param_values'][:]
-                    all_simulations = dset['trajectories'][:]
-                    sim_tout = dset['tout'][:]
-                    if all_equal(sim_tout):
-                        tspan = sim_tout[0]
-                    else:
-                        raise Exception('Analysis is not supported for simulations with different time spans')
-                return tspan, all_parameters, all_simulations
-        else:
-            raise TypeError('Type of sim_results not supported')
 
     @staticmethod
     def check_clusters_arg(clusters):  # check clusters
