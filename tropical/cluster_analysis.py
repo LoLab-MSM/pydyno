@@ -18,15 +18,6 @@ from pysb.bng import generate_equations
 plt.ioff()
 
 
-def all_equal(iterator):
-    try:
-        iterator = iter(iterator)
-        first = next(iterator)
-        return all(np.array_equal(first, rest) for rest in iterator)
-    except StopIteration:
-        return True
-
-
 class AnalysisCluster(object):
 
     """
@@ -344,6 +335,30 @@ class AnalysisCluster(object):
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
             plt.savefig(final_save_path+'.png', format='png', dpi=700)
         return
+
+    def violin_plot_kd(self, par_idxs, save_path=''):
+        for kd_pars in par_idxs:
+            plt.figure()
+            data_violin = [0]*len(self.clusters)
+            clus_labels = [0] * len(self.clusters)
+            count = 0
+            for idx, clus in self.clusters.items():
+                cluster_pars = self.all_parameters[clus]
+                kr_values = cluster_pars[:, kd_pars[0]]
+                kf_values = cluster_pars[:, kd_pars[1]]
+                data_violin[count] = np.log10(kr_values/kf_values)
+                clus_labels[count] = idx
+                count += 1
+
+            g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
+            g.set_yticklabels(clus_labels)
+            plt.xlabel('Parameter Range')
+            plt.ylabel('Clusters')
+            plt.suptitle('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
+            final_save_path = os.path.join(save_path, 'violin_sp_{0}_kd'.format(self.model.parameters[kd_pars[0]].name))
+            plt.savefig(final_save_path+'.png', format='png', dpi=700)
+        return
+
 
     def plot_sp_ic_overlap(self, ic_par_idxs, save_path=''):
         """
