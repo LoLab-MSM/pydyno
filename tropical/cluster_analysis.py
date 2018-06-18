@@ -99,7 +99,7 @@ class AnalysisCluster(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_dynamics_cluster_types(self, species, save_path='', species_ftn_fit=None, norm=False, **kwargs):
+    def plot_dynamics_cluster_types(self, species, save_path='', fig_label='', species_ftn_fit=None, norm=False, **kwargs):
         """
         Plots the dynamics of the species for each cluster
 
@@ -108,7 +108,9 @@ class AnalysisCluster(object):
         species: list-like
             Indices of PySB species that will be plotted
         save_path: str
-            Path to file to save figures
+            Path to folder where the figure is going to be saved
+        fig_label: str
+            String used to give a label to the cluster figures
         species_ftn_fit: dict, optional
             Dictionary of species with their respective function to fit their dynamics
         norm: boolean, optional
@@ -132,17 +134,20 @@ class AnalysisCluster(object):
                 # checking if species_to_fit are present in the species that are going to be plotted
                 self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict, species=species,
                                                                    species_ftn_fit=species_ftn_fit,
-                                                                   save_path=save_path, **kwargs)
+                                                                   save_path=save_path, fig_label=fig_label,
+                                                                   **kwargs)
 
             else:
-                self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species, save_path=save_path)
+                self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species,
+                                                       save_path=save_path, fig_label=fig_label)
 
         else:
-            self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species, save_path=save_path)
+            self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species,
+                                              save_path=save_path, fig_label=fig_label)
 
         return
 
-    def _plot_dynamics_cluster_types(self, plots_dict, species, save_path):
+    def _plot_dynamics_cluster_types(self, plots_dict, species, save_path, fig_label):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
@@ -174,11 +179,11 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(self.model.species[sp],
                                                                                        idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx))
+                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}'.format(sp, idx), fig_label)
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
 
-    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, save_path):
+    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, save_path, fig_label):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
@@ -195,11 +200,12 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(self.model.species[sp], idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_normed'.format(sp, idx))
+                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_normed'.format(sp, idx), fig_label)
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
 
-    def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit, save_path, **kwargs):
+    def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit,
+                                                      save_path, fig_label, **kwargs):
         sp_overlap = [ii for ii in species_ftn_fit if ii in species]
         if not sp_overlap:
             raise ValueError('species_to_fit must be in species list')
@@ -227,7 +233,7 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(self.model.species[sp], idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted'.format(sp, idx))
+                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted'.format(sp, idx), fig_label)
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
 
