@@ -233,7 +233,7 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(self.model.species[sp], idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted_{3}'.format(sp, idx, fig_label))
+                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
 
