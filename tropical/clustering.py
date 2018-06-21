@@ -118,7 +118,7 @@ class ClusterSequences(object):
     @staticmethod
     def get_unique_sequences(data_seqs):
         data_seqs = data_seqs.groupby(data_seqs.columns.tolist(), sort=False).size().rename('count').reset_index()
-        data_seqs.set_index([range(len(data_seqs)), 'count'], inplace=True)
+        data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
         return data_seqs
 
     def diss_matrix(self, metric='LCS', n_jobs=1):
@@ -268,7 +268,7 @@ class ClusterSequences(object):
 
     def silhouette_score_spectral_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
         if isinstance(cluster_range, int):
-            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
+            cluster_range = list(range(2, cluster_range + 1))  # +1 to cluster up to cluster_range
         elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
             pass
         else:
@@ -302,7 +302,7 @@ class ClusterSequences(object):
         """
         # TODO: See if this can be parallelled
         if isinstance(cluster_range, int):
-            cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
+            cluster_range = list(range(2, cluster_range + 1))  # +1 to cluster up to cluster_range
         elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
             pass
         else:
