@@ -19,7 +19,7 @@ from matplotlib.collections import LineCollection
 import editdistance
 import tropical.lcs as lcs
 import collections
-# from kmedoids import kMedoids
+from future.utils import listvalues
 from tropical.util import rate_2_interactions
 
 def lcs_dist_same_length(seq1, seq2):
@@ -378,7 +378,7 @@ class ClusterSequences(object):
             seqs_diss = self.diss
         seqs_centrality_idx = seqs_diss.sum(axis=0).argsort()
         decreasing_seqs = seqs.iloc[seqs_centrality_idx]
-        return (decreasing_seqs.iloc[0].name, decreasing_seqs.iloc[0].values)
+        return decreasing_seqs.iloc[0].name, decreasing_seqs.iloc[0].values
 
     @assign(representativeness, 'frequency')
     def frequency(self, sequences_idx=None):
@@ -500,8 +500,8 @@ class PlotSequences(object):
             self.cluster_labels = sequence_obj.labels
 
     def cmap_norm(self):
-        cmap = ListedColormap(self.states_colors.values())
-        bounds = self.states_colors.keys()
+        cmap = ListedColormap(listvalues(self.states_colors))
+        bounds = list(self.states_colors)
         bounds.append(bounds[-1] + 1)
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
