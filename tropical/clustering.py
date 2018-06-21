@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 import sklearn.cluster as cluster
 import hdbscan
 import matplotlib.pyplot as plt
-from distinct_colors import distinct_colors
+from tropical.distinct_colors import distinct_colors
 from collections import OrderedDict
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import math
@@ -19,7 +19,7 @@ from matplotlib.collections import LineCollection
 import editdistance
 import tropical.lcs as lcs
 import collections
-from kmedoids import kMedoids
+# from kmedoids import kMedoids
 from tropical.util import rate_2_interactions
 
 def lcs_dist_same_length(seq1, seq2):
@@ -300,6 +300,7 @@ class ClusterSequences(object):
         -------
 
         """
+        # TODO: See if this can be parallelled
         if isinstance(cluster_range, int):
             cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
         elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
@@ -377,7 +378,7 @@ class ClusterSequences(object):
             seqs_diss = self.diss
         seqs_centrality_idx = seqs_diss.sum(axis=0).argsort()
         decreasing_seqs = seqs.iloc[seqs_centrality_idx]
-        return decreasing_seqs.iloc[0].values
+        return (decreasing_seqs.iloc[0].name, decreasing_seqs.iloc[0].values)
 
     @assign(representativeness, 'frequency')
     def frequency(self, sequences_idx=None):
