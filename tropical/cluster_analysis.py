@@ -19,7 +19,6 @@ plt.ioff()
 
 
 class AnalysisCluster(object):
-
     """
     Class to visualize species trajectories and parameter distributions in different clusters
 
@@ -40,7 +39,7 @@ class AnalysisCluster(object):
         self.model = model
         generate_equations(model)
         # Check simulation results
-        self.all_simulations, self.all_parameters, nsims,  self.tspan = hf.get_simulations(sim_results)
+        self.all_simulations, self.all_parameters, nsims, self.tspan = hf.get_simulations(sim_results)
 
         if clusters is not None:
             # Check clusters
@@ -99,7 +98,8 @@ class AnalysisCluster(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_dynamics_cluster_types(self, species, save_path='', fig_label='', species_ftn_fit=None, norm=False, **kwargs):
+    def plot_dynamics_cluster_types(self, species, save_path='', fig_label='', species_ftn_fit=None, norm=False,
+                                    **kwargs):
         """
         Plots the dynamics of the species for each cluster
 
@@ -151,7 +151,13 @@ class AnalysisCluster(object):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
-                sp_trajectory = y[:, :, sp].T
+                # Calculate observable
+                if isinstance(sp, str):
+                    sp_trajectory = self._get_observable(sp, y)
+                    name = sp
+                else:
+                    sp_trajectory = y[:, :, sp].T
+                    name = self.model.species[sp]
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, sp_trajectory,
                                                                             color='blue',
                                                                             alpha=0.2)
@@ -161,7 +167,7 @@ class AnalysisCluster(object):
                 # axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
                 axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
                 plt.setp(axHisty.get_yticklabels(), visible=False)
-                hist_data = y[:, -1, sp]
+                hist_data = sp_trajectory[-1, :]
                 axHisty.hist(hist_data, normed=True, bins='auto', orientation='horizontal')
                 shape = np.std(hist_data)
                 scale = np.average(hist_data)
@@ -177,8 +183,7 @@ class AnalysisCluster(object):
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, sp_max_conc])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
-                                                                                format(self.model.species[sp],
-                                                                                       idx))
+                                                                                format(name, idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
@@ -187,8 +192,14 @@ class AnalysisCluster(object):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
-                sp_trajectory = y[:, :, sp]
-                norm_trajectories = np.divide(sp_trajectory.T, np.amax(sp_trajectory, axis=1))
+                # Calculate observable
+                if isinstance(sp, str):
+                    sp_trajectory = self._get_observable(sp, y)
+                    name = sp
+                else:
+                    sp_trajectory = y[:, :, sp].T
+                    name = self.model.species[sp]
+                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
                                                                             norm_trajectories,
                                                                             color='blue',
@@ -199,7 +210,7 @@ class AnalysisCluster(object):
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
-                                                                                format(self.model.species[sp], idx))
+                                                                                format(name, idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_normed_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
@@ -214,15 +225,21 @@ class AnalysisCluster(object):
             ftn_result = {}
             y = self.all_simulations[clus]
             for sp in species:
-                sp_trajectory = y[:, :, sp]
-                norm_trajectories = np.divide(sp_trajectory.T, np.amax(sp_trajectory, axis=1))
+                # Calculate observable
+                if isinstance(sp, str):
+                    sp_trajectory = self._get_observable(sp, y)
+                    name = sp
+                else:
+                    sp_trajectory = y[:, :, sp].T
+                    name = self.model.species[sp]
+                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=1))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
                                                                             norm_trajectories,
                                                                             color='blue',
                                                                             alpha=0.2)
                 if sp in sp_overlap:
                     result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[sp], xdata=self.tspan,
-                                                    ydata=sp_trajectory, **kwargs)
+                                                  ydata=sp_trajectory, **kwargs)
                     ftn_result[sp] = result_fit
             self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
 
@@ -232,7 +249,7 @@ class AnalysisCluster(object):
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
-                                                                                format(self.model.species[sp], idx))
+                                                                                format(name, idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
@@ -267,6 +284,16 @@ class AnalysisCluster(object):
             axHistx.set_ylim(0, 1.5e-3)
             axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
 
+    def _get_observable(self, obs, y):
+        obs_names = [ob.name for ob in self.model.observables]
+        try:
+            obs_idx = obs_names.index(obs)
+        except:
+            raise ValueError(obs + "doesn't exist in the model")
+        sps = self.model.observables[obs_idx].species
+        obs_values = np.sum(y[:, :, sps], axis=2)
+        return obs_values.T
+
     def hist_plot_clusters(self, ic_par_idxs, save_path=''):
         """
         Creates a plot for each cluster, and it has histograms of the species provided
@@ -287,9 +314,9 @@ class AnalysisCluster(object):
         plt.figure(1)
         for c_idx, clus in self.clusters.items():
             cluster_pars = self.all_parameters[clus]
-            sp_ic_all = [0]*len(ic_par_idxs)
-            sp_weights_all = [0]*len(ic_par_idxs)
-            labels = [0]*len(ic_par_idxs)
+            sp_ic_all = [0] * len(ic_par_idxs)
+            sp_weights_all = [0] * len(ic_par_idxs)
+            labels = [0] * len(ic_par_idxs)
             for idx, sp_ic in enumerate(ic_par_idxs):
                 sp_ic_values = cluster_pars[:, sp_ic]
                 sp_ic_weights = np.ones_like(sp_ic_values) / len(sp_ic_values)
@@ -301,7 +328,7 @@ class AnalysisCluster(object):
             plt.ylabel('Percentage')
             plt.legend(loc=0)
             final_save_path = os.path.join(save_path, 'hist_ic_type{0}'.format(c_idx))
-            plt.savefig(final_save_path+'.png', format='png', dpi=700)
+            plt.savefig(final_save_path + '.png', format='png', dpi=700)
             plt.clf()
         return
 
@@ -323,7 +350,7 @@ class AnalysisCluster(object):
 
         for sp_ic in par_idxs:
             plt.figure()
-            data_violin = [0]*len(self.clusters)
+            data_violin = [0] * len(self.clusters)
             clus_labels = [0] * len(self.clusters)
             count = 0
             for idx, clus in self.clusters.items():
@@ -339,20 +366,20 @@ class AnalysisCluster(object):
             plt.ylabel('Clusters')
             plt.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
-            plt.savefig(final_save_path+'.png', format='png', dpi=700)
+            plt.savefig(final_save_path + '.png', format='png', dpi=700)
         return
 
     def violin_plot_kd(self, par_idxs, save_path=''):
         for kd_pars in par_idxs:
             plt.figure()
-            data_violin = [0]*len(self.clusters)
+            data_violin = [0] * len(self.clusters)
             clus_labels = [0] * len(self.clusters)
             count = 0
             for idx, clus in self.clusters.items():
                 cluster_pars = self.all_parameters[clus]
                 kr_values = cluster_pars[:, kd_pars[0]]
                 kf_values = cluster_pars[:, kd_pars[1]]
-                data_violin[count] = np.log10(kr_values/kf_values)
+                data_violin[count] = np.log10(kr_values / kf_values)
                 clus_labels[count] = idx
                 count += 1
 
@@ -362,9 +389,8 @@ class AnalysisCluster(object):
             plt.ylabel('Clusters')
             plt.suptitle('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
             final_save_path = os.path.join(save_path, 'violin_sp_{0}_kd'.format(self.model.parameters[kd_pars[0]].name))
-            plt.savefig(final_save_path+'.png', format='png', dpi=700)
+            plt.savefig(final_save_path + '.png', format='png', dpi=700)
         return
-
 
     def plot_sp_ic_overlap(self, ic_par_idxs, save_path=''):
         """
@@ -400,7 +426,7 @@ class AnalysisCluster(object):
                 cluster_ic_values.append(sp_ic_values)
                 cluster_ic_weights.append(sp_ic_weights)
 
-            label = ['cluster_{0}, {1}%'.format(cl, (len(self.clusters[cl])/self.number_pars)*100)
+            label = ['cluster_{0}, {1}%'.format(cl, (len(self.clusters[cl]) / self.number_pars) * 100)
                      for cl in self.clusters.keys()]
             plt.hist(cluster_ic_values, bins=bins, weights=cluster_ic_weights, stacked=True, label=label,
                      histtype='bar', ec='black')
@@ -410,10 +436,10 @@ class AnalysisCluster(object):
             plt.legend(loc=0)
 
             final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
-            plt.savefig(final_save_path+'.png', format='png', dpi=700)
+            plt.savefig(final_save_path + '.png', format='png', dpi=700)
         return
 
-    def scatter_plot_pars(self, ic_par_idxs, cluster,  save_path=''):
+    def scatter_plot_pars(self, ic_par_idxs, cluster, save_path=''):
         """
 
         Parameters
@@ -443,8 +469,8 @@ class AnalysisCluster(object):
         plt.xlabel(ic_name0)
         plt.ylabel(ic_name1)
         final_save_path = os.path.join(save_path, 'scatter_{0}_{1}_cluster_{2}'.format(ic_name0, ic_name1,
-                                                                                                 cluster))
-        plt.savefig(final_save_path+'.png', format='png', dpi=700)
+                                                                                       cluster))
+        plt.savefig(final_save_path + '.png', format='png', dpi=700)
 
     @staticmethod
     def _get_colors(num_colors):
