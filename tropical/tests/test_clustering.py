@@ -168,8 +168,8 @@ class TestClusteringSingle(TestClusteringBase):
         clus_idx1 = clus_seqs1.index.get_level_values(0).values
         rep0 = self.clus.centrality(sequences_idx=clus_idx0)
         rep1 = self.clus.centrality(sequences_idx=clus_idx1)
-        np.testing.assert_allclose(rep0, np.array([2, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
-        np.testing.assert_allclose(rep1, np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2]))
+        np.testing.assert_allclose(rep0[1], np.array([2, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
+        np.testing.assert_allclose(rep1[1], np.array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2]))
 
     def test_frequency(self):
         self.clus.diss_matrix(metric='LCS')

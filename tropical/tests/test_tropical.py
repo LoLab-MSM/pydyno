@@ -44,7 +44,7 @@ class TestDinSygnSingle(TestDynSignBase):
 
     def test_equations_to_tropicalize(self):
         self.tro.equations_to_tropicalize(get_passengers_by='imp_nodes')
-        assert self.tro.eqs_for_tropicalization.keys() == [2, 4], self.tro.eqs_for_tropicalization.keys()
+        assert self.tro.eqs_for_tropicalization == [2, 4], self.tro.eqs_for_tropicalization
 
     @raises(ValueError)
     def test_equations_to_tropicalize_invalid_method(self):

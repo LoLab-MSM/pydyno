@@ -6,6 +6,7 @@ import itertools
 from collections import OrderedDict
 from future.utils import iteritems, listvalues
 import time
+from pysb import Parameter
 
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
@@ -31,11 +32,11 @@ class Tropical(object):
         self.par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
         self._is_setup = False
         self.passengers = []
-        self.eqs_for_tropicalization = {}
+        self.eqs_for_tropicalization = []
         self.diff_par = None
         self.tspan = None
 
-    def setup_tropical(self, tspan, diff_par=1, passengers_by='imp_nodes'):
+    def setup_tropical(self, tspan, diff_par=1, passengers_by='imp_nodes', add_observables=False):
         """
         Set up parameters necessary to obtain the dynamic signatures of species signal execution
 
@@ -55,12 +56,12 @@ class Tropical(object):
         """
         self.diff_par = diff_par
         self.tspan = tspan
-        self.equations_to_tropicalize(get_passengers_by=passengers_by)
+        self.equations_to_tropicalize(get_passengers_by=passengers_by, add_observables=add_observables)
         self.set_combinations_sm()
         self._is_setup = True
         return
 
-    def equations_to_tropicalize(self, get_passengers_by='imp_nodes'):
+    def equations_to_tropicalize(self, get_passengers_by='imp_nodes', add_observables=False):
         """
 
         Returns
@@ -80,8 +81,11 @@ class Tropical(object):
                 if str(j) == '__sink()' or str(j) == '__source()' and i in idx:
                     idx.remove(i)
 
-        eqs = {i: self.model.odes[i] for i in idx}
-        self.eqs_for_tropicalization = eqs
+        if add_observables:
+            obs_names = [ob.name for ob in self.model.observables]
+            idx = idx + obs_names
+
+        self.eqs_for_tropicalization = idx
         return
 
     @staticmethod
@@ -148,20 +152,28 @@ class Tropical(object):
 
         # Dictionary that will contain the signature of each of the species to study
         all_signatures = {}
-        for sp in self.eqs_for_tropicalization:
+        for sp_dyn in self.eqs_for_tropicalization:
             # reaction terms of all reaction rates in which species sp is involved and assign sign to see
             # if species is being consumed or produced.
-            monomials = []
-            for term in self.model.reactions_bidirectional:
-                total_rate = 0
-                for mon_type, mon_sign in zip(['products', 'reactants'], [1, -1]):
-                    if sp in term[mon_type]:
-                        count = term[mon_type].count(sp)
-                        total_rate = total_rate + (mon_sign * count * term['rate'])
-                if total_rate == 0:
-                    continue
-                monomials.append(total_rate)
 
+            if isinstance(sp_dyn, str):
+                species = self.model.observables.get(sp_dyn).species
+                sp_name = sp_dyn
+            else:
+                species = [sp_dyn]
+                sp_name = sp_dyn
+
+            monomials = []
+            for sp in species:
+                for term in self.model.reactions_bidirectional:
+                    total_rate = 0
+                    for mon_type, mon_sign in zip(['products', 'reactants'], [1, -1]):
+                        if sp in term[mon_type]:
+                            count = term[mon_type].count(sp)
+                            total_rate = total_rate + (mon_sign * count * term['rate'])
+                    if total_rate == 0:
+                        continue
+                    monomials.append(total_rate)
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = {}
             for mon_p in monomials:
@@ -169,6 +181,8 @@ class Tropical(object):
 
                 if mon_p_values == 0:
                     mons_dict[mon_p] = [0] * len(self.tspan)
+                elif isinstance(mon_p_values, Parameter):
+                    mons_dict[mon_p] = [mon_p_values.value] * len(self.tspan)
                 else:
                     var_prod = [atom for atom in mon_p_values.atoms(sympy.Symbol)]  # Variables of monomial
                     arg_prod = [0] * len(var_prod)
@@ -191,8 +205,8 @@ class Tropical(object):
             # This function takes a list of the reaction rates values and calculates the largest
             # reaction rate at each time point
             signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
-                                                       *(mons_names, self.diff_par, self.all_comb[sp]))
-            all_signatures[sp] = list(signature_species)
+                                                       *(mons_names, self.diff_par, self.all_comb[sp_name]))
+            all_signatures[sp_name] = list(signature_species)
         return all_signatures
 
     def set_combinations_sm(self):
@@ -207,44 +221,52 @@ class Tropical(object):
         assert self.eqs_for_tropicalization, 'you must find passenger species first'
 
         all_comb = {}
-        for sp in self.eqs_for_tropicalization:
+        for sp_dyn in self.eqs_for_tropicalization:
             # reaction terms
             pos_neg_combs = {}
             parts_reaction = ['products', 'reactants']
             parts_rev = [1, 0]
             signs = [1, -1]
 
+            if isinstance(sp_dyn, str):
+                species = self.model.observables.get(sp_dyn).species
+                sp_name = sp_dyn
+            else:
+                species = [sp_dyn]
+                sp_name = sp_dyn
+
             # We get the reaction rates from the bidirectional reactions in order to have reversible reactions
             # as one 'monomial'. This is helpful for visualization and other (I should think more about this)
             for mon_type, mon_sign, rev_parts in zip(parts_reaction, signs, parts_rev):
                 monomials = []
 
-                for term in self.model.reactions_bidirectional:
-                    if sp in term[mon_type]:
-                        # Add zero to monomials in cases like autocatalytic reactions where a species
-                        # shows up both in reactants and products, and we are looking for the reactions that use a sp
-                        # but the reaction produces the species overall
-                        sp_count = term[mon_type].count(sp)
+                for sp in species:
+                    for term in self.model.reactions_bidirectional:
+                        if sp in term[mon_type]:
+                            # Add zero to monomials in cases like autocatalytic reactions where a species
+                            # shows up both in reactants and products, and we are looking for the reactions that use a sp
+                            # but the reaction produces the species overall
+                            sp_count = term[mon_type].count(sp)
 
-                        if sp in term[parts_reaction[rev_parts]]:
-                            count_reac = term['reactants'].count(sp)
-                            count_pro = term['products'].count(sp)
-                            mon_zero = mon_sign
-                            if mon_type == 'reactants':
-                                if count_pro > count_reac:
-                                    mon_zero = 0
+                            if sp in term[parts_reaction[rev_parts]]:
+                                count_reac = term['reactants'].count(sp)
+                                count_pro = term['products'].count(sp)
+                                mon_zero = mon_sign
+                                if mon_type == 'reactants':
+                                    if count_pro > count_reac:
+                                        mon_zero = 0
+                                else:
+                                    if count_pro < count_reac:
+                                        mon_zero = 0
+                                monomials.append(mon_zero * term['rate'])
                             else:
-                                if count_pro < count_reac:
-                                    mon_zero = 0
-                            monomials.append(mon_zero * term['rate'])
-                        else:
-                            monomials.append(sp_count * mon_sign * term['rate'])
+                                monomials.append(sp_count * mon_sign * term['rate'])
 
-                    # Add reversible reaction rates on which the species is involved but was not added
-                    # in the previous loop because it was not in the mon_type
-                    if sp in term[parts_reaction[rev_parts]] and term['reversible']:
-                        sp_count = term[parts_reaction[rev_parts]].count(sp)
-                        monomials.append(sp_count * signs[rev_parts] * term['rate'])
+                        # Add reversible reaction rates on which the species is involved but was not added
+                        # in the previous loop because it was not in the mon_type
+                        if sp in term[parts_reaction[rev_parts]] and term['reversible']:
+                            sp_count = term[parts_reaction[rev_parts]].count(sp)
+                            monomials.append(sp_count * signs[rev_parts] * term['rate'])
                 # remove zeros from reactions in which the species shows up both in reactants and products
                 monomials = [value for value in monomials if value != 0]
                 combs = len(monomials) + 1
@@ -263,7 +285,7 @@ class Tropical(object):
 
                     mon_comb[L] = prod_comb_names
                 pos_neg_combs[mon_type] = mon_comb
-            all_comb[sp] = pos_neg_combs
+            all_comb[sp_name] = pos_neg_combs
         self.all_comb = all_comb
         return
 
@@ -282,7 +304,8 @@ def organize_dynsign_multi(signatures):
 # def signatures_to_hdf5(signatures):
 
 
-def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_to_vis=None, plot_type=0):
+def run_tropical(model, simulations, add_observables=False, passengers_by='imp_nodes',
+                 diff_par=1, sp_to_vis=None, plot_type=0):
     """
 
     Parameters
@@ -305,7 +328,7 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     """
     trajectories, parameters, nsims, tspan = hf.get_simulations(simulations)
     tro = Tropical(model)
-    tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
+    tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by, add_observables=add_observables)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
     if sp_to_vis is not None:
         visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis, all_signatures=signatures,
@@ -314,7 +337,8 @@ def run_tropical(model, simulations, passengers_by='imp_nodes', diff_par=1, sp_t
     return signatures
 
 
-def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1, cpu_cores=1, verbose=False):
+def run_tropical_multi(model, simulations, add_observables=False, passengers_by='imp_nodes',
+                       diff_par=1, cpu_cores=1, verbose=False):
     """
 
     Parameters
@@ -341,7 +365,7 @@ def run_tropical_multi(model, simulations, passengers_by='imp_nodes', diff_par=1
     trajectories, parameters, nsims, tspan = hf.get_simulations(simulations)
     tro = Tropical(model)
 
-    tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by)
+    tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by, add_observables=add_observables)
     p = Pool(cpu_cores)
     if nsims == 1:
         trajectories = [trajectories]
