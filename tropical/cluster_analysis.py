@@ -296,7 +296,7 @@ class AnalysisCluster(object):
 
     def hist_plot_clusters(self, ic_par_idxs, save_path=''):
         """
-        Creates a plot for each cluster, and it has histograms of the species provided
+        Creates a plot for each cluster, and it has histograms of the parameters provided
 
         Parameters
         ----------

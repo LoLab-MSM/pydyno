@@ -18,6 +18,7 @@ from sklearn import metrics
 from matplotlib.collections import LineCollection
 import editdistance
 import tropical.lcs as lcs
+from tropical.kmedoids import kMedoids
 import collections
 from future.utils import listvalues
 from tropical.util import rate_2_interactions
@@ -60,7 +61,7 @@ class ClusterSequences(object):
 
     Parameters
     ----------
-    data: str file or np.ndarray
+    seqdata: str file or np.ndarray
         file of pandas dataframe or ndarray where rows are DynSign signatures and columns are
          dominant states at specific  time points
     unique_sequences: bool, optional
@@ -70,15 +71,7 @@ class ClusterSequences(object):
     """
 
     def __init__(self, seqdata, unique_sequences=False, truncate_seq=None):
-        """
 
-        Parameters
-        ----------
-        seqdata
-        unique_sequences: boolean,
-            Determines it the dissimilarity matrix is calculated only for the unique sequences or all of the sequences
-        truncate_seq
-        """
         if isinstance(seqdata, str):
             if os.path.isfile(seqdata):
                 data_seqs = pd.read_csv(seqdata, header=0, index_col=0)
@@ -111,6 +104,7 @@ class ClusterSequences(object):
         self.diss = None
         self.labels = None
         self.cluster_method = ''
+
     def __repr__(self):
         return (
             '{} (Sequences:{}, Unique States:{})'.format(self.__class__.__name__, self.n_sequences, self.unique_states))
