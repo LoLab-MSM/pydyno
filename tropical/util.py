@@ -4,7 +4,6 @@ import re
 import numpy as np
 from collections import OrderedDict
 from pysb.bng import generate_equations
-import pysb
 from pysb.simulator import SimulationResult
 from itertools import compress
 from scipy.optimize import curve_fit
@@ -12,6 +11,41 @@ try:
     import h5py
 except ImportError:
     h5py = None
+
+
+def label2rr(model, species):
+    monomials = {}
+    counter = 0
+    if isinstance(species, str):
+        species_ready = model.observables.get(species).species
+    elif isinstance(species, int):
+        species_ready = [species]
+    else:
+        species_ready = species
+
+    for sp in species_ready:
+        for term in model.reactions_bidirectional:
+            total_rate = 0
+            for mon_type, mon_sign in zip(['products', 'reactants'], [1, -1]):
+                if sp in term[mon_type]:
+                    count = term[mon_type].count(sp)
+                    total_rate = total_rate + (mon_sign * count * term['rate'])
+            if total_rate == 0:
+                continue
+            monomials[counter] = (total_rate)
+            counter += 1
+    return monomials
+
+
+def uniquifier(numList, biggest):
+    # if biggest < 10:
+    #     longest = 1
+    # else:
+    #     longest = int(math.floor(math.log10(biggest))+1)
+    longest = len(str(biggest))
+    s = map(str, numList)
+    q = ''.join([n.zfill(longest) for n in s])
+    return int(q)
 
 
 def all_equal(iterator):
@@ -323,7 +357,7 @@ def find_nonimportant_nodes(model):
     a list of non-important nodes
     """
     if not model.odes:
-        pysb.bng.generate_equations(model)
+        generate_equations(model)
 
     # gets the reactant and product species in the reactions
     rcts_sp = sum([i['reactants'] for i in model.reactions_bidirectional], ())

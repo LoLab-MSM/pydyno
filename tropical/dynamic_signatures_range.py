@@ -57,7 +57,7 @@ class Tropical(object):
         self.diff_par = diff_par
         self.tspan = tspan
         self.equations_to_tropicalize(get_passengers_by=passengers_by, add_observables=add_observables)
-        self.set_combinations_sm()
+        # self.set_combinations_sm()
         self._is_setup = True
         return
 
@@ -89,7 +89,7 @@ class Tropical(object):
         return
 
     @staticmethod
-    def _choose_max_pos_neg(array, mon_names, diff_par, mon_comb):
+    def _choose_max_pos_neg(array, diff_par):
         """
         Get the dominant reaction(s) of a species at a specific time point
 
@@ -114,22 +114,20 @@ class Tropical(object):
             # largest_prod = 'NoDoms'
             # mons_comb_type = mon_comb[mon_type]
             # mon_names_ready = [mon_names.keys()[mon_names.values().index(i)] for i in mons_idx]
-            mon_comb_type = mon_comb[mon_type]
             if len(mons_idx) == 0:
                 largest_prod = -1
             else:
-                monomials_values = {mon_names[idx]:
-                                        numpy.log10(numpy.abs(array[idx])) for idx in mons_idx}
+                monomials_values = {idx: numpy.log10(numpy.abs(array[idx])) for idx in mons_idx}
                 max_val = numpy.amax(listvalues(monomials_values))
                 rr_monomials = [n for n, i in iteritems(monomials_values) if i > (max_val - diff_par) and max_val > -5]
 
-                if not rr_monomials or len(rr_monomials) == list(mon_comb_type)[-1]:
-                    largest_prod = list(listvalues(mon_comb_type)[-1])[0]
+                if not rr_monomials:
+                    mons_idx[::-1].sort()
+                    largest_prod = hf.uniquifier(mons_idx, biggest=len(array))
                 else:
-                    rr_monomials.sort(key=sympy.default_sort_key)
-                    rr_monomials = tuple(rr_monomials)
-                    largest_prod = list(mon_comb_type[len(rr_monomials)])[
-                                    listvalues(mon_comb_type[len(rr_monomials)]).index(rr_monomials)]
+                    rr_monomials.sort(reverse=True)
+                    largest_prod = hf.uniquifier(rr_monomials, biggest=len(array))
+
             pos_neg_largest[ii] = largest_prod
         return pos_neg_largest
 
@@ -175,7 +173,7 @@ class Tropical(object):
                         continue
                     monomials.append(total_rate)
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
-            mons_dict = {}
+            mons_dict = OrderedDict()
             for mon_p in monomials:
                 mon_p_values = mon_p
 
@@ -204,9 +202,15 @@ class Tropical(object):
 
             # This function takes a list of the reaction rates values and calculates the largest
             # reaction rate at each time point
-            signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
-                                                       *(mons_names, self.diff_par, self.all_comb[sp_name]))
-            all_signatures[sp_name] = list(signature_species)
+            sign_pro = [0] * len(self.tspan)
+            sign_rea = [0] * len(self.tspan)
+            for t in range(len(self.tspan)):
+                rr_t = mons_array[:, t]
+                sign_pro[t], sign_rea[t] = self._choose_max_pos_neg(rr_t, self.diff_par)
+            # signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
+            #                                            *(mons_names, self.diff_par, self.all_comb[sp_name]))
+
+            all_signatures[sp_name] = [sign_pro, sign_rea]
         return all_signatures
 
     def set_combinations_sm(self):
@@ -331,8 +335,8 @@ def run_tropical(model, simulations, add_observables=False, passengers_by='imp_n
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by, add_observables=add_observables)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
     if sp_to_vis is not None:
-        visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis, all_signatures=signatures,
-                      all_comb=tro.all_comb, plot_type=plot_type, param_values=parameters[0])
+        visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
+                      all_signatures=signatures, plot_type=plot_type, param_values=parameters[0])
     signatures['species_combinations'] = tro.all_comb
     return signatures
 
