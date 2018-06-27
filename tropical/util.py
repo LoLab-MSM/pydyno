@@ -7,6 +7,7 @@ from pysb.bng import generate_equations
 from pysb.simulator import SimulationResult
 from itertools import compress
 from scipy.optimize import curve_fit
+from future.utils import itervalues
 try:
     import h5py
 except ImportError:
@@ -34,7 +35,16 @@ def label2rr(model, species):
                 continue
             monomials[counter] = (total_rate)
             counter += 1
-    return monomials
+    counter2 = 0
+    mons_ready = {}
+    for sp in itervalues(monomials):
+        if -1*sp in monomials.values():
+            continue
+        else:
+            mons_ready[counter2] = sp
+            counter2 += 1
+
+    return mons_ready
 
 
 def uniquifier(numList, biggest):
