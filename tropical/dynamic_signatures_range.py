@@ -161,7 +161,7 @@ class Tropical(object):
                 species = [sp_dyn]
                 sp_name = sp_dyn
 
-            monomials = []
+            monomials_pre = []
             for sp in species:
                 for term in self.model.reactions_bidirectional:
                     total_rate = 0
@@ -171,7 +171,16 @@ class Tropical(object):
                             total_rate = total_rate + (mon_sign * count * term['rate'])
                     if total_rate == 0:
                         continue
-                    monomials.append(total_rate)
+                    monomials_pre.append(total_rate)
+
+            # Removing repeated reaction rates that can occur in observables
+            monomials = []
+            for m in monomials_pre:
+                if -1*m in monomials_pre:
+                    continue
+                else:
+                    monomials.append(m)
+
             # Dictionary whose keys are the symbolic monomials and the values are the simulation results
             mons_dict = OrderedDict()
             for mon_p in monomials:
