@@ -593,7 +593,7 @@ class PlotSequences(object):
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_modal', bbox_inches='tight', dpi=1000)
+        plt.savefig('cluster_modal_' + title, bbox_inches='tight', dpi=1000)
         return
 
     def all_trajectories_plot(self, title='', sort_seq=None):
@@ -669,4 +669,4 @@ class PlotSequences(object):
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
         f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_all_tr', bbox_inches='tight', dpi=500)
+        plt.savefig('cluster_all_tr_' + title, bbox_inches='tight', dpi=500)
