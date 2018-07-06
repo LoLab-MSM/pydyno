@@ -14,7 +14,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import tropical.util as hf
 from pysb.bng import generate_equations
-
+import sympy
 plt.ioff()
 
 
@@ -151,8 +151,23 @@ class AnalysisCluster(object):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
+                # Calculate reaction rate expression
+                if isinstance(sp, sympy.Expr):
+                    expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
+                    expr_args = [0] * len(expr_vars)
+                    for va_idx, va in enumerate(expr_vars):
+                        if str(va).startswith('__'):
+                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                            expr_args[va_idx] = y[:, :, sp_idx].T
+                        else:
+                            par_idx = self.model.parameters.index(va)
+                            expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
+                    f_expr = sympy.lambdify(expr_vars, sp)
+                    sp_trajectory = f_expr(*expr_args)
+                    name = 'expr'
+
                 # Calculate observable
-                if isinstance(sp, str):
+                elif isinstance(sp, str):
                     sp_trajectory = self._get_observable(sp, y)
                     name = sp
                 else:
@@ -168,7 +183,8 @@ class AnalysisCluster(object):
                 axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
                 plt.setp(axHisty.get_yticklabels(), visible=False)
                 hist_data = sp_trajectory[-1, :]
-                axHisty.hist(hist_data, normed=True, bins='auto', orientation='horizontal')
+                print (hist_data)
+                axHisty.hist(hist_data, normed=True, orientation='horizontal')
                 shape = np.std(hist_data)
                 scale = np.average(hist_data)
 
@@ -178,10 +194,11 @@ class AnalysisCluster(object):
                 axHisty.ticklabel_format(axis='x', style='sci', scilimits=(-2, 2))
 
                 sp_max_conc = np.amax(sp_trajectory)
+                sp_min_conc = np.amin(sp_trajectory)
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_xlabel('Time')
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(sp, clus)][1].set_xlim([0, 8])
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, sp_max_conc])
+                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([sp_min_conc, sp_max_conc])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_{2}'.format(sp, idx, fig_label))
