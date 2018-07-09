@@ -100,7 +100,7 @@ class AnalysisCluster(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_dynamics_cluster_types(self, species, save_path='', fig_label='', species_ftn_fit=None, norm=False,
+    def plot_dynamics_cluster_types(self, species, save_path='', fig_name='', species_ftn_fit=None, norm=False,
                                     **kwargs):
         """
         Plots the dynamics of the species for each cluster
@@ -108,11 +108,11 @@ class AnalysisCluster(object):
         Parameters
         ----------
         species: list-like
-            Indices of PySB species that will be plotted
+            Indices of PySB species that will be plotted or observable names or pysb expressions
         save_path: str
             Path to folder where the figure is going to be saved
-        fig_label: str
-            String used to give a label to the cluster figures
+        fig_name: str
+            String used to give a name to the cluster figures
         species_ftn_fit: dict, optional
             Dictionary of species with their respective function to fit their dynamics
         norm: boolean, optional
@@ -136,16 +136,16 @@ class AnalysisCluster(object):
                 # checking if species_to_fit are present in the species that are going to be plotted
                 self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict, species=species,
                                                                    species_ftn_fit=species_ftn_fit,
-                                                                   save_path=save_path, fig_label=fig_label,
+                                                                   save_path=save_path, fig_label=fig_name,
                                                                    **kwargs)
 
             else:
                 self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species,
-                                                       save_path=save_path, fig_label=fig_label)
+                                                       save_path=save_path, fig_label=fig_name)
 
         else:
             self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species,
-                                              save_path=save_path, fig_label=fig_label)
+                                              save_path=save_path, fig_label=fig_name)
 
         return
 
@@ -210,8 +210,23 @@ class AnalysisCluster(object):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
+                # Calculate reaction rate expression
+                if isinstance(sp, sympy.Expr):
+                    expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
+                    expr_args = [0] * len(expr_vars)
+                    for va_idx, va in enumerate(expr_vars):
+                        if str(va).startswith('__'):
+                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                            expr_args[va_idx] = y[:, :, sp_idx].T
+                        else:
+                            par_idx = self.model.parameters.index(va)
+                            expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
+                    f_expr = sympy.lambdify(expr_vars, sp)
+                    sp_trajectory = f_expr(*expr_args)
+                    name = 'expr'
+
                 # Calculate observable
-                if isinstance(sp, str):
+                elif isinstance(sp, str):
                     sp_trajectory = self._get_observable(sp, y)
                     name = sp
                 else:
@@ -243,8 +258,23 @@ class AnalysisCluster(object):
             ftn_result = {}
             y = self.all_simulations[clus]
             for sp in species:
+                # Calculate reaction rate expression
+                if isinstance(sp, sympy.Expr):
+                    expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
+                    expr_args = [0] * len(expr_vars)
+                    for va_idx, va in enumerate(expr_vars):
+                        if str(va).startswith('__'):
+                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                            expr_args[va_idx] = y[:, :, sp_idx].T
+                        else:
+                            par_idx = self.model.parameters.index(va)
+                            expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
+                    f_expr = sympy.lambdify(expr_vars, sp)
+                    sp_trajectory = f_expr(*expr_args)
+                    name = 'expr'
+
                 # Calculate observable
-                if isinstance(sp, str):
+                elif isinstance(sp, str):
                     sp_trajectory = self._get_observable(sp, y)
                     name = sp
                 else:
@@ -303,23 +333,36 @@ class AnalysisCluster(object):
             axHistx.ticklabel_format(axis='y', style='sci', scilimits=(-2, 2))
 
     def _get_observable(self, obs, y):
+        """
+
+        Parameters
+        ----------
+        obs: str
+            pysb observable name
+        y: numpy array
+            Simulations from which the observable is going to be calculated
+
+        Returns
+        -------
+
+        """
         obs_names = [ob.name for ob in self.model.observables]
         try:
             obs_idx = obs_names.index(obs)
-        except:
+        except ValueError:
             raise ValueError(obs + "doesn't exist in the model")
         sps = self.model.observables[obs_idx].species
         obs_values = np.sum(y[:, :, sps], axis=2)
         return obs_values.T
 
-    def hist_plot_clusters(self, ic_par_idxs, save_path=''):
+    def hist_plot_clusters(self, par_idxs, save_path=''):
         """
         Creates a plot for each cluster, and it has histograms of the parameters provided
 
         Parameters
         ----------
-        ic_par_idxs: list-like
-            Indices of the initial conditions that would be visualized
+        par_idxs: list-like
+            Indices of the model parameters that would be visualized
         save_path: str
             Path to where the file is going to be saved
 
@@ -328,14 +371,14 @@ class AnalysisCluster(object):
 
         """
 
-        colors = self._get_colors(len(ic_par_idxs))
+        colors = self._get_colors(len(par_idxs))
         plt.figure(1)
         for c_idx, clus in self.clusters.items():
             cluster_pars = self.all_parameters[clus]
-            sp_ic_all = [0] * len(ic_par_idxs)
-            sp_weights_all = [0] * len(ic_par_idxs)
-            labels = [0] * len(ic_par_idxs)
-            for idx, sp_ic in enumerate(ic_par_idxs):
+            sp_ic_all = [0] * len(par_idxs)
+            sp_weights_all = [0] * len(par_idxs)
+            labels = [0] * len(par_idxs)
+            for idx, sp_ic in enumerate(par_idxs):
                 sp_ic_values = cluster_pars[:, sp_ic]
                 sp_ic_weights = np.ones_like(sp_ic_values) / len(sp_ic_values)
                 sp_ic_all[idx] = sp_ic_values
@@ -350,22 +393,28 @@ class AnalysisCluster(object):
             plt.clf()
         return
 
-    def hist_avg_sps(self, species, y_lim=(0, 1), save_path='', fig_name=''):
+    def hist_avg_sps(self, pattern, y_lim=(0, 1), save_path='', fig_name=''):
         """
         Creates a plot for each cluster. It has a stacked bar of the percentage of the interactions
         of species at each time point
         Parameters
         ----------
-        species
-        save_path
+        pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
+        y_lim: tuple
+            y-axis limits
+        fig_name: str
+            Figure name
+
 
         Returns
         -------
 
         """
+        # Matching species to pattern
         spm = SpeciesPatternMatcher(self.model)
-        sps_matched = spm.match(species, index=True)
+        sps_matched = spm.match(pattern, index=True)
         colors = distinct_colors(len(sps_matched))
+
         for c_idx, clus in self.clusters.items():
             y_offset = np.zeros(len(self.tspan))
             y = self.all_simulations[clus]
@@ -383,10 +432,9 @@ class AnalysisCluster(object):
             plt.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.clf()
 
-
     def violin_plot_sps(self, par_idxs, save_path=''):
         """
-        Creates a plot for each paramater passed, and then creates violin plots for each cluster
+        Creates a plot for each model parameter. Then, makes violin plots for each cluster
 
         Parameters
         ----------
@@ -422,6 +470,21 @@ class AnalysisCluster(object):
         return
 
     def violin_plot_kd(self, par_idxs, save_path=''):
+        """
+        Creates a plot for each kd parameter. Then, makes violin plots for each cluster
+
+        Parameters
+        ----------
+        par_idxs: list-like
+            Tuples of parameters indices, where the first entry is the k_reverse and
+            the second entry is the k_forward parameter.
+        save_path: str
+            Path to where the file is going to be saved
+
+        Returns
+        -------
+
+        """
         for kd_pars in par_idxs:
             plt.figure()
             data_violin = [0] * len(self.clusters)
@@ -444,26 +507,27 @@ class AnalysisCluster(object):
             plt.savefig(final_save_path + '.png', format='png', dpi=700)
         return
 
-    def plot_sp_ic_overlap(self, ic_par_idxs, save_path=''):
+    def plot_sp_ic_overlap(self, par_idxs, save_path=''):
         """
-        Creates a stacked histogram with the distributions of each of the clusters for each initial condition provided
+        Creates a stacked histogram with the distributions of each of the
+        clusters for each model parameter provided
 
         Parameters
         ----------
-        ic_par_idxs: list
+        par_idxs: list
             Indices of the initial conditions in model.parameter to plot
         save_path: str
-            Path to save the file
+            Path to where the file is going to be saved
 
         Returns
         -------
 
         """
 
-        if type(ic_par_idxs) == int:
-            ic_par_idxs = [ic_par_idxs]
+        if type(par_idxs) == int:
+            par_idxs = [par_idxs]
 
-        for ic in ic_par_idxs:
+        for ic in par_idxs:
             plt.figure()
             sp_ic_values_all = self.all_parameters[:, ic]
             sp_ic_weights_all = np.ones_like(sp_ic_values_all) / len(sp_ic_values_all)
@@ -491,15 +555,17 @@ class AnalysisCluster(object):
             plt.savefig(final_save_path + '.png', format='png', dpi=700)
         return
 
-    def scatter_plot_pars(self, ic_par_idxs, cluster, save_path=''):
+    def scatter_plot_pars(self, par_idxs, cluster, save_path=''):
         """
 
         Parameters
         ----------
-        ic_par_idxs: list
-            Indices of the parameters to visualized
+        par_idxs: list
+            Indices of the parameters to visualize
         cluster: list-like
-        save_path
+        save_path: str
+            Path to where the file is going to be saved
+
 
         Returns
         -------
@@ -512,12 +578,12 @@ class AnalysisCluster(object):
         else:
             raise TypeError('format not supported')
 
-        sp_ic_values1 = self.all_parameters[cluster_idxs, ic_par_idxs[0]]
-        sp_ic_values2 = self.all_parameters[cluster_idxs, ic_par_idxs[1]]
+        sp_ic_values1 = self.all_parameters[cluster_idxs, par_idxs[0]]
+        sp_ic_values2 = self.all_parameters[cluster_idxs, par_idxs[1]]
         plt.figure()
         plt.scatter(sp_ic_values1, sp_ic_values2)
-        ic_name0 = self.model.parameters[ic_par_idxs[0]].name
-        ic_name1 = self.model.parameters[ic_par_idxs[1]].name
+        ic_name0 = self.model.parameters[par_idxs[0]].name
+        ic_name1 = self.model.parameters[par_idxs[1]].name
         plt.xlabel(ic_name0)
         plt.ylabel(ic_name1)
         final_save_path = os.path.join(save_path, 'scatter_{0}_{1}_cluster_{2}'.format(ic_name0, ic_name1,
