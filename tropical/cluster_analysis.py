@@ -14,7 +14,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import tropical.util as hf
 from pysb.bng import generate_equations
+from pysb.pattern import SpeciesPatternMatcher
 import sympy
+from tropical.distinct_colors import distinct_colors
 plt.ioff()
 
 
@@ -183,7 +185,6 @@ class AnalysisCluster(object):
                 axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
                 plt.setp(axHisty.get_yticklabels(), visible=False)
                 hist_data = sp_trajectory[-1, :]
-                print (hist_data)
                 axHisty.hist(hist_data, normed=True, orientation='horizontal')
                 shape = np.std(hist_data)
                 scale = np.average(hist_data)
@@ -348,6 +349,39 @@ class AnalysisCluster(object):
             plt.savefig(final_save_path + '.png', format='png', dpi=700)
             plt.clf()
         return
+
+    def hist_avg_sps(self, species, save_path='', fig_name=''):
+        """
+        Creates a plot for each cluster. It has a stacked bar of the percentage of the interactions
+        of species at each time point
+        Parameters
+        ----------
+        species
+        save_path
+
+        Returns
+        -------
+
+        """
+        spm = SpeciesPatternMatcher(self.model)
+        sps_matched = spm.match(species, index=True)
+        colors = distinct_colors(len(sps_matched))
+        for c_idx, clus in self.clusters.items():
+            y_offset = np.zeros(len(self.tspan))
+            y = self.all_simulations[clus]
+            sps_total = np.sum(y[:, :, sps_matched], axis=(0, 2)) /(len(clus))
+            for sp, col in zip(sps_matched, colors):
+                sp_pctge = np.sum(y[:, :, sp], axis=0)/(sps_total*len(clus))
+                plt.bar(self.tspan, sp_pctge, color=col, bottom=y_offset)
+                y_offset = y_offset + sp_pctge
+            plt.xlabel('Time')
+            plt.ylabel('Percentage')
+            plt.suptitle('Cluster {0}'.format(c_idx))
+            plt.legend(sps_matched, loc=0)
+            final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
+            plt.savefig(final_save_path + '.pdf', format='pdf')
+            plt.clf()
+
 
     def violin_plot_sps(self, par_idxs, save_path=''):
         """
