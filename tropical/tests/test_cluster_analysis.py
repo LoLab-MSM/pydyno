@@ -13,7 +13,7 @@ class TestClusteringAnalysisBase(object):
         dir_name = os.path.dirname(os.path.abspath(__file__))
         test = os.listdir(dir_name)
         for item in test:
-            if item.endswith(".png"):
+            if item.endswith(".png") or item.endswith(".pdf"):
                 os.remove(os.path.join(dir_name, item))
 
     def setUp(self):

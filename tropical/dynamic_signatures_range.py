@@ -57,7 +57,6 @@ class Tropical(object):
         self.diff_par = diff_par
         self.tspan = tspan
         self.equations_to_tropicalize(get_passengers_by=passengers_by, add_observables=add_observables)
-        # self.set_combinations_sm()
         self._is_setup = True
         return
 
@@ -222,85 +221,85 @@ class Tropical(object):
             all_signatures[sp_name] = [sign_pro, sign_rea]
         return all_signatures
 
-    def set_combinations_sm(self):
-        """
-        Obtain all possible combinations of the reactions in which a species is involved
-
-
-        Returns
-        -------
-
-        """
-        assert self.eqs_for_tropicalization, 'you must find passenger species first'
-
-        all_comb = {}
-        for sp_dyn in self.eqs_for_tropicalization:
-            # reaction terms
-            pos_neg_combs = {}
-            parts_reaction = ['products', 'reactants']
-            parts_rev = [1, 0]
-            signs = [1, -1]
-
-            if isinstance(sp_dyn, str):
-                species = self.model.observables.get(sp_dyn).species
-                sp_name = sp_dyn
-            else:
-                species = [sp_dyn]
-                sp_name = sp_dyn
-
-            # We get the reaction rates from the bidirectional reactions in order to have reversible reactions
-            # as one 'monomial'. This is helpful for visualization and other (I should think more about this)
-            for mon_type, mon_sign, rev_parts in zip(parts_reaction, signs, parts_rev):
-                monomials = []
-
-                for sp in species:
-                    for term in self.model.reactions_bidirectional:
-                        if sp in term[mon_type]:
-                            # Add zero to monomials in cases like autocatalytic reactions where a species
-                            # shows up both in reactants and products, and we are looking for the reactions that use a sp
-                            # but the reaction produces the species overall
-                            sp_count = term[mon_type].count(sp)
-
-                            if sp in term[parts_reaction[rev_parts]]:
-                                count_reac = term['reactants'].count(sp)
-                                count_pro = term['products'].count(sp)
-                                mon_zero = mon_sign
-                                if mon_type == 'reactants':
-                                    if count_pro > count_reac:
-                                        mon_zero = 0
-                                else:
-                                    if count_pro < count_reac:
-                                        mon_zero = 0
-                                monomials.append(mon_zero * term['rate'])
-                            else:
-                                monomials.append(sp_count * mon_sign * term['rate'])
-
-                        # Add reversible reaction rates on which the species is involved but was not added
-                        # in the previous loop because it was not in the mon_type
-                        if sp in term[parts_reaction[rev_parts]] and term['reversible']:
-                            sp_count = term[parts_reaction[rev_parts]].count(sp)
-                            monomials.append(sp_count * signs[rev_parts] * term['rate'])
-                # remove zeros from reactions in which the species shows up both in reactants and products
-                monomials = [value for value in monomials if value != 0]
-                combs = len(monomials) + 1
-
-                mon_comb = OrderedDict()
-                comb_counter = 0
-                for L in range(1, combs):
-                    prod_comb_names = {}
-                    for subset in itertools.combinations(monomials, L):
-                        subset = list(subset)
-                        subset.sort(key=sympy.default_sort_key)
-                        subset = tuple(subset)
-                        rr_label = comb_counter
-                        prod_comb_names[rr_label] = subset
-                        comb_counter += 1
-
-                    mon_comb[L] = prod_comb_names
-                pos_neg_combs[mon_type] = mon_comb
-            all_comb[sp_name] = pos_neg_combs
-        self.all_comb = all_comb
-        return
+    # def set_combinations_sm(self):
+    #     """
+    #     Obtain all possible combinations of the reactions in which a species is involved
+    #
+    #
+    #     Returns
+    #     -------
+    #
+    #     """
+    #     assert self.eqs_for_tropicalization, 'you must find passenger species first'
+    #
+    #     all_comb = {}
+    #     for sp_dyn in self.eqs_for_tropicalization:
+    #         # reaction terms
+    #         pos_neg_combs = {}
+    #         parts_reaction = ['products', 'reactants']
+    #         parts_rev = [1, 0]
+    #         signs = [1, -1]
+    #
+    #         if isinstance(sp_dyn, str):
+    #             species = self.model.observables.get(sp_dyn).species
+    #             sp_name = sp_dyn
+    #         else:
+    #             species = [sp_dyn]
+    #             sp_name = sp_dyn
+    #
+    #         # We get the reaction rates from the bidirectional reactions in order to have reversible reactions
+    #         # as one 'monomial'. This is helpful for visualization and other (I should think more about this)
+    #         for mon_type, mon_sign, rev_parts in zip(parts_reaction, signs, parts_rev):
+    #             monomials = []
+    #
+    #             for sp in species:
+    #                 for term in self.model.reactions_bidirectional:
+    #                     if sp in term[mon_type]:
+    #                         # Add zero to monomials in cases like autocatalytic reactions where a species
+    #                         # shows up both in reactants and products, and we are looking for the reactions that use a sp
+    #                         # but the reaction produces the species overall
+    #                         sp_count = term[mon_type].count(sp)
+    #
+    #                         if sp in term[parts_reaction[rev_parts]]:
+    #                             count_reac = term['reactants'].count(sp)
+    #                             count_pro = term['products'].count(sp)
+    #                             mon_zero = mon_sign
+    #                             if mon_type == 'reactants':
+    #                                 if count_pro > count_reac:
+    #                                     mon_zero = 0
+    #                             else:
+    #                                 if count_pro < count_reac:
+    #                                     mon_zero = 0
+    #                             monomials.append(mon_zero * term['rate'])
+    #                         else:
+    #                             monomials.append(sp_count * mon_sign * term['rate'])
+    #
+    #                     # Add reversible reaction rates on which the species is involved but was not added
+    #                     # in the previous loop because it was not in the mon_type
+    #                     if sp in term[parts_reaction[rev_parts]] and term['reversible']:
+    #                         sp_count = term[parts_reaction[rev_parts]].count(sp)
+    #                         monomials.append(sp_count * signs[rev_parts] * term['rate'])
+    #             # remove zeros from reactions in which the species shows up both in reactants and products
+    #             monomials = [value for value in monomials if value != 0]
+    #             combs = len(monomials) + 1
+    #
+    #             mon_comb = OrderedDict()
+    #             comb_counter = 0
+    #             for L in range(1, combs):
+    #                 prod_comb_names = {}
+    #                 for subset in itertools.combinations(monomials, L):
+    #                     subset = list(subset)
+    #                     subset.sort(key=sympy.default_sort_key)
+    #                     subset = tuple(subset)
+    #                     rr_label = comb_counter
+    #                     prod_comb_names[rr_label] = subset
+    #                     comb_counter += 1
+    #
+    #                 mon_comb[L] = prod_comb_names
+    #             pos_neg_combs[mon_type] = mon_comb
+    #         all_comb[sp_name] = pos_neg_combs
+    #     self.all_comb = all_comb
+    #     return
 
 
 def organize_dynsign_multi(signatures):
