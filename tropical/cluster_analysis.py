@@ -350,7 +350,7 @@ class AnalysisCluster(object):
             plt.clf()
         return
 
-    def hist_avg_sps(self, species, save_path='', fig_name=''):
+    def hist_avg_sps(self, species, y_lim=(0, 1), save_path='', fig_name=''):
         """
         Creates a plot for each cluster. It has a stacked bar of the percentage of the interactions
         of species at each time point
@@ -377,9 +377,10 @@ class AnalysisCluster(object):
             plt.xlabel('Time')
             plt.ylabel('Percentage')
             plt.suptitle('Cluster {0}'.format(c_idx))
-            plt.legend(sps_matched, loc=0)
+            plt.ylim(y_lim)
+            plt.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5, title='Species indices')
             final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
-            plt.savefig(final_save_path + '.pdf', format='pdf')
+            plt.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.clf()
 
 
