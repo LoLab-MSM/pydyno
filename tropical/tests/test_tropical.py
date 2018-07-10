@@ -50,7 +50,7 @@ class TestDinSygnSingle(TestDynSignBase):
     def test_equations_to_tropicalize_invalid_method(self):
         self.tro.equations_to_tropicalize(get_passengers_by='random')
 
-    @raises(AssertionError)
-    def test_set_combinations_no_eqs_for_trop(self):
-        self.tro.set_combinations_sm()
+    # @raises(AssertionError)
+    # def test_set_combinations_no_eqs_for_trop(self):
+    #     self.tro.set_combinations_sm()
 
