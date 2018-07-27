@@ -446,3 +446,43 @@ def curve_fit_ftn(fn, xdata, ydata, **kwargs):
 
     fit_all = np.apply_along_axis(curve_fit2, axis=1, arr=ydata)
     return fit_all
+
+
+def get_labels_entropy(labels, base=None):
+    """
+    Function to calculate the entropy from labels
+    Parameters
+    ----------
+    data: vector-like
+        This has to be a vector of labels
+    base: int
+        Base used to calculated the entropy. If none then 2 is used.
+
+    Returns
+    -------
+
+    """
+    value, counts = np.unique(labels, return_counts=True)
+    norm_counts = counts / counts.sum()
+    base = 2 if base is None else base
+    return -(norm_counts * np.log(norm_counts) / np.log(base)).sum()
+
+
+def get_probs_entropy(probs, base=None):
+    """
+    Function to calculate the entropy from states probabilities
+    Parameters
+    ----------
+    data: vector-like
+        This has to be a vector of labels
+    base: int
+        Base used to calculated the entropy. If none then 2 is used.
+
+    Returns
+    -------
+
+    """
+    norm_counts = probs
+    norm_counts = norm_counts[norm_counts > 0]
+    base = 2 if base is None else base
+    return -(norm_counts * np.log(norm_counts) / np.log(base)).sum()

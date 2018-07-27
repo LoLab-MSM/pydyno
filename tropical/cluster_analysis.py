@@ -14,9 +14,12 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import tropical.util as hf
 from pysb.bng import generate_equations
-from pysb.pattern import SpeciesPatternMatcher
+from pysb.pattern import SpeciesPatternMatcher, ReactionPatternMatcher
 import sympy
 from tropical.distinct_colors import distinct_colors
+import matplotlib.patches as mpatches
+from math import e
+
 plt.ioff()
 
 
@@ -393,7 +396,7 @@ class AnalysisCluster(object):
             plt.clf()
         return
 
-    def hist_avg_sps(self, pattern, y_lim=(0, 1), save_path='', fig_name=''):
+    def hist_avg_sps(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
         """
         Creates a plot for each cluster. It has a stacked bar of the percentage of the interactions
         of species at each time point
@@ -419,18 +422,178 @@ class AnalysisCluster(object):
             y_offset = np.zeros(len(self.tspan))
             y = self.all_simulations[clus]
             sps_total = np.sum(y[:, :, sps_matched], axis=(0, 2)) /(len(clus))
-            for sp, col in zip(sps_matched, colors):
+            sps_avg = np.zeros((len(sps_matched), len(self.tspan)))
+            for idx, sp, in enumerate(sps_matched):
                 sp_pctge = np.sum(y[:, :, sp], axis=0)/(sps_total*len(clus))
-                plt.bar(self.tspan, sp_pctge, color=col, bottom=y_offset)
-                y_offset = y_offset + sp_pctge
-            plt.xlabel('Time')
-            plt.ylabel('Percentage')
-            plt.suptitle('Cluster {0}'.format(c_idx))
-            plt.ylim(y_lim)
-            plt.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5, title='Species indices')
+                sps_avg[idx] = sp_pctge
+
+            if type_fig == 'bar':
+                for sps, col in enumerate(colors):
+                    sp_pctge = sps_avg[sps]
+                    plt.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=1)
+                    y_offset = y_offset + sp_pctge
+
+                plt.xlabel('Time')
+                plt.ylabel('Percentage')
+                plt.suptitle('Cluster {0}'.format(c_idx))
+                plt.ylim(y_lim)
+                plt.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5,
+                           title='Species indices')
+
+            elif type_fig == 'entropy':
+                entropies = [0] * len(self.tspan)
+                for t_idx in range(len(self.tspan)):
+                    tp_pctge = sps_avg[:, t_idx]
+                    entropy = self._get_probs_entropy(tp_pctge)
+                    entropies[t_idx] = entropy
+
+                plt.plot(self.tspan, entropies)
+                plt.xlabel('Time')
+                plt.ylabel('Entropy')
+
+            else:
+                raise NotImplementedError('Type of visualization not implemented')
+
             final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
             plt.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.clf()
+
+    def hist_avg_rxns(self, pattern, type_fig='bar', y_lim=(0,1), save_path='', fig_name=''):
+        """
+
+        Parameters
+        ----------
+        pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
+        y_lim: tuple
+            y-axis limits
+        save_path: str
+        fig_name: str
+            Figure name
+
+        Returns
+        -------
+
+        """
+        # Matching reactions to pattern
+        rpm = ReactionPatternMatcher(self.model)
+        products_matched = rpm.match_products(pattern)
+        reactants_matched = rpm.match_reactants(pattern)
+        products_avg = np.zeros((len(products_matched), len(self.tspan)))
+        reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
+        pcolors = distinct_colors(len(products_matched))
+        rcolors = distinct_colors(len(reactants_matched))
+
+        plegend_patches = []
+        plabels = []
+        rlegend_patches = []
+        rlabels = []
+
+        for c_idx, clus in self.clusters.items():
+            y = self.all_simulations[clus]
+            y_poffset = np.zeros(len(self.tspan))
+            y_roffset = np.zeros(len(self.tspan))
+
+            pars = self.all_parameters[clus]
+            for rxn_idx, rxn in enumerate(products_matched):
+                rate = rxn.rate
+                var = [atom for atom in rate.atoms(sympy.Symbol)]
+                arg = [0] * len(var)
+                for idx, va in enumerate(var):
+                    if str(va).startswith('__'):
+                        sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                        arg[idx] = y[:, :, sp_idx]
+                    else:
+                        arg[idx] = pars[:, self.model.parameters.index(va)][0]
+                        # print (pars[:, self.model.parameters.index(va)])
+                f = sympy.lambdify(var, rate)
+                values = f(*arg)
+                for col in range(values.shape[1]):
+                    if (values[:, col] < 0).all():
+                        values[:, col] = 0
+                values_avg = np.average(values, axis=0, weights=values >= 0)
+                products_avg[rxn_idx] = values_avg
+
+                # Creating labels
+                plabel = hf.rate_2_interactions(self.model, str(rate))
+                plabels.append(plabel)
+                plegend_patches.append(mpatches.Patch(color=pcolors[rxn_idx], label=plabel))
+
+            ptotals = np.sum(products_avg, axis=0)
+            products_avg = products_avg / ptotals
+
+            for rct_idx, rct in enumerate(reactants_matched):
+                rate = rct.rate
+                var = [atom for atom in rate.atoms(sympy.Symbol)]
+                arg = [0] * len(var)
+                for idx, va in enumerate(var):
+                    if str(va).startswith('__'):
+                        sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                        arg[idx] = y[:, :, sp_idx]
+                    else:
+                        arg[idx] = pars[:, self.model.parameters.index(va)][0]
+
+                f = sympy.lambdify(var, rate)
+                values = f(*arg)
+                for col in range(values.shape[1]):
+                    if (values[:, col] > 0).all():
+                        values[:, col] = 0
+                values_avg = np.average(values, axis=0, weights=values <= 0)
+                reactants_avg[rct_idx] = values_avg
+
+                # Creating labels
+                rlabel = hf.rate_2_interactions(self.model, str(rate))
+                rlabels.append(rlabel)
+                rlegend_patches.append(mpatches.Patch(color=rcolors[rct_idx], label=rlabel))
+
+            rtotals = np.sum(reactants_avg, axis=0)
+            reactants_avg = reactants_avg/rtotals
+
+            fig, (ax1, ax2) = plt.subplots(2, sharex=True)
+            if type_fig == 'bar':
+                for prxn, pcol in zip(range(len(products_matched)), pcolors):
+                    sp_pctge = products_avg[prxn]
+                    ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=1)
+                    y_poffset = y_poffset + sp_pctge
+
+                for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
+                    sp_pctge = reactants_avg[rrxn]
+                    ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=1)
+                    y_roffset = y_roffset + sp_pctge
+
+                ax1.set(title='Reactions distributions', ylabel='Percentage')
+                ax2.set(xlabel='Time', ylabel='Percentage')
+
+                fig_plegend = plt.figure(figsize=(2, 1.25))
+                fig_plegend.legend(plegend_patches, plabels, loc='center', frameon=False, ncol=4)
+                plt.savefig('plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+
+                fig_rlegend = plt.figure(figsize=(2, 1.25))
+                fig_rlegend.legend(rlegend_patches, rlabels, loc='center', frameon=False, ncol=4)
+                plt.savefig('rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+
+            elif type_fig == 'entropy':
+                pentropies = [0] * len(self.tspan)
+                rentropies = [0] * len(self.tspan)
+                for t_idx in range(len(self.tspan)):
+                    tp_pctge = products_avg[:, t_idx]
+                    pentropy = hf.get_probs_entropy(tp_pctge)
+                    pentropies[t_idx] = pentropy
+
+                    tr_pctge = reactants_avg[:, t_idx]
+                    rentropy = hf.get_probs_entropy(tr_pctge)
+                    rentropies[t_idx] = rentropy
+
+                ax1.plot(self.tspan, pentropies)
+                ax2.plot(self.tspan, rentropies)
+
+                ax1.set(title='Reactions entropies', ylabel='Entropy')
+                ax2.set(xlabel='Time', ylabel='Entropy')
+
+            else:
+                raise NotImplementedError('Type of visualization not implemented')
+
+            final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
+            fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
 
     def violin_plot_sps(self, par_idxs, save_path=''):
         """
@@ -599,3 +762,4 @@ class AnalysisCluster(object):
             saturation = (90 + np.random.rand() * 10) / 100.
             colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
         return colors
+
