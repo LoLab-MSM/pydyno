@@ -2,10 +2,6 @@ language: python
 sudo: false
 python:
 - '2.7'
-addons:
-  apt:
-    sources:
-    - libgraphviz-dev
 before_install:
 - wget http://repo.continuum.io/miniconda/Miniconda${TRAVIS_PYTHON_VERSION:0:1}-latest-Linux-x86_64.sh
     -O miniconda.sh
@@ -14,7 +10,7 @@ before_install:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - conda install --yes -c conda-forge python="$TRAVIS_PYTHON_VERSION"
     numpy scipy matplotlib seaborn sympy networkx nose h5py pexpect
-    pandas pydot ipython scikit-learn coveralls graphviz future cython
+    pandas scikit-learn coveralls future cython
 - conda install --yes -c alubbock pysb
 - pip install python-coveralls pathos hdbscan editdistance
 - mkdir -p ~/.config/matplotlib
