@@ -55,8 +55,7 @@ else:
                               libraries=math_lib,
                               include_dirs=py_inc + np_inc)]
 
-install_requires = ['pysb', 'networkx', 'seaborn',
-                    'scikit-learn', 'editdistance', 'pandas']
+install_requires = ['pysb', 'seaborn', 'scikit-learn', 'editdistance', 'pandas']
 
 setup(name='DynSign',
       version='1.0',
