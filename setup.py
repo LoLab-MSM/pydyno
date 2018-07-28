@@ -55,8 +55,8 @@ else:
                               libraries=math_lib,
                               include_dirs=py_inc + np_inc)]
 
-install_requires = ['pysb', 'sympy', 'numpy', 'networkx', 'seaborn', 'hdbscan',
-                    'scikit-learn', 'editdistance']
+install_requires = ['pysb', 'networkx', 'seaborn',
+                    'scikit-learn', 'editdistance', 'pandas']
 
 setup(name='DynSign',
       version='1.0',
@@ -68,7 +68,7 @@ setup(name='DynSign',
       install_requires=install_requires,
       setup_requires=build_requires,
       test_suite='nose.collector',
-      tests_require=['pathos', 'pydot'],
+      tests_require=['pathos', 'pydot', 'hdbscan'],
       cmdclass=cmdclass,
       ext_modules=ext_modules,
       keywords=['systems', 'biology', 'model'],

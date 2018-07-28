@@ -12,7 +12,7 @@ class TestClusteringBase(object):
         dir_name = os.path.dirname(os.path.abspath(__file__))
         test = os.listdir(dir_name)
         for item in test:
-            if item.endswith(".png"):
+            if item.endswith(".png") or item.endswith(".pdf"):
                 os.remove(os.path.join(dir_name, item))
 
     def setUp(self):
@@ -48,14 +48,14 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_hdbscan(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.hdbscan()
+        self.clus.hdbscan_clustering()
         assert self.clus.cluster_method == 'hdbscan'
         assert len(self.clus.labels) == len(self.clus.sequences)
         assert not np.isnan(self.clus.labels).any()
 
     @raises(Exception)
     def test_hdbscan_no_diss_matrix(self):
-        self.clus.hdbscan()
+        self.clus.hdbscan_clustering()
 
     # The k-medoids implementation throws an error when the clusters are empty
     # def test_kmedoids(self):
@@ -85,7 +85,7 @@ class TestClusteringSingle(TestClusteringBase):
 
     def test_silhouette_score_hdbscan(self):
         self.clus.diss_matrix(metric='LCS')
-        self.clus.hdbscan(min_cluster_size=2, min_samples=1)
+        self.clus.hdbscan_clustering(min_cluster_size=2, min_samples=1)
         score = self.clus.silhouette_score()
         assert 1 > score > -1
 
@@ -192,10 +192,16 @@ class TestClusteringSingle(TestClusteringBase):
         self.clus.diss_matrix(metric='LCS')
         self.clus.agglomerative_clustering(n_clusters=2)
         pl = clustering.PlotSequences(self.clus)
-        pl.modal_plot()
+        pl.plot_sequences(type_fig='modal')
 
     def test_all_trajectories(self):
         self.clus.diss_matrix(metric='LCS')
         self.clus.agglomerative_clustering(n_clusters=2)
         pl = clustering.PlotSequences(self.clus)
-        pl.all_trajectories_plot()
+        pl.plot_sequences(type_fig='trajectories')
+
+    def test_entropy(self):
+        self.clus.diss_matrix(metric='LCS')
+        self.clus.agglomerative_clustering(n_clusters=2)
+        pl = clustering.PlotSequences(self.clus)
+        pl.plot_sequences(type_fig='entropy')

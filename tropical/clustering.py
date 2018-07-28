@@ -6,22 +6,33 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 import sklearn.cluster as cluster
-import hdbscan
-import matplotlib.pyplot as plt
-from tropical.distinct_colors import distinct_colors
-from collections import OrderedDict
-from matplotlib.colors import ListedColormap, BoundaryNorm
-import math
-from scipy import stats
-import matplotlib.patches as mpatches
 from sklearn import metrics
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap, BoundaryNorm
+import matplotlib.patches as mpatches
 from matplotlib.collections import LineCollection
-import editdistance
+from tropical.distinct_colors import distinct_colors
 import tropical.lcs as lcs
+from tropical.util import rate_2_interactions, get_labels_entropy
+from collections import OrderedDict, Iterable
+import math
+from scipy import stats # I could remove this dependence, mode implementation only depends on numpy
+import editdistance
 from tropical.kmedoids import kMedoids
-import collections
 from future.utils import listvalues
-from tropical.util import rate_2_interactions
+
+try:
+    import hdbscan
+except ImportError:
+    hdbscan = None
+
+# Valid metrics from scikit-learn
+_VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
+                  'braycurtis', 'canberra', 'chebyshev', 'correlation',
+                  'cosine', 'dice', 'hamming', 'jaccard', 'kulsinski',
+                  'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
+                  'russellrao', 'seuclidean', 'sokalmichener',
+                  'sokalsneath', 'sqeuclidean', 'yule', "wminkowski"]
 
 def lcs_dist_same_length(seq1, seq2):
     """
@@ -79,7 +90,7 @@ class ClusterSequences(object):
                 data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
             else:
                 raise TypeError('String is not a file')
-        elif isinstance(seqdata, collections.Iterable):
+        elif isinstance(seqdata, Iterable):
             data_seqs = seqdata
             data_seqs = pd.DataFrame(data=data_seqs)
         else:
@@ -134,7 +145,7 @@ class ClusterSequences(object):
             unique_sequences = self.sequences.sort_values(by=self.sequences.columns.tolist(), inplace=False)
             old_sorted_idxs = np.argsort(unique_sequences.index)
 
-            if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
+            if metric in _VALID_METRICS:
                 diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
             elif metric == 'LCS':
                 diss = pairwise_distances(unique_sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
@@ -156,7 +167,7 @@ class ClusterSequences(object):
             old_sorted_idxs = np.argsort(unique_sequences.index)
             unique_sequences = self.get_unique_sequences(unique_sequences)
 
-            if metric in hdbscan.dist_metrics.METRIC_MAPPING.keys():
+            if metric in _VALID_METRICS:
                 diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
             elif metric == 'LCS':
                 diss = pairwise_distances(unique_sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
@@ -178,7 +189,8 @@ class ClusterSequences(object):
             diss = diss[old_sorted_idxs]
             self.diss = diss
 
-    def hdbscan(self, min_cluster_size=50, min_samples=5, alpha=1.0, cluster_selection_method='eom', **kwargs):
+    def hdbscan_clustering(self, min_cluster_size=50, min_samples=5,
+                           alpha=1.0, cluster_selection_method='eom', **kwargs):
         """
 
         Parameters
@@ -193,6 +205,8 @@ class ClusterSequences(object):
         -------
 
         """
+        if hdbscan is None:
+            raise Exception('Please install the hdbscan package for this feature')
         if self.diss is None:
             raise Exception('Get the dissimilarity matrix first')
         hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples,
@@ -550,7 +564,7 @@ class PlotSequences(object):
         plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
         return
 
-    def modal_plot(self, title=''):  # , legend_plot=False):
+    def plot_sequences(self, type_fig='modal', title='', sort_seq=None):  # , legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
             clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :( from hdbscan
@@ -571,6 +585,33 @@ class PlotSequences(object):
             for i in range(1, plots_off + 1):
                 axs[-i].axis('off')
 
+        if type_fig == 'modal':
+            self.__modal(clusters, axs)
+            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.suptitle(title)
+            f.text(0.5, 0.04, 'Time (h)', ha='center')
+            plt.savefig('cluster_modal_' + title + '.pdf', bbox_inches='tight', format='pdf')
+
+        elif type_fig == 'trajectories':
+            self.__trajectories(clusters, axs, sort_seq)
+            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.suptitle(title)
+            f.text(0.5, 0.04, 'Time (h)', ha='center')
+            plt.savefig('cluster_all_tr_' + title + '.pdf', bbox_inches='tight', format='pdf')
+
+        elif type_fig == 'entropy':
+            self.__entropy(clusters, axs)
+            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.suptitle(title)
+            f.text(0.5, 0.04, 'Time (h)', ha='center')
+            plt.savefig('entropy_' + title + '.pdf', bbox_inches='tight', format='pdf')
+
+        else:
+            raise NotImplementedError('Type of visualization not implements')
+
+        return
+
+    def __modal(self, clusters, axs):
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
@@ -590,47 +631,9 @@ class PlotSequences(object):
             axs[clus].legend(handles=legend_patches, fontsize='x-small')
             axs[clus].set_ylabel('frequency (n={0})'.format(total_seqs), fontsize='small')
             axs[clus].set_title('Cluster {0}'.format(clus))
-        plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
-        plt.suptitle(title)
-        f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_modal_' + title, bbox_inches='tight', dpi=1000)
         return
 
-    def all_trajectories_plot(self, title='', sort_seq=None):
-        """
-
-        Parameters
-        ----------
-        title : str, optional
-            Title of the plot
-        sort_seq : str, optional
-            Algorithm to sort the sequences in the plot, currently it can only be 'silhouette'
-
-        Returns
-        -------
-
-        """
-        clusters = set(self.cluster_labels)
-        if -1 in clusters:
-            clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :(
-        else:
-            clusters = list(clusters)
-        n_rows = int(math.ceil(len(clusters) / 3))
-        if len(clusters) == 1:
-            f, axs = plt.subplots(n_rows, 1, sharex=True, figsize=(8, 6))
-            axs = [axs]
-        elif len(clusters) == 2:
-            f, axs = plt.subplots(n_rows, 2, sharex=True, figsize=(8, 6))
-            f.subplots_adjust(hspace=.6, wspace=.4)
-        else:
-            f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
-            f.subplots_adjust(hspace=.6, wspace=.4)
-            axs = axs.reshape(n_rows * 3)
-
-            plots_off = (n_rows * 3) - len(clusters)
-            for i in range(1, plots_off + 1):
-                axs[-i].axis('off')
-
+    def __trajectories(self, clusters, axs, sort_seq=None):
         # TODO search for other types of sorting
         if sort_seq == 'silhouette':
             sort_values = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
@@ -666,7 +669,27 @@ class PlotSequences(object):
                 axs[clus].set_xlim(xx.min(), xx.max())
                 axs[clus].set_title('Cluster {0}'.format(clus))
                 count_seqs += 1
-        plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
-        plt.suptitle(title)
-        f.text(0.5, 0.04, 'Time (h)', ha='center')
-        plt.savefig('cluster_all_tr_' + title, bbox_inches='tight', dpi=500)
+        return
+
+    def __entropy(self, clusters, axs):
+        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
+            clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
+            n_seqs = clus_seqs.shape[0]
+            if self.unique:
+                total_seqs = 0
+                for seq in clus_seqs.index.values:
+                    total_seqs += seq[1]
+            else:
+                total_seqs = n_seqs
+
+            time_points = clus_seqs.shape[1]
+            entropies = [0] * time_points
+
+            for col_idx, col_t in enumerate(clus_seqs):
+                entropy = get_labels_entropy(clus_seqs[col_t].values)
+                entropies[col_idx] = entropy
+
+            axs[clus].plot(range(time_points), entropies)
+            axs[clus].set_ylabel('Entropy', fontsize='small')
+            axs[clus].set_title('Cluster {0}'.format(clus))
+        return

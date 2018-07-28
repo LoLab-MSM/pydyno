@@ -444,7 +444,7 @@ class AnalysisCluster(object):
                 entropies = [0] * len(self.tspan)
                 for t_idx in range(len(self.tspan)):
                     tp_pctge = sps_avg[:, t_idx]
-                    entropy = self._get_probs_entropy(tp_pctge)
+                    entropy = hf.get_probs_entropy(tp_pctge)
                     entropies[t_idx] = entropy
 
                 plt.plot(self.tspan, entropies)
