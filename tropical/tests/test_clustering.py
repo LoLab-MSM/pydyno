@@ -2,6 +2,7 @@
 # from nose.tools import *
 import numpy as np
 from tropical import clustering
+from tropical import plot_signatures
 from pysb.testing import *
 import os
 
@@ -191,17 +192,17 @@ class TestClusteringSingle(TestClusteringBase):
     def test_modal_plot(self):
         self.clus.diss_matrix(metric='LCS')
         self.clus.agglomerative_clustering(n_clusters=2)
-        pl = clustering.PlotSequences(self.clus)
+        pl = plot_signatures.PlotSequences(self.clus)
         pl.plot_sequences(type_fig='modal')
 
     def test_all_trajectories(self):
         self.clus.diss_matrix(metric='LCS')
         self.clus.agglomerative_clustering(n_clusters=2)
-        pl = clustering.PlotSequences(self.clus)
+        pl = plot_signatures.PlotSequences(self.clus)
         pl.plot_sequences(type_fig='trajectories')
 
     def test_entropy(self):
         self.clus.diss_matrix(metric='LCS')
         self.clus.agglomerative_clustering(n_clusters=2)
-        pl = clustering.PlotSequences(self.clus)
+        pl = plot_signatures.PlotSequences(self.clus)
         pl.plot_sequences(type_fig='entropy')

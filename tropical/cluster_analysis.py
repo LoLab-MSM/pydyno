@@ -18,7 +18,6 @@ from pysb.pattern import SpeciesPatternMatcher, ReactionPatternMatcher
 import sympy
 from tropical.distinct_colors import distinct_colors
 import matplotlib.patches as mpatches
-from math import e
 
 plt.ioff()
 
