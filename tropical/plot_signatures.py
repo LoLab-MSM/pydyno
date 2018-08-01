@@ -134,10 +134,10 @@ class PlotSequences(object):
             plt.savefig('cluster_all_tr_' + title + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'entropy':
-            self.__entropy(clusters, axs)
+            self.__entropy(clusters, f, axs)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
-            f.text(0.5, 0.04, 'Time (h)', ha='center')
+            # f.text(0.5, 0.04, 'Time (h)', ha='center')
             plt.savefig('entropy_' + title + '.pdf', bbox_inches='tight', format='pdf')
 
         else:
@@ -205,7 +205,8 @@ class PlotSequences(object):
                 count_seqs += 1
         return
 
-    def __entropy(self, clusters, axs):
+    def __entropy(self, clusters, fig, axs):
+        max_entropy = 0
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
@@ -223,7 +224,20 @@ class PlotSequences(object):
                 entropy = get_labels_entropy(clus_seqs[col_t].values)
                 entropies[col_idx] = entropy
 
+            if max(entropies) > max_entropy:
+                max_entropy = max(entropies)
+
             axs[clus].plot(range(time_points), entropies)
-            axs[clus].set_ylabel('Entropy', fontsize='small')
+            # axs[clus].set_ylabel('Entropy', fontsize='small')
             axs[clus].set_title('Cluster {0}'.format(clus))
+
+        print (max_entropy)
+        for clus in clusters:
+            axs[clus].set_ylim(0, max_entropy)
+
+        fig.add_subplot(111, frameon=False)
+        plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+        plt.grid(False)
+        plt.xlabel("Time")
+        plt.ylabel("Entropy")
         return
