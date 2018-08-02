@@ -640,12 +640,12 @@ class AnalysisCluster(object):
 
             ax1.set(title='Products reactions')
             ax2.set(title='Reactants reactions')
-            fig.add_subplot(111, frameon=False)
+            ax3 = fig.add_subplot(111, frameon=False)
             # hide tick and tick label of the big axes
-            plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-            plt.grid(False)
-            plt.xlabel("Time")
-            plt.ylabel("Percentage")
+            ax3.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+            ax3.grid(False)
+            ax3.set(xlabel="Time", ylabel='Percentage')
+
             final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
             fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
 
