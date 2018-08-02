@@ -38,6 +38,7 @@ class AnalysisCluster(object):
     sim_results: SimulationResult or h5 file from PySB simulation
         SimulationResult object or h5 file with the dynamic solutions of the model for all the parameter sets
     """
+
     def __init__(self, model, sim_results, clusters):
 
         self.model = model
@@ -417,49 +418,81 @@ class AnalysisCluster(object):
         sps_matched = spm.match(pattern, index=True)
         colors = distinct_colors(len(sps_matched))
 
+        plots_dict = {}
+        for clus in self.clusters:
+            plots_dict['plot_cluster{0}'.format(clus)] = plt.subplots()
+
+        if type_fig == 'bar':
+            self.__bar_sps(sps_matched, colors, plots_dict, save_path, fig_name)
+
+        elif type_fig == 'entropy':
+            self.__entropy_sps(sps_matched, plots_dict, save_path, fig_name)
+
+        else:
+            raise NotImplementedError('Type of visualization not implemented')
+
+    def __bar_sps(self, sps_matched, colors, plots, save_path, fig_name):
         for c_idx, clus in self.clusters.items():
+            fig = plots['plot_cluster{0}'.format(c_idx)][0]
+            ax = plots['plot_cluster{0}'.format(c_idx)][1]
             y_offset = np.zeros(len(self.tspan))
             y = self.all_simulations[clus]
-            sps_total = np.sum(y[:, :, sps_matched], axis=(0, 2)) /(len(clus))
+            sps_total = np.sum(y[:, :, sps_matched], axis=(0, 2)) / (len(clus))
             sps_avg = np.zeros((len(sps_matched), len(self.tspan)))
             for idx, sp, in enumerate(sps_matched):
-                sp_pctge = np.sum(y[:, :, sp], axis=0)/(sps_total*len(clus))
+                sp_pctge = np.sum(y[:, :, sp], axis=0) / (sps_total * len(clus))
                 sps_avg[idx] = sp_pctge
 
-            if type_fig == 'bar':
-                for sps, col in enumerate(colors):
-                    sp_pctge = sps_avg[sps]
-                    plt.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=1)
-                    y_offset = y_offset + sp_pctge
+            for sps, col in enumerate(colors):
+                sp_pctge = sps_avg[sps]
+                ax.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=1)
+                y_offset = y_offset + sp_pctge
 
-                plt.xlabel('Time')
-                plt.ylabel('Percentage')
-                plt.suptitle('Cluster {0}'.format(c_idx))
-                plt.ylim(y_lim)
-                plt.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5,
-                           title='Species indices')
-
-            elif type_fig == 'entropy':
-                entropies = [0] * len(self.tspan)
-                for t_idx in range(len(self.tspan)):
-                    tp_pctge = sps_avg[:, t_idx]
-                    entropy = hf.get_probs_entropy(tp_pctge)
-                    entropies[t_idx] = entropy
-
-                plt.plot(self.tspan, entropies)
-                plt.xlabel('Time')
-                plt.ylabel('Entropy')
-
-            else:
-                raise NotImplementedError('Type of visualization not implemented')
-
+            ax.set(xlabel='Time', ylabel='Percentage')
+            fig.suptitle('Cluster {0}'.format(c_idx))
+            print (sps_matched)
+            ax.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5,
+                      title='Species indices')
             final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
-            plt.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
-            plt.clf()
+            fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+        return
 
-    def hist_avg_rxns(self, pattern, type_fig='bar', y_lim=(0,1), save_path='', fig_name=''):
+    def __entropy_sps(self, sps_matched, plots, save_path, fig_name):
+        max_entropy = 0
+        for c_idx, clus in self.clusters.items():
+            ax = plots['plot_cluster{0}'.format(c_idx)][1]
+            y = self.all_simulations[clus]
+            sps_total = np.sum(y[:, :, sps_matched], axis=(0, 2)) / (len(clus))
+            sps_avg = np.zeros((len(sps_matched), len(self.tspan)))
+            for idx, sp, in enumerate(sps_matched):
+                sp_pctge = np.sum(y[:, :, sp], axis=0) / (sps_total * len(clus))
+                sps_avg[idx] = sp_pctge
+
+            entropies = [0] * len(self.tspan)
+            for t_idx in range(len(self.tspan)):
+                tp_pctge = sps_avg[:, t_idx]
+                entropy = hf.get_probs_entropy(tp_pctge)
+                entropies[t_idx] = entropy
+            if max(entropies) > max_entropy:
+                max_entropy = max(entropies)
+
+            ax.plot(self.tspan, entropies)
+            ax.set(xlabel='Time', ylabel='Entropy')
+
+        for c in self.clusters:
+            plots['plot_cluster{0}'.format(c)][1].set(ylim=(0, max_entropy))
+            final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c, fig_name))
+            plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+        return
+
+    def hist_avg_rxns(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
         """
-
+        This function uses the given pattern to match it with reactions in which it is present
+        as a product and as a reactant. There are two types of visualization:
+        Bar: This visualization obtains all the reaction rates on which the pattern matches as a product
+        and as a reactant and then finds the percentage that each of reactions has compared with the total
+        Entropy: This visualization uses the percentages of each of the reactions compared with the total
+        and calculates the entropy as a proxy of variance in the number of states at a given time point
         Parameters
         ----------
         pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
@@ -477,122 +510,200 @@ class AnalysisCluster(object):
         rpm = ReactionPatternMatcher(self.model)
         products_matched = rpm.match_products(pattern)
         reactants_matched = rpm.match_reactants(pattern)
+
+        plots_dict = {}
+        for clus in self.clusters:
+            plots_dict['plot_cluster{0}'.format(clus)] = plt.subplots(2, sharex=True)
+
+        if type_fig == 'bar':
+            self.__bar_rxns(products_matched, reactants_matched, plots_dict, save_path, fig_name)
+
+        elif type_fig == 'entropy':
+            self.__entropy__rxns(products_matched, reactants_matched, plots_dict, save_path, fig_name)
+
+        else:
+            raise NotImplementedError('Type of visualization not implements')
+        return
+
+    def __get_avgs(self, y, pars, products_matched, reactants_matched):
+        """
+        This function uses the simulated trajectories from each cluster and obtains the reaction
+        rates of the matched product reactions and reactant reactions. After obtaining the
+        reaction rates values it normalizes the reaction rates by the sum of the reaction rates
+        each time point. It also generates the labels to know what color represent each reaction
+        in the bar graph.
+        Parameters
+        ----------
+        y
+        pars
+        products_matched
+        reactants_matched
+
+        Returns
+        -------
+
+        """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
         pcolors = distinct_colors(len(products_matched))
         rcolors = distinct_colors(len(reactants_matched))
-
         plegend_patches = []
         plabels = []
         rlegend_patches = []
         rlabels = []
 
+        # Obtaining reaction rates values
+        for rxn_idx, rxn in enumerate(products_matched):
+            rate = rxn.rate
+            var = [atom for atom in rate.atoms(sympy.Symbol)]
+            arg = [0] * len(var)
+            for idx, va in enumerate(var):
+                if str(va).startswith('__'):
+                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                    arg[idx] = y[:, :, sp_idx]
+                else:
+                    arg[idx] = pars[:, self.model.parameters.index(va)][0]
+                    # print (pars[:, self.model.parameters.index(va)])
+            f = sympy.lambdify(var, rate)
+            values = f(*arg)
+            for col in range(values.shape[1]):
+                if (values[:, col] < 0).all():
+                    values[:, col] = 0
+            values_avg = np.average(values, axis=0, weights=values >= 0)
+            products_avg[rxn_idx] = values_avg
+
+            # Creating labels
+            plabel = hf.rate_2_interactions(self.model, str(rate))
+            plabels.append(plabel)
+            plegend_patches.append(mpatches.Patch(color=pcolors[rxn_idx], label=plabel))
+
+        ptotals = np.sum(products_avg, axis=0)
+        products_avg = products_avg / ptotals
+
+        for rct_idx, rct in enumerate(reactants_matched):
+            rate = rct.rate
+            var = [atom for atom in rate.atoms(sympy.Symbol)]
+            arg = [0] * len(var)
+            for idx, va in enumerate(var):
+                if str(va).startswith('__'):
+                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                    arg[idx] = y[:, :, sp_idx]
+                else:
+                    arg[idx] = pars[:, self.model.parameters.index(va)][0]
+
+            f = sympy.lambdify(var, rate)
+            values = f(*arg)
+            for col in range(values.shape[1]):
+                if (values[:, col] > 0).all():
+                    values[:, col] = 0
+            values_avg = np.average(values, axis=0, weights=values <= 0)
+            reactants_avg[rct_idx] = values_avg
+
+            # Creating labels
+            rlabel = hf.rate_2_interactions(self.model, str(rate))
+            rlabels.append(rlabel)
+            rlegend_patches.append(mpatches.Patch(color=rcolors[rct_idx], label=rlabel))
+
+        rtotals = np.sum(reactants_avg, axis=0)
+        reactants_avg = reactants_avg / rtotals
+
+        plegend_info = (pcolors, plabels, plegend_patches)
+        rlegend_info = (rcolors, rlabels, rlegend_patches)
+
+        return products_avg, reactants_avg, plegend_info, rlegend_info
+
+    def __bar_rxns(self, products_matched, reactants_matched, plots, save_path, fig_name):
         for c_idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
+            pars = self.all_parameters[clus]
             y_poffset = np.zeros(len(self.tspan))
             y_roffset = np.zeros(len(self.tspan))
 
-            pars = self.all_parameters[clus]
-            for rxn_idx, rxn in enumerate(products_matched):
-                rate = rxn.rate
-                var = [atom for atom in rate.atoms(sympy.Symbol)]
-                arg = [0] * len(var)
-                for idx, va in enumerate(var):
-                    if str(va).startswith('__'):
-                        sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                        arg[idx] = y[:, :, sp_idx]
-                    else:
-                        arg[idx] = pars[:, self.model.parameters.index(va)][0]
-                        # print (pars[:, self.model.parameters.index(va)])
-                f = sympy.lambdify(var, rate)
-                values = f(*arg)
-                for col in range(values.shape[1]):
-                    if (values[:, col] < 0).all():
-                        values[:, col] = 0
-                values_avg = np.average(values, axis=0, weights=values >= 0)
-                products_avg[rxn_idx] = values_avg
+            products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
+                                                                                      products_matched,
+                                                                                      reactants_matched)
+            pcolors, plabels, plegend_patches = plegend_info
+            rcolors, rlabels, rlegend_patches = rlegend_info
 
-                # Creating labels
-                plabel = hf.rate_2_interactions(self.model, str(rate))
-                plabels.append(plabel)
-                plegend_patches.append(mpatches.Patch(color=pcolors[rxn_idx], label=plabel))
+            fig = plots['plot_cluster{0}'.format(c_idx)][0]
+            ax1, ax2 = plots['plot_cluster{0}'.format(c_idx)][1]
 
-            ptotals = np.sum(products_avg, axis=0)
-            products_avg = products_avg / ptotals
+            for prxn, pcol in zip(range(len(products_matched)), pcolors):
+                sp_pctge = products_avg[prxn]
+                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=1)
+                y_poffset = y_poffset + sp_pctge
 
-            for rct_idx, rct in enumerate(reactants_matched):
-                rate = rct.rate
-                var = [atom for atom in rate.atoms(sympy.Symbol)]
-                arg = [0] * len(var)
-                for idx, va in enumerate(var):
-                    if str(va).startswith('__'):
-                        sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                        arg[idx] = y[:, :, sp_idx]
-                    else:
-                        arg[idx] = pars[:, self.model.parameters.index(va)][0]
+            for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
+                sp_pctge = reactants_avg[rrxn]
+                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=1)
+                y_roffset = y_roffset + sp_pctge
 
-                f = sympy.lambdify(var, rate)
-                values = f(*arg)
-                for col in range(values.shape[1]):
-                    if (values[:, col] > 0).all():
-                        values[:, col] = 0
-                values_avg = np.average(values, axis=0, weights=values <= 0)
-                reactants_avg[rct_idx] = values_avg
-
-                # Creating labels
-                rlabel = hf.rate_2_interactions(self.model, str(rate))
-                rlabels.append(rlabel)
-                rlegend_patches.append(mpatches.Patch(color=rcolors[rct_idx], label=rlabel))
-
-            rtotals = np.sum(reactants_avg, axis=0)
-            reactants_avg = reactants_avg/rtotals
-
-            fig, (ax1, ax2) = plt.subplots(2, sharex=True)
-            if type_fig == 'bar':
-                for prxn, pcol in zip(range(len(products_matched)), pcolors):
-                    sp_pctge = products_avg[prxn]
-                    ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=1)
-                    y_poffset = y_poffset + sp_pctge
-
-                for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
-                    sp_pctge = reactants_avg[rrxn]
-                    ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=1)
-                    y_roffset = y_roffset + sp_pctge
-
-                ax1.set(title='Reactions distributions', ylabel='Percentage')
-                ax2.set(xlabel='Time', ylabel='Percentage')
-
-                fig_plegend = plt.figure(figsize=(2, 1.25))
-                fig_plegend.legend(plegend_patches, plabels, loc='center', frameon=False, ncol=4)
-                plt.savefig('plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
-
-                fig_rlegend = plt.figure(figsize=(2, 1.25))
-                fig_rlegend.legend(rlegend_patches, rlabels, loc='center', frameon=False, ncol=4)
-                plt.savefig('rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
-
-            elif type_fig == 'entropy':
-                pentropies = [0] * len(self.tspan)
-                rentropies = [0] * len(self.tspan)
-                for t_idx in range(len(self.tspan)):
-                    tp_pctge = products_avg[:, t_idx]
-                    pentropy = hf.get_probs_entropy(tp_pctge)
-                    pentropies[t_idx] = pentropy
-
-                    tr_pctge = reactants_avg[:, t_idx]
-                    rentropy = hf.get_probs_entropy(tr_pctge)
-                    rentropies[t_idx] = rentropy
-
-                ax1.plot(self.tspan, pentropies)
-                ax2.plot(self.tspan, rentropies)
-
-                ax1.set(title='Reactions entropies', ylabel='Entropy')
-                ax2.set(xlabel='Time', ylabel='Entropy')
-
-            else:
-                raise NotImplementedError('Type of visualization not implemented')
-
+            ax1.set(title='Products reactions')
+            ax2.set(title='Reactants reactions')
+            fig.add_subplot(111, frameon=False)
+            # hide tick and tick label of the big axes
+            plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+            plt.grid(False)
+            plt.xlabel("Time")
+            plt.ylabel("Percentage")
             final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
             fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+
+            fig_plegend = plt.figure(figsize=(2, 1.25))
+            fig_plegend.legend(plegend_patches, plabels, loc='center', frameon=False, ncol=4)
+            plt.savefig('plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+
+            fig_rlegend = plt.figure(figsize=(2, 1.25))
+            fig_rlegend.legend(rlegend_patches, rlabels, loc='center', frameon=False, ncol=4)
+            plt.savefig('rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+        return
+
+    def __entropy__rxns(self, products_matched, reactants_matched, plots, save_path, fig_name):
+        pmax_entropy = 0
+        rmax_entropy = 0
+        for c_idx, clus in self.clusters.items():
+            y = self.all_simulations[clus]
+            pars = self.all_parameters[clus]
+            products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
+                                                                                      products_matched,
+                                                                                      reactants_matched)
+
+            fig = plots['plot_cluster{0}'.format(c_idx)][0]
+            ax1, ax2 = plots['plot_cluster{0}'.format(c_idx)][1]
+
+            pentropies = [0] * len(self.tspan)
+            rentropies = [0] * len(self.tspan)
+            for t_idx in range(len(self.tspan)):
+                tp_pctge = products_avg[:, t_idx]
+                pentropy = hf.get_probs_entropy(tp_pctge)
+                pentropies[t_idx] = pentropy
+
+                tr_pctge = reactants_avg[:, t_idx]
+                rentropy = hf.get_probs_entropy(tr_pctge)
+                rentropies[t_idx] = rentropy
+
+            if max(pentropies) > pmax_entropy:
+                pmax_entropy = max(pentropies)
+
+            if max(rentropies) > rmax_entropy:
+                rmax_entropy = max(rentropies)
+
+            ax1.plot(self.tspan, pentropies)
+            ax2.plot(self.tspan, rentropies)
+
+            fig.add_subplot(111, frameon=False)
+            # hide tick and tick label of the big axes
+            plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+            plt.grid(False)
+            plt.xlabel("Time")
+            plt.ylabel("Entropy")
+
+        for c in self.clusters:
+            plots['plot_cluster{0}'.format(c)][1][0].set(ylim=(0, pmax_entropy))
+            plots['plot_cluster{0}'.format(c)][1][1].set(ylim=(0, rmax_entropy))
+            final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c, fig_name))
+            plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+        return
 
     def violin_plot_sps(self, par_idxs, save_path=''):
         """
@@ -761,4 +872,3 @@ class AnalysisCluster(object):
             saturation = (90 + np.random.rand() * 10) / 100.
             colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
         return colors
-

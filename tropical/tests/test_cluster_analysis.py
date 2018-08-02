@@ -57,9 +57,31 @@ class TestClusteringAnalysisSingle(TestClusteringAnalysisBase):
     def test_plot_dynamics_cluster_invalid_observable(self):
         self.clus.plot_dynamics_cluster_types(species=['bla'], norm=True)
 
-    def test_hist_avg_sps(self):
+    def test_hist_avg_sps_bar(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_sps(pattern=sp)
+        self.clus.hist_avg_sps(pattern=sp, type_fig='bar')
+
+    def test_hist_avg_sps_entropy(self):
+        sp = self.model.species[0]
+        self.clus.hist_avg_sps(pattern=sp, type_fig='entropy')
+
+    @raises(NotImplementedError)
+    def test_hist_avg_sps_invalid_visualization(self):
+        sp = self.model.species[0]
+        self.clus.hist_avg_sps(pattern=sp, type_fig='bla')
+
+    def test_hist_avg_rxn_bar(self):
+        sp = self.model.species[0]
+        self.clus.hist_avg_rxns(pattern=sp, type_fig='bar')
+
+    def test_hist_avg_rxn_entropy(self):
+        sp = self.model.species[0]
+        self.clus.hist_avg_rxns(pattern=sp, type_fig='entropy')
+
+    @raises(NotImplementedError)
+    def test_hist_avg_rxns_invalid_visualization(self):
+        sp = self.model.species[0]
+        self.clus.hist_avg_rxns(pattern=sp, type_fig='bla')
 
     def test_violin_plot_kd(self):
         kd_pars = [(1, 0)]
