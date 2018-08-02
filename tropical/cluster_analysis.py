@@ -691,12 +691,12 @@ class AnalysisCluster(object):
             ax1.plot(self.tspan, pentropies)
             ax2.plot(self.tspan, rentropies)
 
-            fig.add_subplot(111, frameon=False)
+            ax3 = fig.add_subplot(111, frameon=False)
+
             # hide tick and tick label of the big axes
-            plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-            plt.grid(False)
-            plt.xlabel("Time")
-            plt.ylabel("Entropy")
+            ax3.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+            ax3.grid(False)
+            ax3.set(xlabel="Time", ylabel="Entropy")
 
         for c in self.clusters:
             plots['plot_cluster{0}'.format(c)][1][0].set(ylim=(0, pmax_entropy))

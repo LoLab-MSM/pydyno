@@ -236,7 +236,7 @@ class PlotSequences(object):
             axs[clus].set_ylim(0, max_entropy)
 
         fig.add_subplot(111, frameon=False)
-        plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+        plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
         plt.grid(False)
         plt.xlabel("Time")
         plt.ylabel("Entropy")
