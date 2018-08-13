@@ -231,7 +231,6 @@ class PlotSequences(object):
             # axs[clus].set_ylabel('Entropy', fontsize='small')
             axs[clus].set_title('Cluster {0}'.format(clus))
 
-        print (max_entropy)
         for clus in clusters:
             axs[clus].set_ylim(0, max_entropy)
 

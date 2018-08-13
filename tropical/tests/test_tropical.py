@@ -27,7 +27,7 @@ class TestDinSygnSingle(TestDynSignBase):
 
     def test_run_tropical(self):
         signatures = dynamic_signatures_range.run_tropical(self.model, self.sim)
-        assert np.array_equal(signatures[2][1],
+        assert np.array_equal(signatures['__s2_c'],
                               np.array([21, 1, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 2, 2, 2, 21,
                                         21, 21, 1, 1, 1, 1, 1, 1, 1, 1, 1, 21, 21, 21, 21, 21, 21, 21,
                                         21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 2, 2, 2, 21,

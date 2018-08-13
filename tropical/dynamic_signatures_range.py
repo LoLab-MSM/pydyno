@@ -7,6 +7,7 @@ from collections import OrderedDict
 from future.utils import iteritems, listvalues
 import time
 from pysb import Parameter
+import pandas as pd
 
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
@@ -65,7 +66,7 @@ class Tropical(object):
 
         Returns
         -------
-        Dictionary with dominant species indices as keys and ODEs as values o
+        List of dominant species indices
 
         """
         if get_passengers_by == 'imp_nodes':
@@ -146,9 +147,12 @@ class Tropical(object):
 
         """
         assert self._is_setup, 'you must setup tropical first'
+        sp_names = ['__s{0}_p'.format(j) if i % 2 == 0 else '__s{0}_c'.format(j)
+                    for i, j in enumerate(numpy.repeat(self.eqs_for_tropicalization, 2))]
+        sfull_dtype = list(zip(sp_names, itertools.repeat(int)))
 
-        # Dictionary that will contain the signature of each of the species to study
-        all_signatures = {}
+        # Indexed numpy array that will contain the signature of each of the species to study
+        all_signatures = numpy.ndarray(len(self.tspan), sfull_dtype)
         for sp_dyn in self.eqs_for_tropicalization:
             # reaction terms of all reaction rates in which species sp is involved and assign sign to see
             # if species is being consumed or produced.
@@ -218,7 +222,7 @@ class Tropical(object):
             # signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
             #                                            *(mons_names, self.diff_par, self.all_comb[sp_name]))
 
-            all_signatures[sp_name] = [sign_pro, sign_rea]
+            all_signatures[['__s{0}_p'.format(sp_dyn), '__s{0}_c'.format(sp_dyn)]] = zip(*[sign_pro, sign_rea])
         return all_signatures
 
     # def set_combinations_sm(self):
@@ -306,15 +310,22 @@ def organize_dynsign_multi(signatures):
     species = signatures[0].keys()
     nsims = [0]*len(signatures)
     organized_dynsigns = {sp: {'production': nsims[:], 'consumption': nsims[:]} for sp in species}
-    for idx, dyn in enumerate(signatures):
+    for sim_idx, dyn in enumerate(signatures):
         for sp in species:
-            organized_dynsigns[sp]['production'][idx] = dyn[sp][0]
-            organized_dynsigns[sp]['consumption'][idx] = dyn[sp][1]
+            organized_dynsigns[sp]['production'][sim_idx] = dyn[sp][0]
+            organized_dynsigns[sp]['consumption'][sim_idx] = dyn[sp][1]
 
     return organized_dynsigns
 
-# def signatures_to_hdf5(signatures):
 
+def signatures_to_dataframe(signatures, tspan, nsims):
+    sim_ids = (numpy.repeat(range(nsims), [len(tspan)]*nsims))
+    times = numpy.tile(tspan, nsims)
+
+    idx = pd.MultiIndex.from_tuples(list(zip(sim_ids, times)))
+    if not isinstance(signatures, numpy.ndarray):
+        signatures = numpy.concatenate(signatures)
+    return pd.DataFrame(signatures, index=idx)
 
 def run_tropical(model, simulations, add_observables=False, passengers_by='imp_nodes',
                  diff_par=1, sp_to_vis=None, plot_type=0):
@@ -345,7 +356,7 @@ def run_tropical(model, simulations, add_observables=False, passengers_by='imp_n
     if sp_to_vis is not None:
         visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
                       all_signatures=signatures, plot_type=plot_type, param_values=parameters[0])
-    signatures['species_combinations'] = tro.all_comb
+    # signatures['species_combinations'] = tro.all_comb
     return signatures
 
 
@@ -388,6 +399,5 @@ def run_tropical_multi(model, simulations, add_observables=False, passengers_by=
             print ('We\'re not done yet, %s tasks to go!' % res._number_left)
             time.sleep(60)
     signatures = res.get()
-    signatures = organize_dynsign_multi(signatures)
-    signatures['species_combinations'] = tro.all_comb
+    signatures = signatures_to_dataframe(signatures, tspan, nsims)
     return signatures

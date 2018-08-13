@@ -15,31 +15,18 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_v
     for sp in species_ready:
 
         # Setting up figure
-        plt.figure(1)
-        plt.subplot(313)
+        fig, axs = plt.subplots(nrows=3, ncols=1, sharex=True)
+        fig.subplots_adjust(hspace=0.4)
 
         signature = all_signatures[sp][plot_type]
-        # if not signature:
-        #     continue
 
-        # mon_val = OrderedDict()
-        # merged_mon_comb = self.merge_dicts(*self.all_comb[sp].values())
-        # merged_mon_comb.update({'ND': 'N'})
-        #
-        # for idx, mon in enumerate(list(set(signature))):
-        #     mon_val[merged_mon_comb[mon]] = idx
-        #
-        # mon_rep = [0] * len(signature)
-        # for i, m in enumerate(signature):
-        #     mon_rep[i] = mon_val[merged_mon_comb[m]]
-        # mon_rep = [mon_val[self.all_comb[sp][m]] for m in signature]
-        plt.scatter(tspan, [str(s) for s in signature])
+        axs[2].scatter(tspan, [str(s) for s in signature])
         # plt.yticks(list(set(signature)))
-        plt.ylabel('Dominant terms', fontsize=12)
-        plt.xlabel('Time(s)', fontsize=14)
-        plt.xlim(0, tspan[-1])
+        axs[2].set_ylabel('Dominant terms', fontsize=12)
+        axs[2].set_xlabel('Time(s)', fontsize=14)
+        axs[2].set_xlim(0, tspan[-1])
         # plt.ylim(0, max(y_pos))
-        plt.subplot(312)
+
         reaction_rates = label2rr(model, sp)
         for rr_idx, rr in iteritems(reaction_rates):
             mon = rr
@@ -55,18 +42,15 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_v
             f1 = sympy.lambdify(var_to_study, mon)
             mon_values = f1(*arg_f1)
             mon_name = rate_2_interactions(model, str(mon))
-            plt.plot(tspan, mon_values, label='{0}: {1}'.format(rr_idx, mon_name))
-        plt.ylabel(r'Rate [$\mu$M/s]', fontsize=12)
-        plt.legend(bbox_to_anchor=(1., 0.85), ncol=3, title='Reaction rates')
-        plt.xlim(0, tspan[-1])
+            axs[1].plot(tspan, mon_values, label='{0}: {1}'.format(rr_idx, mon_name))
+        axs[1].set_ylabel(r'Rate [$\mu$M/s]', fontsize=12)
+        axs[1].legend(bbox_to_anchor=(1., 0.85), ncol=3, title='Reaction rates')
 
-        plt.subplot(311)
         # TODO: fix this for observables.
-        plt.plot(tspan, y[:, sp], label=parse_name(model.species[sp]))
-        plt.ylabel(r'Concentration [$\mu$M]', fontsize=12)
-        plt.xlim(0, tspan[-1])
-        plt.legend(bbox_to_anchor=(1.23, 0.85), ncol=1)
-        plt.suptitle('Discretization' + ' ' + parse_name(model.species[sp]), y=1.08)
+        axs[0].plot(tspan, y[:, sp], label=parse_name(model.species[sp]))
+        axs[0].set_ylabel(r'Concentration [$\mu$M]', fontsize=12)
+        axs[0].legend(bbox_to_anchor=(1.32, 0.85), ncol=1)
+        fig.suptitle('Discretization' + ' ' + parse_name(model.species[sp]), y=1.0)
 
-        plt.tight_layout()
-        plt.savefig('s%d' % 27 + '.pdf', format='pdf', bbox_inches='tight')
+        # plt.tight_layout()
+        fig.savefig('s{0}'.format(sp) + '.pdf', format='pdf', bbox_inches='tight')
