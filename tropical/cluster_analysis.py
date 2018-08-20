@@ -103,8 +103,8 @@ class AnalysisCluster(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_dynamics_cluster_types(self, species, save_path='', fig_name='', species_ftn_fit=None, norm=False,
-                                    **kwargs):
+    def plot_cluster_dynamics(self, species, save_path='', fig_name='', species_ftn_fit=None, norm=False,
+                              **kwargs):
         """
         Plots the dynamics of the species for each cluster
 
@@ -358,7 +358,7 @@ class AnalysisCluster(object):
         obs_values = np.sum(y[:, :, sps], axis=2)
         return obs_values.T
 
-    def hist_plot_clusters(self, par_idxs, save_path=''):
+    def hist_clusters_parameters(self, par_idxs, save_path=''):
         """
         Creates a plot for each cluster, and it has histograms of the parameters provided
 
@@ -396,15 +396,19 @@ class AnalysisCluster(object):
             plt.clf()
         return
 
-    def hist_avg_sps(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
+    def plot_pattern_sps_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
         """
-        Creates a plot for each cluster. It has a stacked bar of the percentage of the interactions
-        of species at each time point
+        Creates a plot for each cluster. It has a stacked bar or entropy plot of the percentage
+        of the interactions of species at each time point
         Parameters
         ----------
         pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
+        type_fig: str
+            `bar` to get a stacked bar of the distribution of the species that match the provided pattern.
+            `entropy` to get the entropy of the distributions of the species that match the provided pattern
         y_lim: tuple
             y-axis limits
+        save_path: path to save the file
         fig_name: str
             Figure name
 
@@ -485,7 +489,7 @@ class AnalysisCluster(object):
             plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
         return
 
-    def hist_avg_rxns(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
+    def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
         """
         This function uses the given pattern to match it with reactions in which it is present
         as a product and as a reactant. There are two types of visualization:
@@ -705,7 +709,7 @@ class AnalysisCluster(object):
             plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
         return
 
-    def violin_plot_sps(self, par_idxs, save_path=''):
+    def plot_violin_pars(self, par_idxs, save_path=''):
         """
         Creates a plot for each model parameter. Then, makes violin plots for each cluster
 
@@ -742,7 +746,7 @@ class AnalysisCluster(object):
             plt.savefig(final_save_path + '.png', format='png', dpi=700)
         return
 
-    def violin_plot_kd(self, par_idxs, save_path=''):
+    def plot_violin_kd(self, par_idxs, save_path=''):
         """
         Creates a plot for each kd parameter. Then, makes violin plots for each cluster
 

@@ -1,6 +1,4 @@
 from __future__ import division
-# import matplotlib
-# matplotlib.use('Agg')
 import os
 import pandas as pd
 import numpy as np
@@ -18,6 +16,11 @@ try:
 except ImportError:
     hdbscan = None
 
+try:
+    from pathos.multiprocessing import ProcessingPool as Pool
+except ImportError:
+    Pool = None
+
 # Valid metrics from scikit-learn
 _VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
                   'braycurtis', 'canberra', 'chebyshev', 'correlation',
@@ -25,6 +28,7 @@ _VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
                   'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
                   'russellrao', 'seuclidean', 'sokalmichener',
                   'sokalsneath', 'sqeuclidean', 'yule', "wminkowski"]
+
 
 def lcs_dist_same_length(seq1, seq2):
     """
@@ -64,7 +68,7 @@ class ClusterSequences(object):
 
     Parameters
     ----------
-    seqdata: str file or np.ndarray
+    seqdata: str file, np.ndarray, or pandas dataframe
         file of pandas dataframe or ndarray where rows are DynSign signatures and columns are
          dominant states at specific  time points
     unique_sequences: bool, optional
@@ -83,15 +87,18 @@ class ClusterSequences(object):
             else:
                 raise TypeError('String is not a file')
         elif isinstance(seqdata, Iterable):
+            data_seqs = pd.DataFrame(data=seqdata)
+        elif isinstance(seqdata, pd.DataFrame):
             data_seqs = seqdata
-            data_seqs = pd.DataFrame(data=data_seqs)
         else:
             raise TypeError('data type not valid')
 
+        # Truncate sequences at the index passed
         if isinstance(truncate_seq, int):
             data_seqs = data_seqs[data_seqs.columns.tolist()[:truncate_seq]]
         self.n_sequences = len(seqdata)
 
+        # Get unique sequences
         if unique_sequences:
             self.sequences = self.get_unique_sequences(data_seqs)
             self.unique = True
@@ -123,7 +130,7 @@ class ClusterSequences(object):
 
         Parameters
         ----------
-        metric : str
+        metric : str, callable
             Metric to use to calculate the dissimilarity matrix
         n_jobs : int
             Number of processors to use
@@ -148,7 +155,7 @@ class ClusterSequences(object):
             else:
                 raise ValueError('metric not supported')
 
-            # This is to be able to math cluster idxs with the parameter idxs
+            # This is to be able to match cluster idxs with the parameter idxs
             diss = diss[old_sorted_idxs]
             diss = diss.T
             diss = diss[old_sorted_idxs]
@@ -285,7 +292,13 @@ class ClusterSequences(object):
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
         return clusters_df
 
-    def silhouette_score_agglomerative_range(self, cluster_range, linkage='average', **kwargs):
+    def __agg_cluster_score(self, num_clusters, linkage='average', **kwargs):
+        clusters = cluster.AgglomerativeClustering(num_clusters, linkage=linkage,
+                                                   affinity='precomputed', **kwargs).fit(self.diss)
+        score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
+        return score
+
+    def silhouette_score_agglomerative_range(self, cluster_range, linkage='average', n_jobs=1, **kwargs):
         """
 
         Parameters
@@ -300,21 +313,28 @@ class ClusterSequences(object):
         -------
 
         """
-        # TODO: See if this can be parallelled
+
         if isinstance(cluster_range, int):
             cluster_range = list(range(2, cluster_range + 1))  # +1 to cluster up to cluster_range
         elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
             pass
         else:
             raise TypeError('Type not valid')
-        cluster_silhouette = []
-        for num_clusters in cluster_range:
-            clusters = cluster.AgglomerativeClustering(num_clusters, linkage=linkage,
-                                                       affinity='precomputed', **kwargs).fit(self.diss)
-            score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
-            cluster_silhouette.append(score)
-        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
-        return clusters_df
+        if n_jobs == 1:
+            cluster_silhouette = []
+            for num_clusters in cluster_range:
+                score = self.__agg_cluster_score(num_clusters, linkage=linkage, **kwargs)
+                cluster_silhouette.append(score)
+            clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
+            return clusters_df
+        else:
+            if Pool is None:
+                raise Exception('Please install the pathos package for this feature')
+            p = Pool(n_jobs)
+            res = p.amap(lambda x: self.__agg_cluster_score(x, linkage, **kwargs), cluster_range)
+            scores = res.get()
+            clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': scores})
+            return clusters_df
 
     def calinski_harabaz_score(self):
         if self.labels is None:
@@ -322,23 +342,7 @@ class ClusterSequences(object):
         score = metrics.calinski_harabaz_score(self.sequences, self.labels)
         return score
 
-    # def elbow_plot_kmeans(self, cluster_range):
-    #     if self.cluster_method not in ['kmeans']:
-    #         raise ValueError('Analysis not valid for {0}'.format(self.cluster_method))
-    #     if isinstance(cluster_range, int):
-    #         cluster_range = range(2, cluster_range + 1)  # +1 to cluster up to cluster_range
-    #     elif isinstance(cluster_range, collections.Iterable):
-    #         pass
-    #     else:
-    #         raise TypeError('Type not valid')
-    #     cluster_errors = []
-    #     for num_clusters in cluster_range:
-    #         clusters = cluster.KMeans(num_clusters).fit(self.diss)
-    #         cluster_errors.append(clusters.inertia_)
-    #     clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_errors': cluster_errors})
-    #     plt.plot(clusters_df.num_clusters, clusters_df.cluster_errors, marker='o')
-    #     plt.savefig('elbow_analysis.png', format='png')
-    #     return
+    #TODO: Develop gap statistics score for sequences. Maybe get elbow plot as well
 
     assign = lambda d, k: lambda f: d.setdefault(k, f)
     representativeness = {}

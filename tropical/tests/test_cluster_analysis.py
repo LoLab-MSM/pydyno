@@ -34,64 +34,64 @@ class TestClusteringAnalysisBase(object):
 
 class TestClusteringAnalysisSingle(TestClusteringAnalysisBase):
     def test_plot_dynamics_cluster_not_normed_types(self):
-        self.clus.plot_dynamics_cluster_types(species=[0], norm=False)
+        self.clus.plot_cluster_dynamics(species=[0], norm=False)
 
     def test_plot_dynamics_cluster_normed_types(self):
-        self.clus.plot_dynamics_cluster_types(species=[0], norm=True)
+        self.clus.plot_cluster_dynamics(species=[0], norm=True)
 
     def test_plot_dynamics_cluster_not_normed_expression(self):
         exprs = self.model.reactions_bidirectional[0]['rate']
-        self.clus.plot_dynamics_cluster_types(species=[exprs], norm=False)
+        self.clus.plot_cluster_dynamics(species=[exprs], norm=False)
 
     def test_plot_dynamics_cluster_not_normed_observable(self):
-        self.clus.plot_dynamics_cluster_types(species=['E_free'], norm=False)
+        self.clus.plot_cluster_dynamics(species=['E_free'], norm=False)
 
     def test_plot_dynamics_cluster_normed_expression(self):
         exprs = self.model.reactions_bidirectional[0]['rate']
-        self.clus.plot_dynamics_cluster_types(species=[exprs], norm=True)
+        self.clus.plot_cluster_dynamics(species=[exprs], norm=True)
 
     def test_plot_dynamics_cluster_normed_observable(self):
-        self.clus.plot_dynamics_cluster_types(species=['E_free'], norm=True)
+        self.clus.plot_cluster_dynamics(species=['E_free'], norm=True)
 
     @raises(ValueError)
     def test_plot_dynamics_cluster_invalid_observable(self):
-        self.clus.plot_dynamics_cluster_types(species=['bla'], norm=True)
+        self.clus.plot_cluster_dynamics(species=['bla'], norm=True)
 
     def test_hist_avg_sps_bar(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_sps(pattern=sp, type_fig='bar')
+        self.clus.plot_pattern_sps_distribution(pattern=sp, type_fig='bar')
 
     def test_hist_avg_sps_entropy(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_sps(pattern=sp, type_fig='entropy')
+        self.clus.plot_pattern_sps_distribution(pattern=sp, type_fig='entropy')
 
     @raises(NotImplementedError)
     def test_hist_avg_sps_invalid_visualization(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_sps(pattern=sp, type_fig='bla')
+        self.clus.plot_pattern_sps_distribution(pattern=sp, type_fig='bla')
 
     def test_hist_avg_rxn_bar(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_rxns(pattern=sp, type_fig='bar')
+        self.clus.plot_pattern_rxns_distribution(pattern=sp, type_fig='bar')
 
     def test_hist_avg_rxn_entropy(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_rxns(pattern=sp, type_fig='entropy')
+        self.clus.plot_pattern_rxns_distribution(pattern=sp, type_fig='entropy')
 
     @raises(NotImplementedError)
     def test_hist_avg_rxns_invalid_visualization(self):
         sp = self.model.species[0]
-        self.clus.hist_avg_rxns(pattern=sp, type_fig='bla')
+        self.clus.plot_pattern_rxns_distribution(pattern=sp, type_fig='bla')
 
     def test_violin_plot_kd(self):
         kd_pars = [(1, 0)]
-        self.clus.violin_plot_kd(par_idxs=kd_pars)
+        self.clus.plot_violin_kd(par_idxs=kd_pars)
 
     def test_hist_plot_clusters(self):
-        self.clus.hist_plot_clusters(par_idxs=[7])
+        self.clus.hist_clusters_parameters(par_idxs=[7])
 
     def test_violin_plot_sps(self):
-        self.clus.violin_plot_sps(par_idxs=[0])
+        self.clus.plot_violin_pars(par_idxs=[0])
 
     def test_plot_sp_ic_overlap(self):
         self.clus.plot_sp_ic_overlap(par_idxs=[7])
