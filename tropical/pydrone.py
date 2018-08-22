@@ -1,7 +1,7 @@
 from tropical.clustering import ClusterSequences
 from tropical.discretize import Discretize
-from plot_signatures import PlotSequences
-from cluster_analysis import AnalysisCluster
+from tropical.plot_signatures import PlotSequences
+from tropical.cluster_analysis import AnalysisCluster
 
 
 class Pydrone(object):
