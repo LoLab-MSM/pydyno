@@ -41,21 +41,48 @@ class AnalysisCluster(object):
 
     def __init__(self, model, sim_results, clusters):
 
-        self.model = model
+        self._model = model
         generate_equations(model)
         # Check simulation results
-        self.all_simulations, self.all_parameters, nsims, self.tspan = hf.get_simulations(sim_results)
+        self._all_simulations, self._all_parameters, self._nsims, self._tspan = hf.get_simulations(sim_results)
 
         if clusters is not None:
             # Check clusters
-            self.clusters, self.number_pars = self.check_clusters_arg(clusters)
+            self._clusters = self.check_clusters_arg(clusters, self.nsims)
         else:
             no_clusters = {0: range(len(self.all_parameters))}
-            self.clusters = no_clusters
-            self.number_pars = len(self.all_parameters)
+            self._clusters = no_clusters
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def clusters(self):
+        return self._clusters
+
+    @clusters.setter
+    def clusters(self, new_clusters):
+        self._clusters = self.check_clusters_arg(new_clusters, self.nsims)
+
+    @property
+    def all_simulations(self):
+        return self._all_simulations
+
+    @property
+    def all_parameters(self):
+        return self._all_parameters
+
+    @property
+    def nsims(self):
+        return self._nsims
+
+    @property
+    def tspan(self):
+        return self._tspan
 
     @staticmethod
-    def check_clusters_arg(clusters):  # check clusters
+    def check_clusters_arg(clusters, nsims):  # check clusters
         if isinstance(clusters, collections.Iterable):
             # check if clusters is a list of files containing the indices or idx of the IC that belong to that cluster
             if all(os.path.isfile(str(item)) for item in clusters):
@@ -71,7 +98,10 @@ class AnalysisCluster(object):
                 # clusters
                 clusters = clus_values
                 number_pars = number_pars
-                return clusters, number_pars
+                if number_pars != nsims:
+                    raise ValueError('The number of cluster indices must have the same'
+                                     'length as the number of simulations')
+                return clusters
             elif all(isinstance(item, numbers.Number) for item in clusters):
                 if not isinstance(clusters, np.ndarray):
                     clusters = np.array(clusters)
@@ -83,7 +113,10 @@ class AnalysisCluster(object):
                     clus_values[j] = item_index[0].tolist()
                 clusters = clus_values
                 number_pars = len(pars_clusters)
-                return clusters, number_pars
+                if number_pars != nsims:
+                    raise ValueError('The number of cluster indices must have the same'
+                                     'length as the number of simulations')
+                return clusters
             else:
                 raise ValueError('Mixed formats is not supported')
         # check is clusters is a file that contains the indices of the clusters for each parameter set
@@ -99,7 +132,10 @@ class AnalysisCluster(object):
                     clus_values[j] = item_index[0].tolist()
                 clusters = clus_values
                 number_pars = len(pars_clusters)
-                return clusters, number_pars
+                if number_pars != nsims:
+                    raise ValueError('The number of cluster indices must have the same'
+                                     'length as the number of simulations')
+                return clusters
         else:
             raise TypeError('cluster data structure not supported')
 
@@ -726,7 +762,6 @@ class AnalysisCluster(object):
         """
 
         for sp_ic in par_idxs:
-            plt.figure()
             data_violin = [0] * len(self.clusters)
             clus_labels = [0] * len(self.clusters)
             count = 0
@@ -738,12 +773,11 @@ class AnalysisCluster(object):
                 count += 1
 
             g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
-            g.set_yticklabels(clus_labels)
-            plt.xlabel('Parameter Range')
-            plt.ylabel('Clusters')
-            plt.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
+            g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
+            fig = g.get_figure()
+            fig.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
-            plt.savefig(final_save_path + '.png', format='png', dpi=700)
+            fig.savefig(final_save_path + '.pdf', format='pdf')
         return
 
     def plot_violin_kd(self, par_idxs, save_path=''):
@@ -763,7 +797,6 @@ class AnalysisCluster(object):
 
         """
         for kd_pars in par_idxs:
-            plt.figure()
             data_violin = [0] * len(self.clusters)
             clus_labels = [0] * len(self.clusters)
             count = 0
@@ -776,12 +809,11 @@ class AnalysisCluster(object):
                 count += 1
 
             g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
-            g.set_yticklabels(clus_labels)
-            plt.xlabel('Parameter Range')
-            plt.ylabel('Clusters')
-            plt.suptitle('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
+            g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
+            fig = g.get_figure()
+            fig.suptitle('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
             final_save_path = os.path.join(save_path, 'violin_sp_{0}_kd'.format(self.model.parameters[kd_pars[0]].name))
-            plt.savefig(final_save_path + '.png', format='png', dpi=700)
+            fig.savefig(final_save_path + '.pdf', format='pdf')
         return
 
     def plot_sp_ic_overlap(self, par_idxs, save_path=''):
@@ -801,14 +833,16 @@ class AnalysisCluster(object):
 
         """
 
+        number_pars = self.nsims
+
         if type(par_idxs) == int:
             par_idxs = [par_idxs]
 
         for ic in par_idxs:
-            plt.figure()
+            fig, ax = plt.subplots(1)
             sp_ic_values_all = self.all_parameters[:, ic]
             sp_ic_weights_all = np.ones_like(sp_ic_values_all) / len(sp_ic_values_all)
-            n, bins, patches = plt.hist(sp_ic_values_all, weights=sp_ic_weights_all, bins=30, fill=False)
+            n, bins, patches = ax.hist(sp_ic_values_all, weights=sp_ic_weights_all, bins=30, fill=False)
 
             cluster_ic_values = []
             cluster_ic_weights = []
@@ -819,17 +853,15 @@ class AnalysisCluster(object):
                 cluster_ic_values.append(sp_ic_values)
                 cluster_ic_weights.append(sp_ic_weights)
 
-            label = ['cluster_{0}, {1}%'.format(cl, (len(self.clusters[cl]) / self.number_pars) * 100)
+            label = ['cluster_{0}, {1}%'.format(cl, (len(self.clusters[cl]) / number_pars) * 100)
                      for cl in self.clusters.keys()]
-            plt.hist(cluster_ic_values, bins=bins, weights=cluster_ic_weights, stacked=True, label=label,
+            ax.hist(cluster_ic_values, bins=bins, weights=cluster_ic_weights, stacked=True, label=label,
                      histtype='bar', ec='black')
-            plt.xlabel('Concentration')
-            plt.ylabel('Percentage')
-            plt.title(self.model.parameters[ic].name)
-            plt.legend(loc=0)
+            ax.set(xlabel='Concentration', ylabel='Percentage', title=self.model.parameters[ic].name)
+            ax.legend(loc=0)
 
             final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
-            plt.savefig(final_save_path + '.png', format='png', dpi=700)
+            fig.savefig(final_save_path + '.png', format='png', dpi=700)
         return
 
     def scatter_plot_pars(self, par_idxs, cluster, save_path=''):

@@ -48,57 +48,32 @@ class PlotSequences(object):
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
-    def legend_plot(self, model, reactions_comb, combs=None):
+    def plot_sequences(self, type_fig='modal', title='', sort_seq=None):  # , legend_plot=False):
         """
-        Creates a plot with the legend of the Colors and the proteins involved in interactions
+        Function to plot three different figures of the sequences.
+        The modal figure takes the mode state at each time and plots
+        the percentage of that state compated to all the other states.
+
+        The trajectories figure plots each of the sequences.
+
+        The entropy figure plots the entropy calculated from the
+        percentages of each of the states at each time relative
+        to the total.
+
         Parameters
         ----------
-        model : PySB model
-        reactions_comb : dict,
-            A dictionary whose keys are the level of the combination and the values are
-            dictionaries with labels as keys and reaction rates as values
-        combs : vector-like
-            Labels (integers) of the dominant combination rates
+        type_fig: str
+            Type of figure to plot. Valid values are: `modal`, `trajectories`, `entropy`
+        title: str
+            Title of the figure
+        sort_seq: str
+            Method to sort sequences for a plot. Valid values are: `silhouette`.
+             It is only available when the type of plot is `trajectories`
 
         Returns
         -------
 
         """
-        fig_legend = plt.figure(100, figsize=(2, 1.25))
-        comb_flat = {}
-        #Flatten reactions_comb dict to search by label key
-        for com in reactions_comb.values():
-            comb_flat.update(com)
-
-        legend_patches = []
-        labels = []
-        if combs:
-            for l in combs:
-                if l != -1:
-                    label = " ".join(rate_2_interactions(model, str(rate)) for rate in comb_flat[l])
-                    # Delete repeated proteins
-                    words = label.split()
-                    label = ", ".join(sorted(set(words), key=words.index))
-                    label = '{}: {}'.format(l, label)
-
-                    labels.append(label)
-                    legend_patches.append(mpatches.Patch(color=self.states_colors[l], label=label))
-        else:
-            for l, c in self.states_colors.items():
-                if l != -1:
-                    label = " ".join(rate_2_interactions(model, str(rate)) for rate in comb_flat[l])
-                    # Delete repeated proteins
-                    words = label.split()
-                    label=", ".join(sorted(set(words), key=words.index))
-                    label = '{}: {}'.format(l, label)
-
-                    labels.append(label)
-                    legend_patches.append(mpatches.Patch(color=c, label=label))
-        fig_legend.legend(legend_patches, labels, loc='center', frameon=False, ncol=4)
-        plt.savefig('legends.png', format='png', bbox_inches='tight', dpi=1000)
-        return
-
-    def plot_sequences(self, type_fig='modal', title='', sort_seq=None):  # , legend_plot=False):
         clusters = set(self.cluster_labels)
         if -1 in clusters:
             clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :( from hdbscan

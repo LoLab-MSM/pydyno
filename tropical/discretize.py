@@ -25,12 +25,36 @@ class Discretize(object):
     mach_eps = 1e-11
 
     def __init__(self, model, simulations, diff_par):
-        self.model = model
-        self.trajectories, self.parameters, self.nsims, self.tspan = hf.get_simulations(simulations)
-        self.par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
-        self.diff_par = diff_par
-        if self.nsims == 1:
-            self.parameters = self.parameters[0]
+        self._model = model
+        self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
+        self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
+        self._diff_par = diff_par
+        if self._nsims == 1:
+            self._parameters = self._parameters[0]
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def trajectories(self):
+        return self._trajectories
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @property
+    def nsims(self):
+        return self._nsims
+
+    @property
+    def tspan(self):
+        return self._tspan
+
+    @property
+    def par_name_idx(self):
+        return self._par_name_idx
 
     @staticmethod
     def _choose_max_pos_neg(array, diff_par):
