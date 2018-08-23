@@ -56,6 +56,10 @@ class Discretize(object):
     def par_name_idx(self):
         return self._par_name_idx
 
+    @property
+    def diff_par(self):
+        return self._diff_par
+
     @staticmethod
     def _choose_max_pos_neg(array, diff_par):
         """
@@ -215,7 +219,7 @@ class Discretize(object):
                 rr_t = mons_array[:, t]
                 sign_pro[t], sign_rea[t] = self._choose_max_pos_neg(rr_t, self.diff_par)
 
-            all_signatures[['__s{0}_p'.format(sp_dyn), '__s{0}_c'.format(sp_dyn)]] = zip(*[sign_pro, sign_rea])
+            all_signatures[['__s{0}_p'.format(sp_dyn), '__s{0}_c'.format(sp_dyn)]] = list(zip(*[sign_pro, sign_rea]))
         return all_signatures
 
     def get_signatures(self, cpu_cores=1, verbose=False):

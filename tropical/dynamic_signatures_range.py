@@ -221,8 +221,7 @@ class Tropical(object):
                 sign_pro[t], sign_rea[t] = self._choose_max_pos_neg(rr_t, self.diff_par)
             # signature_species = numpy.apply_along_axis(self._choose_max_pos_neg, 0, mons_array,
             #                                            *(mons_names, self.diff_par, self.all_comb[sp_name]))
-
-            all_signatures[['__s{0}_p'.format(sp_dyn), '__s{0}_c'.format(sp_dyn)]] = zip(*[sign_pro, sign_rea])
+            all_signatures[['__s{0}_p'.format(sp_dyn), '__s{0}_c'.format(sp_dyn)]] = list(zip(*[sign_pro, sign_rea]))
         return all_signatures
 
     # def set_combinations_sm(self):
