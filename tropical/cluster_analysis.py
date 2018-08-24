@@ -139,7 +139,8 @@ class AnalysisCluster(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_cluster_dynamics(self, species, save_path='', fig_name='', species_ftn_fit=None, norm=False,
+    def plot_cluster_dynamics(self, species, save_path='', fig_name='',
+                              species_ftn_fit=None, norm=False, norm_value=None,
                               **kwargs):
         """
         Plots the dynamics of the species for each cluster
@@ -180,7 +181,7 @@ class AnalysisCluster(object):
 
             else:
                 self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species,
-                                                       save_path=save_path, fig_label=fig_name)
+                                                       save_path=save_path, fig_label=fig_name, norm_value=norm_value)
 
         else:
             self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species,
@@ -245,7 +246,7 @@ class AnalysisCluster(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
 
-    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, save_path, fig_label):
+    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, save_path, fig_label, norm_value=None):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
@@ -271,7 +272,10 @@ class AnalysisCluster(object):
                 else:
                     sp_trajectory = y[:, :, sp].T
                     name = self.model.species[sp]
-                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
+                if norm_value:
+                    norm_trajectories = sp_trajectory/norm_value
+                else:
+                    norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
                                                                             norm_trajectories,
                                                                             color='blue',
@@ -490,7 +494,6 @@ class AnalysisCluster(object):
 
             ax.set(xlabel='Time', ylabel='Percentage')
             fig.suptitle('Cluster {0}'.format(c_idx))
-            print (sps_matched)
             ax.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5,
                       title='Species indices')
             final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
