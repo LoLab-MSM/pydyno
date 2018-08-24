@@ -42,6 +42,7 @@ class Pydrone(object):
         if cluster_range:
             sil_df = cs.silhouette_score_agglomerative_range(nclusters, linkage, n_jobs=cpu_cores, **kwargs)
             nclusters = sil_df.loc[sil_df['cluster_silhouette'].idxmax()].num_clusters
+            nclusters = int(nclusters)
         cs.agglomerative_clustering(nclusters, linkage, **kwargs)
         self.sp_cluster_sequences = cs
         self.sp_analyzed = species
@@ -55,6 +56,7 @@ class Pydrone(object):
         if cluster_range:
             sil_df = cs.silhouette_score_spectral_range(nclusters, n_jobs=cpu_cores, **kwargs)
             nclusters = sil_df.loc[sil_df['cluster_silhouette'].idxmax()].num_clusters
+            nclusters = int(nclusters)
         cs.spectral_clustering(nclusters, n_jobs=cpu_cores, **kwargs)
         self.sp_cluster_sequences = cs
         return self
