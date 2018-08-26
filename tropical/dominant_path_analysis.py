@@ -195,7 +195,10 @@ class DomPath(object):
                                 continue
                             # Obtaining the reaction rate value of the rate node that connects to
                             # the species node
-                            fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t])) for edge in in_edges}
+                            # TODO Make sure that abs is necessary or not
+                            fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t]))
+                                         for edge in in_edges if reaction_flux_df.loc[edge[0], t] > 0}
+
                             max_val = np.amax(list(fluxes_in.values()))
                             # Obtaining dominant species nodes
                             dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
