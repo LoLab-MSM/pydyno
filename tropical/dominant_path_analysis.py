@@ -198,8 +198,7 @@ class DomPath(object):
                             fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[0], t])) for edge in in_edges}
                             max_val = np.amax(list(fluxes_in.values()))
                             # Obtaining dominant species nodes
-                            dom_r_nodes = [n[0] for n, i in fluxes_in.items() if
-                                           i > (max_val - dom_om) and max_val > -5]
+                            dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
                             dom_sp_nodes = [self.get_reaction_incoming_species(self.network, reaction_nodes)
                                             for reaction_nodes in dom_r_nodes]
                             # [n[0] for reaction_nodes in dom_r_nodes for n in network.in_edges(reaction_nodes)]
