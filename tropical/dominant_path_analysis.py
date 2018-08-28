@@ -153,7 +153,8 @@ class DomPath(object):
         dom_om = 0.5 # Order of magnitude to consider dominancy
         reaction_flux_df = self.get_reaction_flux_df(trajectories, parameters)
 
-        path_labels = {}
+        path_rlabels = {}
+        path_sp_labels = {}
         signature = [0] * len(self.tspan[1:])
         prev_neg_rr = []
         for label, t in enumerate(self.tspan[1:]):
@@ -219,12 +220,14 @@ class DomPath(object):
                 t_paths[d] = dom_nodes
 
             all_rdom_noodes_str = str(all_rdom_noodes)
-            t_paths
             rdom_label = list_to_int(find_numbers(all_rdom_noodes_str))
-            path_labels[all_rdom_noodes_str] = rdom_label
+            path_rlabels[all_rdom_noodes_str] = rdom_label
             signature[label] = rdom_label
+            path_sp_labels[rdom_label] = t_paths
+        # TODO figure a way to return this.
+        # print(path_sp_labels)
 
-        return signature, path_labels
+        return signature, path_rlabels
 
 
 def run_dompath_single(model, simulations, target, depth):
