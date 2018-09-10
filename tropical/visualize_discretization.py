@@ -3,9 +3,13 @@ import matplotlib.pyplot as plt
 import sympy
 from tropical.util import parse_name, rate_2_interactions, label2rr
 from future.utils import iteritems
+import re
+from pysb.bng import generate_equations
+from anytree.importer import DictImporter
+from anytree.exporter import DotExporter
 
 
-def visualization(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_values):
+def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_values):
     mach_eps = np.finfo(float).eps
     species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
     par_name_idx = {j.name: i for i, j in enumerate(model.parameters)}
@@ -54,3 +58,41 @@ def visualization(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_v
 
         # plt.tight_layout()
         fig.savefig('s{0}'.format(sp) + '.pdf', format='pdf', bbox_inches='tight')
+
+
+def visualization_path(model, path, filename):
+    """
+    Visualize dominant path
+    Parameters
+    ----------
+    model: pysb.Model
+        pysb model used for analysis
+    path: Dict
+        Dictionary that have the tree structure of the path
+    filename: str
+        File name including the extension of the image file
+
+    Returns
+    -------
+
+    """
+    generate_equations(model)
+    def find_numbers(dom_r_str):
+        n = map(int, re.findall('\d+', dom_r_str))
+        return n
+
+    def nodenamefunc(node):
+        node_idx = list(find_numbers(node.name))[0]
+        node_sp = model.species[node_idx]
+        node_name = parse_name(node_sp)
+        return node_name
+
+    def edgeattrfunc(node, child):
+        return 'dir="back"'
+
+    importer = DictImporter()
+    root = importer.import_(path)
+    DotExporter(root, graph='strict digraph', options=["rankdir=RL;"], nodenamefunc=nodenamefunc,
+                edgeattrfunc=edgeattrfunc).to_picture(filename)
+
+

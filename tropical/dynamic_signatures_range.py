@@ -1,5 +1,5 @@
 import tropical.util as hf
-from tropical.visualize_discretization import visualization
+from tropical.visualize_discretization import visualization_sp
 import numpy
 import sympy
 import itertools
@@ -353,8 +353,8 @@ def run_tropical(model, simulations, add_observables=False, passengers_by='imp_n
     tro.setup_tropical(tspan=tspan, diff_par=diff_par, passengers_by=passengers_by, add_observables=add_observables)
     signatures = tro.signature(y=trajectories, param_values=parameters[0])
     if sp_to_vis is not None:
-        visualization(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
-                      all_signatures=signatures, plot_type=plot_type, param_values=parameters[0])
+        visualization_sp(model=model, tspan=tspan, y=trajectories, sp_to_vis=sp_to_vis,
+                         all_signatures=signatures, plot_type=plot_type, param_values=parameters[0])
     # signatures['species_combinations'] = tro.all_comb
     return signatures
 
