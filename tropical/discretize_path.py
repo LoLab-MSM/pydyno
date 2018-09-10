@@ -6,9 +6,10 @@ import pandas as pd
 from math import log10
 import sympy
 import tropical.util as hf
-from collections import defaultdict
-from anytree import Node, RenderTree, findall
-from anytree.exporter import DotExporter, DictExporter
+from collections import defaultdict, OrderedDict
+from anytree import Node, findall
+from anytree.exporter import DictExporter
+from collections import ChainMap
 import time
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
@@ -84,7 +85,7 @@ class DomPath(object):
 
     def create_bipartite_graph(self):
         """
-        Creates bipartite graph of the pysb model
+        Creates bipartite graph with species and reaction nodes of the pysb model
         Returns
         -------
 
@@ -190,7 +191,8 @@ class DomPath(object):
         """
         in_edges = network.in_edges(r)
         sp_nodes = [n[0] for n in in_edges]
-        return sp_nodes
+        # Sort the incoming nodes to get the same results in each simulation
+        return natural_sort(sp_nodes)
 
     def dominant_paths(self, trajectories, parameters):
         """
@@ -210,7 +212,7 @@ class DomPath(object):
         reaction_flux_df = self.get_reaction_flux_df(trajectories, parameters)
 
         path_rlabels = {}
-        path_sp_labels = {}
+        # path_sp_labels = {}
         signature = [0] * len(self.tspan[1:])
         prev_neg_rr = []
         # First we iterate over time points
@@ -240,7 +242,7 @@ class DomPath(object):
             t_paths = [0] * self.depth
             # Iterate over the depth
             for d in range(self.depth):
-                all_dom_nodes = {}
+                all_dom_nodes = OrderedDict()
                 dom_r3 = []
                 for node_doms in dom_nodes.values():
                     # Looping over dominant nodes i.e [[s1, s2], [s4, s8]]
@@ -264,17 +266,19 @@ class DomPath(object):
                             max_val = np.amax(list(fluxes_in.values()))
                             # Obtaining dominant species and reactions nodes
                             dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - self.dom_om)]
+                            # Sort the dominant r nodes to get the same results in each simulation
+                            dom_r_nodes = natural_sort(dom_r_nodes)
                             dom_sp_nodes = [self.get_reaction_incoming_species(network, reaction_nodes)
                                             for reaction_nodes in dom_r_nodes]
                             # Get the species nodes from the reaction nodes to keep back tracking the pathway
                             all_dom_nodes[node] = dom_sp_nodes
                             # all_rdom_nodes.append(dom_r_nodes)
-                            dom_r1.append(dom_r_nodes)
+                            print(dom_r_nodes)
+                            dom_r1.append(sorted(dom_r_nodes))
 
                         dom_nodes = all_dom_nodes
                         dom_r2.append(dom_r1)
                     dom_r3.append(dom_r2)
-
                 all_rdom_nodes[d] = dom_r3
                 t_paths[d] = dom_nodes
 
@@ -295,21 +299,8 @@ class DomPath(object):
             rdom_label = list_to_int(find_numbers(all_rdom_noodes_str))
             path_rlabels[rdom_label] = DictExporter().export(root)
             signature[label] = rdom_label
-            path_sp_labels[rdom_label] = t_paths
-        # TODO figure a way to return this.
-        # print(path_sp_labels)
-        #     if t == 40.0:
-        #         print(t_paths)
-        #         print(RenderTree(root))
-        #         DotExporter(root, graph='strict digraph', options=["rankdir=RL;"], nodenamefunc=self.nodenamefunc,
-        #                     edgeattrfunc=edgeattrfunc).to_picture("s27_40reverse.pdf")
+            # path_sp_labels[rdom_label] = t_paths
         return signature, path_rlabels
-
-    def nodenamefunc(self, node):
-        node_idx = list(find_numbers(node.name))[0]
-        node_sp = self.model.species[node_idx]
-        node_name = hf.parse_name(node_sp)
-        return node_name
 
     def get_path_signatures(self, cpu_cores=1, verbose=False):
         if cpu_cores == 1 or self.nsims == 1:
@@ -333,27 +324,37 @@ class DomPath(object):
         #     self.trajectories = [self.trajectories]
         #     self.parameters = [self.parameters]
 
-        p = Pool(cpu_cores)
-        res = p.amap(self.dominant_paths, self.trajectories, self.parameters)
-        if verbose:
-            while not res.ready():
-                print('We\'re not done yet, %s tasks to go!' % res._number_left)
-                time.sleep(60)
-        signatures_labels = res.get()
-        signatures = [0] * len(signatures_labels)
-        labels = [0] * len(signatures_labels)
-        for idx, sl in enumerate(signatures_labels):
-            signatures[idx] = sl[0]
-            labels[idx] = sl[1]
-        from collections import ChainMap
-        all_labels = dict(ChainMap(*labels))
-        signatures = np.array(signatures)
-        signatures_labels = {'signatures': signatures, 'labels': all_labels}
-        return signatures_labels
+            p = Pool(cpu_cores)
+            res = p.amap(self.dominant_paths, self.trajectories, self.parameters)
+            if verbose:
+                while not res.ready():
+                    print('We\'re not done yet, %s tasks to go!' % res._number_left)
+                    time.sleep(60)
+            signatures_labels = res.get()
+            signatures = [0] * len(signatures_labels)
+            labels = [0] * len(signatures_labels)
+            for idx, sl in enumerate(signatures_labels):
+                signatures[idx] = sl[0]
+                labels[idx] = sl[1]
+            all_labels = dict(ChainMap(*labels))
+            signatures = np.array(signatures)
+            signatures_df = signatures_to_dataframe(signatures, self.tspan)
+            # signatures_labels = {'signatures': signatures, 'labels': all_labels}
+            return signatures_df, all_labels
 
 
-def edgeattrfunc(node, child):
-    return 'dir="back"'
+def signatures_to_dataframe(signatures, tspan):
+    def time_values(t):
+        # We add 1 because the first time point is ignored because there could
+        # be equilibration issues
+        return tspan[t+1]
+
+    # idx = pd.MultiIndex.from_tuples(list(zip(sim_ids, times)))
+    if not isinstance(signatures, np.ndarray):
+        signatures = np.concatenate(signatures)
+    s = pd.DataFrame(signatures)
+    s.rename(time_values, axis='columns', inplace=True)
+    return s
 
 
 def find_numbers(dom_r_str):
@@ -369,7 +370,11 @@ def merge_dicts(dicts):
     super_dict = defaultdict(set)
     for d in dicts:
         for k, v in d.items():  # use d.iteritems() in python 2
-            print(k)
-            print(v)
             super_dict[k].add(v)
     return super_dict
+
+
+def natural_sort(l):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
