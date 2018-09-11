@@ -273,7 +273,6 @@ class DomPath(object):
                             # Get the species nodes from the reaction nodes to keep back tracking the pathway
                             all_dom_nodes[node] = dom_sp_nodes
                             # all_rdom_nodes.append(dom_r_nodes)
-                            print(dom_r_nodes)
                             dom_r1.append(sorted(dom_r_nodes))
 
                         dom_nodes = all_dom_nodes
@@ -338,9 +337,16 @@ class DomPath(object):
                 labels[idx] = sl[1]
             all_labels = dict(ChainMap(*labels))
             signatures = np.array(signatures)
+            unique_signatures = np.unique(signatures)
+            new_labels = {va: i for i, va in enumerate(unique_signatures)}
+            new_paths = {new_labels[key]: value for key, value in all_labels.items()}
+            del all_labels
             signatures_df = signatures_to_dataframe(signatures, self.tspan)
+            def reencode(x):
+                return new_labels[x]
+            signatures_df = signatures_df.applymap(reencode)
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-            return signatures_df, all_labels
+            return signatures_df, new_paths
 
 
 def signatures_to_dataframe(signatures, tspan):
@@ -349,7 +355,6 @@ def signatures_to_dataframe(signatures, tspan):
         # be equilibration issues
         return tspan[t+1]
 
-    # idx = pd.MultiIndex.from_tuples(list(zip(sim_ids, times)))
     if not isinstance(signatures, np.ndarray):
         signatures = np.concatenate(signatures)
     s = pd.DataFrame(signatures)
