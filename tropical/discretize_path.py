@@ -33,8 +33,11 @@ class DomPath(object):
         Time of the simulation
     dom_om: float
         Order of magnitude to consider dominancy
-    target
-    depth
+    target: str
+        Species target. It has to be in a format `s1` where the number
+        represents the species index
+    depth: int
+        Depth of the traceback starting from target
     """
     def __init__(self, model, simulations, dom_om, target, depth):
         self._model = model
@@ -45,7 +48,7 @@ class DomPath(object):
         self._depth = depth
         if self._nsims == 1:
             self._parameters = self._parameters[0]
-        generate_equations(self.model)  # TODO make sure this is needed
+        generate_equations(self.model)
 
     @property
     def model(self):
@@ -200,7 +203,7 @@ class DomPath(object):
         Parameters
         ----------
         target : str
-            Node label from network, Node from which the pathway starts
+            Node t_idx from network, Node from which the pathway starts
         depth : int
             The depth of the pathway
 
@@ -216,7 +219,7 @@ class DomPath(object):
         signature = [0] * len(self.tspan[1:])
         prev_neg_rr = []
         # First we iterate over time points
-        for label, t in enumerate(self.tspan[1:]):
+        for t_idx, t in enumerate(self.tspan[1:]):
             # Get reaction rates that are negative to see which edges have to be reversed
             neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
             if not neg_rr or prev_neg_rr == neg_rr:
@@ -297,7 +300,7 @@ class DomPath(object):
 
             rdom_label = list_to_int(find_numbers(all_rdom_noodes_str))
             path_rlabels[rdom_label] = DictExporter().export(root)
-            signature[label] = rdom_label
+            signature[t_idx] = rdom_label
             # path_sp_labels[rdom_label] = t_paths
         return signature, path_rlabels
 
@@ -312,7 +315,7 @@ class DomPath(object):
                 all_labels = [0] * self.nsims
                 for idx in range(self.nsims):
                     all_signatures[idx], all_labels[idx] = self.dominant_paths(self.trajectories[idx], self.parameters[idx])
-                all_labels = merge_dicts(all_labels)
+                all_labels = dict(ChainMap(*all_labels))
                 all_signatures = np.array(all_signatures)
                 signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
                 return signatures_labels
