@@ -6,6 +6,7 @@ import pandas as pd
 from math import log10
 import sympy
 import tropical.util as hf
+from tropical.util import parse_name
 from collections import defaultdict, OrderedDict
 from anytree import Node, findall
 from anytree.exporter import DictExporter
@@ -416,6 +417,16 @@ def global_conserved_species_analysis(paths, path_signatures, model):
         paths that species was in.
     """
 
+    def convert_names(list_o_tuple):
+        new_list_o_tuple = []
+        for i, item in enumerate(list_o_tuple):
+            sname = item[0]
+            node_idx = list(find_numbers(sname))[0]
+            node_sp = model.species[node_idx]
+            node_name = parse_name(node_sp)
+            new_list_o_tuple.append((node_name, item[1]))
+
+        return new_list_o_tuple
     generate_equations(model)
     species_all = model.species
     #print(species_all)
@@ -455,4 +466,5 @@ def global_conserved_species_analysis(paths, path_signatures, model):
     for spec in spec_dict.keys():
         spec_frac_dict[spec] = spec_fracs[spec_dict[spec]['index']]
     sorted_by_value = sorted(spec_frac_dict.items(), key=lambda kv: -kv[1])
-    return sorted_by_value
+
+    return convert_names(sorted_by_value)
