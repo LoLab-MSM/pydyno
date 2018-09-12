@@ -312,7 +312,7 @@ class DomPath(object):
                 all_labels = [0] * self.nsims
                 for idx in range(self.nsims):
                     all_signatures[idx], all_labels[idx] = self.dominant_paths(self.trajectories[idx], self.parameters[idx])
-                all_labels = merge_dicts(all_labels)
+                all_labels = dict(ChainMap(*all_labels))
                 all_signatures = np.array(all_signatures)
                 signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
                 return signatures_labels
