@@ -442,6 +442,8 @@ def global_conserved_species_analysis(paths, path_signatures, model):
     for i, key in enumerate(paths.keys()):
         path = paths[key]
         descendants = get_path_descendants(path)
+        #add the root node to the set of species for the path
+        descendants.add(path['name'])
         #print(descendants)
         path_species[i] = descendants
     path_signatures_np = path_signatures.values
