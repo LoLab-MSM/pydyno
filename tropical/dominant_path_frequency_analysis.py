@@ -192,3 +192,49 @@ def relative_species_frequency_paths(paths, model, accessible_species=None):
     sorted_by_value = sorted(spec_frac_dict.items(), key=lambda kv: -kv[1])
 
     return convert_names(sorted_by_value)
+
+
+def relative_path_frequency_signatures(paths, path_signatures):
+    """Compute the relative frequencies of paths.
+
+    This function computes the relative frequencies of dominant paths across
+    all simulatations and timepoints.
+
+    Parameters
+    ----------
+    paths: dict
+        Nested tree structure dict of paths as returned from
+            DomPath.get_path_signatures()
+    path_signatures: pandas.DataFrame
+        The dominant path signatures for each simulation (across all
+            timepoints).
+    model: pysb.Model
+        The model that is being used.
+
+    Returns
+    -------
+        A list of tuples with the species codename
+        (i.e. 's' + str( model.species_index)) and the fraction of dominant
+        paths that species was in.
+
+    """
+    path_signatures_np = path_signatures.values
+    n_sims = path_signatures_np.shape[0]
+    n_tp = path_signatures_np.shape[1]
+    #print(n_sims, n_tp)
+    #quit()
+    path_counts = np.zeros(len(paths))
+    n_tot = 0.0
+    for i in range(n_sims):
+        for j in range(n_tp):
+            n_tot += 1.0
+            dom_path_id = path_signatures_np[i][j]
+            path_counts[dom_path_id] += 1.0
+
+    path_counts /= n_tot
+    path_frac_dict = dict()
+    for i, value in enumerate(path_counts):
+        path_frac_dict[i] = value
+    sorted_by_value = sorted(path_frac_dict.items(), key=lambda kv: -kv[1])
+
+    return sorted_by_value
