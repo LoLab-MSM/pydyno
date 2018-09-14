@@ -24,10 +24,12 @@ def get_path_descendants(path):
     descendants = set([descendant_node.name for descendant_node in root.descendants])
     return descendants
 
+
 def relative_species_frequency_signatures(paths, path_signatures, model, accessible_species=None):
-    """
-    Computes the relative frequencies of species amongst the dominant paths
-        across all simulatations and timepoints.
+    """Compute the relative frequencies of species.
+
+    This function computes the relative frequencies of species amongst the
+    dominant paths across all simulatations and timepoints.
 
     Parameters
     ----------
@@ -42,11 +44,11 @@ def relative_species_frequency_signatures(paths, path_signatures, model, accessi
 
     Returns
     -------
-    A list of tuples with the species codename
+        A list of tuples with the species codename
         (i.e. 's' + str( model.species_index)) and the fraction of dominant
         paths that species was in.
-    """
 
+    """
     def convert_names(list_o_tuple):
         new_list_o_tuple = []
         for i, item in enumerate(list_o_tuple):
@@ -111,9 +113,12 @@ def relative_species_frequency_signatures(paths, path_signatures, model, accessi
 
     return convert_names(sorted_by_value)
 
+
 def relative_species_frequency_paths(paths, model, accessible_species=None):
-    """
+    """Compute the relative fequencies of species.
+
     Computes the relative fequencies of species in the dominant paths.
+
     Parameters
     ----------
     paths: dict
@@ -127,8 +132,8 @@ def relative_species_frequency_paths(paths, model, accessible_species=None):
     A list of tuples with the species codename
         (i.e. 's' + str( model.species_index)) and the fraction of dominant
         paths that species was in.
-    """
 
+    """
     def convert_names(list_o_tuple):
         new_list_o_tuple = []
         for i, item in enumerate(list_o_tuple):
