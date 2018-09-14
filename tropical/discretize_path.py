@@ -350,6 +350,25 @@ class DomPath(object):
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
             return signatures_df, new_paths
 
+    def accessible_species(self):
+        """
+        Get a list of accessible species from the target at the specified
+        depth.
+
+        Returns
+        -------
+        list
+            List of accessible species.
+
+        """
+
+        di_bi_graph = self.create_bipartite_graph()
+        #u_bi_graph = nx.Graph(di_bi_graph.edges())
+        u_bi_graph = di_bi_graph.reverse()
+        acc_spec = [x for x in nx.dfs_predecessors(u_bi_graph, source=self._target, depth_limit=2*self._depth) if x.startswith('s')]
+        acc_spec.append(self._target)
+        return acc_spec
+
 
 def signatures_to_dataframe(signatures, tspan):
     def time_values(t):
