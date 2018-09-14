@@ -24,7 +24,7 @@ def get_path_descendants(path):
     descendants = set([descendant_node.name for descendant_node in root.descendants])
     return descendants
 
-def global_conserved_species_analysis(paths, path_signatures, model):
+def global_conserved_species_analysis(paths, path_signatures, model, accessible_species=None):
     """
     Computes the fraction of dominant paths a species is in. It is taken over
         all simulations and all timepoints.
@@ -57,15 +57,25 @@ def global_conserved_species_analysis(paths, path_signatures, model):
 
         return new_list_o_tuple
     generate_equations(model)
-    species_all = model.species
-    #print(species_all)
-    n_species_all = len(species_all)
-    spec_dict = dict()
-    spec_counts = np.array([0.0] * n_species_all)
-    #species_all_snames = []
-    for i, species in enumerate(species_all):
-        sname = "s{}".format(i)
-        spec_dict[sname] = {'name': species, 'index': i}
+    if accessible_species is None:
+        species_all = model.species
+        #print(species_all)
+        n_species_all = len(species_all)
+        spec_dict = dict()
+        spec_counts = np.array([0.0] * n_species_all)
+        #species_all_snames = []
+        for i, species in enumerate(species_all):
+            sname = "s{}".format(i)
+            spec_dict[sname] = {'name': species, 'index': i}
+    else:
+        species_all = model.species
+        #print(species_all)
+        n_species_all = len(accessible_species)
+        spec_dict = dict()
+        spec_counts = np.array([0.0] * n_species_all)
+        #species_all_snames = []
+        for i, species in enumerate(accessible_species):
+            spec_dict[species] = {'name': species, 'index': i}
 
     path_species = dict()
     for i, key in enumerate(paths.keys()):
