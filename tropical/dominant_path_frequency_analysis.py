@@ -24,10 +24,11 @@ def get_path_descendants(path):
     descendants = set([descendant_node.name for descendant_node in root.descendants])
     return descendants
 
-def global_conserved_species_analysis(paths, path_signatures, model, accessible_species=None):
+def relative_species_frequency_signatures(paths, path_signatures, model, accessible_species=None):
     """
-    Computes the fraction of dominant paths a species is in. It is taken over
-        all simulations and all timepoints.
+    Computes the relative frequencies of species amongst the dominant paths
+        across all simulatations and timepoints.
+
     Parameters
     ----------
     paths: dict
@@ -100,6 +101,83 @@ def global_conserved_species_analysis(paths, path_signatures, model, accessible_
             #    print(descendant)
                 d_id = spec_dict[descendant]['index']
                 spec_counts[d_id] += 1.0
+    #print(n_tot)
+    spec_fracs = spec_counts / n_tot
+    #quit()
+    spec_frac_dict = dict()
+    for spec in spec_dict.keys():
+        spec_frac_dict[spec] = spec_fracs[spec_dict[spec]['index']]
+    sorted_by_value = sorted(spec_frac_dict.items(), key=lambda kv: -kv[1])
+
+    return convert_names(sorted_by_value)
+
+def relative_species_frequency_paths(paths, model, accessible_species=None):
+    """
+    Computes the relative fequencies of species in the dominant paths.
+    Parameters
+    ----------
+    paths: dict
+        Nested tree structure dict of paths as returned from
+            DomPath.get_path_signatures()
+    model: pysb.Model
+        The model that is being used.
+
+    Returns
+    -------
+    A list of tuples with the species codename
+        (i.e. 's' + str( model.species_index)) and the fraction of dominant
+        paths that species was in.
+    """
+
+    def convert_names(list_o_tuple):
+        new_list_o_tuple = []
+        for i, item in enumerate(list_o_tuple):
+            sname = item[0]
+            node_idx = list(find_numbers(sname))[0]
+            node_sp = model.species[node_idx]
+            node_name = parse_name(node_sp)
+            new_list_o_tuple.append((node_name, item[1]))
+
+        return new_list_o_tuple
+    generate_equations(model)
+    if accessible_species is None:
+        species_all = model.species
+        #print(species_all)
+        n_species_all = len(species_all)
+        spec_dict = dict()
+        spec_counts = np.array([0.0] * n_species_all)
+        #species_all_snames = []
+        for i, species in enumerate(species_all):
+            sname = "s{}".format(i)
+            spec_dict[sname] = {'name': species, 'index': i}
+    else:
+        species_all = model.species
+        #print(species_all)
+        n_species_all = len(accessible_species)
+        spec_dict = dict()
+        spec_counts = np.array([0.0] * n_species_all)
+        #species_all_snames = []
+        for i, species in enumerate(accessible_species):
+            spec_dict[species] = {'name': species, 'index': i}
+
+    path_species = dict()
+    for i, key in enumerate(paths.keys()):
+        path = paths[key]
+        descendants = get_path_descendants(path)
+        #add the root node to the set of species for the path
+        descendants.add(path['name'])
+        #print(descendants)
+        path_species[i] = descendants
+
+    #print(n_sims, n_tp)
+    #quit()
+    n_tot = 0.0
+    for i, key in enumerate(path_species.keys()):
+        n_tot += 1.0
+        for descendant in path_species[key]:
+        #    print(descendant)
+            d_id = spec_dict[descendant]['index']
+            spec_counts[d_id] += 1.0
     #print(n_tot)
     spec_fracs = spec_counts / n_tot
     #quit()
