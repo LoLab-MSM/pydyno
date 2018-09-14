@@ -46,8 +46,6 @@ class DomPath(object):
         self._dom_om = dom_om
         self._target = target
         self._depth = depth
-        if self._nsims == 1:
-            self._parameters = self._parameters[0]
         generate_equations(self.model)
 
     @property
@@ -304,17 +302,52 @@ class DomPath(object):
             # path_sp_labels[rdom_label] = t_paths
         return signature, path_rlabels
 
-    def get_path_signatures(self, cpu_cores=1, verbose=False):
-        if cpu_cores == 1 or self.nsims == 1:
-            if self.nsims == 1:
-                signatures, labels = self.dominant_paths(self.trajectories, self.parameters)
+    def get_path_signatures(self, cpu_cores=1, sample_simulations=None, verbose=False):
+        """
+
+        Parameters
+        ----------
+        cpu_cores
+        sample_simulations
+        verbose
+
+        Returns
+        -------
+
+        """
+        if sample_simulations:
+            if isinstance(sample_simulations, int):
+                trajectories = self.trajectories[:sample_simulations]
+                parameters = self.parameters[:sample_simulations]
+                nsims = sample_simulations
+            elif isinstance(sample_simulations, list):
+                trajectories = self.trajectories[sample_simulations]
+                parameters = self.parameters[sample_simulations]
+                nsims = len(sample_simulations)
+            else:
+                raise TypeError('Sample method not supported')
+        else:
+            trajectories = self.trajectories
+            parameters = self.parameters
+            nsims = self.nsims
+
+        if cpu_cores == 1 or nsims == 1:
+            if nsims == 1:
+                # This assumes that the pysb simulation used the squeeze_output
+                # which is the default
+                if sample_simulations:
+                    trajectories = trajectories[0]
+                    parameters = parameters[0]
+                else:
+                    parameters = parameters[0]
+                signatures, labels = self.dominant_paths(trajectories, parameters)
                 signatures_labels = {'signatures': signatures, 'labels': labels}
                 return signatures_labels
             else:
-                all_signatures = [0] * self.nsims
-                all_labels = [0] * self.nsims
-                for idx in range(self.nsims):
-                    all_signatures[idx], all_labels[idx] = self.dominant_paths(self.trajectories[idx], self.parameters[idx])
+                all_signatures = [0] * nsims
+                all_labels = [0] * nsims
+                for idx in range(nsims):
+                    all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx])
                 all_labels = dict(ChainMap(*all_labels))
                 all_signatures = np.array(all_signatures)
                 signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
@@ -327,7 +360,7 @@ class DomPath(object):
         #     self.parameters = [self.parameters]
 
             p = Pool(cpu_cores)
-            res = p.amap(self.dominant_paths, self.trajectories, self.parameters)
+            res = p.amap(self.dominant_paths, trajectories, parameters)
             if verbose:
                 while not res.ready():
                     print('We\'re not done yet, %s tasks to go!' % res._number_left)
@@ -345,6 +378,7 @@ class DomPath(object):
             new_paths = {new_labels[key]: value for key, value in all_labels.items()}
             del all_labels
             signatures_df = signatures_to_dataframe(signatures, self.tspan)
+
             def reencode(x):
                 return new_labels[x]
             signatures_df = signatures_df.applymap(reencode)
