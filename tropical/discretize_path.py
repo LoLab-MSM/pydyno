@@ -285,7 +285,7 @@ class DomPath(object):
                             # Obtaining the reaction rate value of the rate node that connects to
                             # the species node
                             fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[idx_r], t]))
-                                         for edge in connected_edges}
+                                         for edge in connected_edges if reaction_flux_df.loc[edge[idx_r], t] != 0}
 
                             if not fluxes_in:
                                 continue
