@@ -60,7 +60,7 @@ def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, para
         fig.savefig('s{0}'.format(sp) + '.pdf', format='pdf', bbox_inches='tight')
 
 
-def visualization_path(model, path, filename):
+def visualization_path(model, path, type_analysis, filename):
     """
     Visualize dominant path
     Parameters
@@ -69,6 +69,8 @@ def visualization_path(model, path, filename):
         pysb model used for analysis
     path: Dict
         Dictionary that have the tree structure of the path
+    type_analysis: str
+        Type of analysis done to obtain the path. It can either be `production` or `consumption`
     filename: str
         File name including the extension of the image file
 
@@ -77,6 +79,7 @@ def visualization_path(model, path, filename):
 
     """
     generate_equations(model)
+
     def find_numbers(dom_r_str):
         n = map(int, re.findall('\d+', dom_r_str))
         return n
@@ -92,7 +95,14 @@ def visualization_path(model, path, filename):
 
     importer = DictImporter()
     root = importer.import_(path)
-    DotExporter(root, graph='strict digraph', options=["rankdir=RL;"], nodenamefunc=nodenamefunc,
-                edgeattrfunc=edgeattrfunc).to_picture(filename)
+
+    if type_analysis == 'production':
+        DotExporter(root, graph='strict digraph', options=["rankdir=RL;"], nodenamefunc=nodenamefunc,
+                    edgeattrfunc=edgeattrfunc).to_picture(filename)
+    elif type_analysis == 'consumption':
+        DotExporter(root, graph='strict digraph', options=["rankdir=LR;"], nodenamefunc=nodenamefunc,
+                    edgeattrfunc=None).to_picture(filename)
+    else:
+        raise ValueError('Type of visualization not implemented')
 
 
