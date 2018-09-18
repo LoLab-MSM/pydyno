@@ -3,14 +3,17 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import matplotlib.patches as mpatches
 from matplotlib.collections import LineCollection
-from tropical.util import rate_2_interactions, get_labels_entropy
+from tropical.util import get_labels_entropy
 import math
-from scipy import stats # I could remove this dependence, mode implementation only depends on numpy
+from scipy import stats  # I could remove this dependence, mode implementation only depends on numpy
 from future.utils import listvalues
 from collections import OrderedDict
 from tropical.distinct_colors import distinct_colors
 import numpy as np
 from sklearn import metrics
+
+n_row_fontsize = {1: 'medium', 2: 'medium', 3: 'small', 4: 'small', 5: 'x-small', 6: 'x-small', 7: 'xx-small',
+                  9: 'xx-small'}
 
 
 class PlotSequences(object):
@@ -30,7 +33,11 @@ class PlotSequences(object):
         self.sequences = sequence_obj.sequences
         self.unique_states = sequence_obj.unique_states
         self.diss = sequence_obj.diss
-        colors = distinct_colors(len(self.unique_states))
+        if len(self.unique_states) <= 128:
+            colors = distinct_colors(len(self.unique_states))
+        else:
+            import seaborn as sns
+            colors = sns.color_palette('hls', len(self.unique_states))
         self.states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self.unique_states))
         self.cmap, self.norm = self.cmap_norm()
 
@@ -95,32 +102,32 @@ class PlotSequences(object):
                 axs[-i].axis('off')
 
         if type_fig == 'modal':
-            self.__modal(clusters, axs)
+            self.__modal(clusters, axs, n_rows)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
             f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig('cluster_modal_' + title + '.pdf', bbox_inches='tight', format='pdf')
+            plt.savefig(title + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'trajectories':
-            self.__trajectories(clusters, axs, sort_seq)
+            self.__trajectories(clusters, axs, n_rows, sort_seq)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
             f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig('cluster_all_tr_' + title + '.pdf', bbox_inches='tight', format='pdf')
+            plt.savefig(title + 'cluster_all_tr' + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'entropy':
-            self.__entropy(clusters, f, axs)
+            self.__entropy(clusters, f, axs, n_rows)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
             # f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig('entropy_' + title + '.pdf', bbox_inches='tight', format='pdf')
+            plt.savefig(title + 'entropy' + '.pdf', bbox_inches='tight', format='pdf')
 
         else:
-            raise NotImplementedError('Type of visualization not implements')
+            raise NotImplementedError('Type of visualization not implemented')
 
         return
 
-    def __modal(self, clusters, axs):
+    def __modal(self, clusters, axs, nrows):
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
@@ -138,11 +145,11 @@ class PlotSequences(object):
             legend_patches = [mpatches.Patch(color=self.states_colors[c], label=c) for c in set(modal_states[0])]
             axs[clus].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
             axs[clus].legend(handles=legend_patches, fontsize='x-small')
-            axs[clus].set_ylabel('frequency (n={0})'.format(total_seqs), fontsize='small')
-            axs[clus].set_title('Cluster {0}'.format(clus))
+            axs[clus].set_ylabel('Freq (n={0})'.format(total_seqs), fontsize=n_row_fontsize[nrows])  # Frequency
+            axs[clus].set_title('Cluster {0}'.format(clus), fontsize=n_row_fontsize[nrows])
         return
 
-    def __trajectories(self, clusters, axs, sort_seq=None):
+    def __trajectories(self, clusters, axs, nrows, sort_seq=None):
         # TODO search for other types of sorting
         if sort_seq == 'silhouette':
             sort_values = metrics.silhouette_samples(X=self.diss, labels=self.cluster_labels, metric='precomputed')
@@ -173,14 +180,14 @@ class PlotSequences(object):
                 lc.set_array(np.array(seq))
                 lc.set_linewidth(10)
                 axs[clus].add_collection(lc)
-                axs[clus].set_ylabel('Trajectories (n={0})'.format(total_seqs), fontsize='small')
+                axs[clus].set_ylabel('Seq (n={0})'.format(total_seqs), fontsize=n_row_fontsize[nrows])  # Sequences
                 axs[clus].set_ylim(0, len(clus_seqs))
                 axs[clus].set_xlim(xx.min(), xx.max())
-                axs[clus].set_title('Cluster {0}'.format(clus))
+                axs[clus].set_title('Cluster {0}'.format(clus), fontsize=n_row_fontsize[nrows])
                 count_seqs += 1
         return
 
-    def __entropy(self, clusters, fig, axs):
+    def __entropy(self, clusters, fig, axs, nrows):
         max_entropy = 0
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.sequences.iloc[self.cluster_labels == clus]
@@ -204,7 +211,7 @@ class PlotSequences(object):
 
             axs[clus].plot(range(time_points), entropies)
             # axs[clus].set_ylabel('Entropy', fontsize='small')
-            axs[clus].set_title('Cluster {0}'.format(clus))
+            axs[clus].set_title('Cluster {0}'.format(clus), fontsize=n_row_fontsize[nrows])
 
         for clus in clusters:
             axs[clus].set_ylim(0, max_entropy)
