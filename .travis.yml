@@ -11,6 +11,7 @@ before_install:
 - conda install --yes -c conda-forge python="$TRAVIS_PYTHON_VERSION"
     numpy scipy matplotlib seaborn sympy nose h5py
     pandas scikit-learn coveralls future cython
+    networkx pydot
 - conda install --yes -c alubbock pysb
 - pip install python-coveralls pathos hdbscan editdistance anytree
 - mkdir -p ~/.config/matplotlib
