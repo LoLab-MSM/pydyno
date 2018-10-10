@@ -13,7 +13,7 @@ import numpy as np
 from sklearn import metrics
 
 n_row_fontsize = {1: 'medium', 2: 'medium', 3: 'small', 4: 'small', 5: 'x-small', 6: 'x-small', 7: 'xx-small',
-                  9: 'xx-small'}
+                  8: 'xx-small', 9: 'xx-small'}
 
 
 class PlotSequences(object):
@@ -55,7 +55,7 @@ class PlotSequences(object):
         norm = BoundaryNorm(bounds, cmap.N)
         return cmap, norm
 
-    def plot_sequences(self, type_fig='modal', title='', sort_seq=None):  # , legend_plot=False):
+    def plot_sequences(self, type_fig='modal', title='', filename='', sort_seq=None):  # , legend_plot=False):
         """
         Function to plot three different figures of the sequences.
         The modal figure takes the mode state at each time and plots
@@ -73,6 +73,8 @@ class PlotSequences(object):
             Type of figure to plot. Valid values are: `modal`, `trajectories`, `entropy`
         title: str
             Title of the figure
+        filename: str
+            Name of file
         sort_seq: str
             Method to sort sequences for a plot. Valid values are: `silhouette`.
              It is only available when the type of plot is `trajectories`
@@ -106,21 +108,21 @@ class PlotSequences(object):
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
             f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig(title + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
+            plt.savefig(filename + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'trajectories':
             self.__trajectories(clusters, axs, n_rows, sort_seq)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
             f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig(title + 'cluster_all_tr' + '.pdf', bbox_inches='tight', format='pdf')
+            plt.savefig(filename + 'cluster_all_tr' + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'entropy':
             self.__entropy(clusters, f, axs, n_rows)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
             plt.suptitle(title)
             # f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig(title + 'entropy' + '.pdf', bbox_inches='tight', format='pdf')
+            plt.savefig(filename + 'entropy' + '.pdf', bbox_inches='tight', format='pdf')
 
         else:
             raise NotImplementedError('Type of visualization not implemented')
