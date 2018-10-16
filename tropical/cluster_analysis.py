@@ -609,10 +609,9 @@ class AnalysisCluster(object):
                     # print (pars[:, self.model.parameters.index(va)])
             f = sympy.lambdify(var, rate)
             values = f(*arg)
-            for col in range(values.shape[1]):
-                if (values[:, col] < 0).all():
-                    values[:, col] = 0
-            values_avg = np.average(values, axis=0, weights=values >= 0)
+            # values[values < 0] = 0
+            values_avg = np.average(values, axis=0)
+            values_avg[values_avg < 0] = 0
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
@@ -636,10 +635,8 @@ class AnalysisCluster(object):
 
             f = sympy.lambdify(var, rate)
             values = f(*arg)
-            for col in range(values.shape[1]):
-                if (values[:, col] > 0).all():
-                    values[:, col] = 0
-            values_avg = np.average(values, axis=0, weights=values <= 0)
+            values_avg = np.average(values, axis=0)
+            values_avg[values_avg > 0] = 0
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels

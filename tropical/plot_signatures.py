@@ -106,6 +106,7 @@ class PlotSequences(object):
         if type_fig == 'modal':
             self.__modal(clusters, axs, n_rows)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.ylim((0, 1))
             plt.suptitle(title)
             f.text(0.5, 0.04, 'Time (h)', ha='center')
             plt.savefig(filename + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
