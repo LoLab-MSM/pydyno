@@ -15,6 +15,7 @@ from anytree.importer import DictImporter
 from collections import ChainMap
 import time
 
+
 def get_path_descendants(path):
     """ Get the set of descendants for a tree like path dict.
     """
@@ -25,7 +26,7 @@ def get_path_descendants(path):
     return descendants
 
 
-def relative_species_frequency_signatures(paths, path_signatures, model, accessible_species=None):
+def relative_species_frequency_signatures(paths, path_signatures, model, cluster_labels=None, accessible_species=None):
     """Compute the relative frequencies of species.
 
     This function computes the relative frequencies of species amongst the
@@ -35,10 +36,10 @@ def relative_species_frequency_signatures(paths, path_signatures, model, accessi
     ----------
     paths: dict
         Nested tree structure dict of paths as returned from
-            DomPath.get_path_signatures()
+        DomPath.get_path_signatures()
     path_signatures: pandas.DataFrame
         The dominant path signatures for each simulation (across all
-            timepoints).
+        time points).
     model: pysb.Model
         The model that is being used.
 
@@ -49,36 +50,37 @@ def relative_species_frequency_signatures(paths, path_signatures, model, accessi
         paths that species was in.
 
     """
+    generate_equations(model)
+
     def convert_names(list_o_tuple):
-        new_list_o_tuple = []
-        for i, item in enumerate(list_o_tuple):
-            sname = item[0]
-            node_idx = list(find_numbers(sname))[0]
+        new_list_o_tuple = {}
+        for item in list_o_tuple:
+            spname = item[0]
+            node_idx = list(find_numbers(spname))[0]
             node_sp = model.species[node_idx]
             node_name = parse_name(node_sp)
-            new_list_o_tuple.append((node_name, item[1]))
+            new_list_o_tuple[node_name] = item[1]
 
         return new_list_o_tuple
-    generate_equations(model)
-    if accessible_species is None:
-        species_all = model.species
-        #print(species_all)
-        n_species_all = len(species_all)
-        spec_dict = dict()
-        spec_counts = np.array([0.0] * n_species_all)
-        #species_all_snames = []
-        for i, species in enumerate(species_all):
-            sname = "s{}".format(i)
-            spec_dict[sname] = {'name': species, 'index': i}
+
+    # Check path signatures data structure
+    if isinstance(path_signatures, np.ndarray):
+        path_signatures_np = path_signatures
+    elif isinstance(path_signatures, pd.DataFrame):
+        path_signatures_np = path_signatures.values
     else:
-        species_all = model.species
-        #print(species_all)
-        n_species_all = len(accessible_species)
-        spec_dict = dict()
-        spec_counts = np.array([0.0] * n_species_all)
-        #species_all_snames = []
-        for i, species in enumerate(accessible_species):
-            spec_dict[species] = {'name': species, 'index': i}
+        raise TypeError('Data structure not valid for path_signatures')
+
+    if accessible_species is None:
+        species_analysis = model.species
+    else:
+        species_analysis = accessible_species
+
+    n_species_analysis = len(species_analysis)
+    spec_dict = dict()
+    for i, species in enumerate(species_analysis):
+        sname = "s{}".format(i)
+        spec_dict[sname] = {'name': species, 'index': i}
 
     path_species = dict()
     for i, key in enumerate(paths.keys()):
@@ -88,30 +90,47 @@ def relative_species_frequency_signatures(paths, path_signatures, model, accessi
         descendants.add(path['name'])
         #print(descendants)
         path_species[i] = descendants
-    path_signatures_np = path_signatures.values
+
+    if cluster_labels is not None:
+        # Check that length of cluster labels and simulatons are the same
+        if len(cluster_labels) != path_signatures_np.shape[0]:
+            raise ValueError('The length of the labels and path signatures must be the same')
+
+        n_clusters = set(cluster_labels)
+        clus_fractions_list = []
+        for label in n_clusters:
+            label_idxs = np.where(cluster_labels == label)[0]
+            cluster_signatures = path_signatures_np[label_idxs]
+            clus_fractions = _obtain_fractions(cluster_signatures,
+                                               path_species, spec_dict, n_species_analysis)
+            clus_fractions_list.append(clus_fractions)
+
+        all_fractions = pd.concat(clus_fractions_list, axis=0, keys=['cluster{0}'.format(cl) for cl in n_clusters])
+    else:
+        all_fractions = _obtain_fractions(path_signatures_np,
+                                          path_species, spec_dict, n_species_analysis)
+
+    return all_fractions
+
+
+def _obtain_fractions(path_signatures_np, path_species, spec_dict, n_species_analysis):
     n_sims = path_signatures_np.shape[0]
     n_tp = path_signatures_np.shape[1]
-    #print(n_sims, n_tp)
-    #quit()
-    n_tot = 0.0
-    for i in range(n_sims):
-        for j in range(n_tp):
+
+    time_fractions = pd.DataFrame(index=range(len(spec_dict.keys())), columns=range(n_tp))
+    for t in range(n_tp):
+        spec_counts = np.array([0.0] * n_species_analysis)
+        n_tot = 0.0
+        for sim in range(n_sims):
             n_tot += 1.0
-            dom_path_id = path_signatures_np[i][j]
-            #print(dom_path_id)
+            dom_path_id = path_signatures_np[sim][t]
             for descendant in path_species[dom_path_id]:
-            #    print(descendant)
                 d_id = spec_dict[descendant]['index']
                 spec_counts[d_id] += 1.0
-    #print(n_tot)
-    spec_fracs = spec_counts / n_tot
-    #quit()
-    spec_frac_dict = dict()
-    for spec in spec_dict.keys():
-        spec_frac_dict[spec] = spec_fracs[spec_dict[spec]['index']]
-    sorted_by_value = sorted(spec_frac_dict.items(), key=lambda kv: -kv[1])
+        spec_fracs = spec_counts / n_tot
+        time_fractions[t] = spec_fracs
 
-    return convert_names(sorted_by_value)
+    return time_fractions
 
 
 def relative_species_frequency_paths(paths, model, accessible_species=None):
