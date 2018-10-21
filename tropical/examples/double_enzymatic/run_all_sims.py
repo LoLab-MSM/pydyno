@@ -1,7 +1,6 @@
-from tropical.dynamic_signatures_range import run_tropical_multi
-from mm_two_paths_model import model
-import pickle
+from tropical.discretize import Discretize
+from tropical.examples.double_enzymatic.mm_two_paths_model import model
 
-signatures = run_tropical_multi(model=model, simulations='sim_results.h5', cpu_cores=4)
-with open('signatures2.pickle', 'wb') as handle:
-    pickle.dump(signatures, handle, protocol=pickle.HIGHEST_PROTOCOL)
+disc = Discretize(model, 'sim_results.h5')
+signatures = disc.get_signatures(cpu_cores=4)
+

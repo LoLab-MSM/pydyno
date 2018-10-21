@@ -1,5 +1,5 @@
 import numpy as np
-from tropical.dynamic_signatures_range import run_tropical_multi
+from tropical.discretize import Discretize
 from pysb.examples.tyson_oscillator import model
 from pysb.simulator.scipyode import ScipyOdeSimulator
 
@@ -9,4 +9,6 @@ pars1 = [par.value for par in model.parameters]
 pars2 = [pars1, pars1]
 sims = ScipyOdeSimulator(model, tspan=tspan).run(param_values=pars2)
 
-a = run_tropical_multi(model, simulations=sims)
+disc = Discretize(model, sims, diff_par=1)
+signatures = disc.get_signatures()
+

@@ -104,7 +104,7 @@ class Discretize(object):
             pos_neg_largest[ii] = largest_prod
         return pos_neg_largest
 
-    def __get_important_nodes(self, get_passengers_by='imp_nodes', add_observables=False):
+    def get_important_nodes(self, get_passengers_by='imp_nodes', add_observables=False):
         """
         Function to get nodes to study
         Parameters
@@ -143,7 +143,7 @@ class Discretize(object):
         -------
 
         """
-        imp_nodes = self.__get_important_nodes()
+        imp_nodes = self.get_important_nodes()
 
         # Defining dtypes for the indexes of the signatures array
         sp_names = ['__s{0}_p'.format(j) if i % 2 == 0 else '__s{0}_c'.format(j)
@@ -225,14 +225,14 @@ class Discretize(object):
     def get_signatures(self, cpu_cores=1, verbose=False):
         if cpu_cores == 1:
             if self.nsims == 1:
-                signatures = self.__signature(self.trajectories, self.parameters)
+                signatures = self.__signature(self._trajectories, self.parameters)
                 signatures = signatures_to_dataframe(signatures, self.tspan, self.nsims)
                 signatures = signatures.transpose().stack(0)
                 return signatures
             else:
                 signatures = [0] * self.nsims
                 for idx in range(self.nsims):
-                    signatures[idx] = self.__signature(self.trajectories[idx], self.parameters[idx])
+                    signatures[idx] = self.__signature(self._trajectories[idx], self.parameters[idx])
                 signatures = signatures_to_dataframe(signatures, self.tspan, self.nsims)
                 signatures = signatures.transpose().stack(0)
                 return signatures
@@ -240,11 +240,11 @@ class Discretize(object):
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
             if self.nsims == 1:
-                self.trajectories = [self.trajectories]
-                self.parameters = [self.parameters]
+                self._trajectories = [self._trajectories]
+                self._parameters = [self._parameters]
 
             p = Pool(cpu_cores)
-            res = p.amap(self.__signature, self.trajectories, self.parameters)
+            res = p.amap(self.__signature, self._trajectories, self.parameters)
             if verbose:
                 while not res.ready():
                     print ('We\'re not done yet, %s tasks to go!' % res._number_left)
