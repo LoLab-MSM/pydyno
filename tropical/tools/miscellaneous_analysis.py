@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tropical.util as hf
 import pandas as pd
-from tropical.dynamic_signatures_range import run_tropical
+from tropical.discretize import Discretize
 from pysb.integrate import ScipyOdeSimulator
 
 
@@ -96,7 +96,9 @@ def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=No
     y.drop(observables, axis=1, inplace=True)
     sp_short_names = [hf.parse_name(sp) for sp in model.species]
     y.columns = sp_short_names
-    signatures = run_tropical(model, simulations=sim_result, diff_par=1)
+    disc = Discretize(model, sim_result, diff_par=1)
+    signatures = disc.get_signatures()
+    # FIXME: This is not working. The signature data structure now uses pandas
     for sp in sp_to_analyze:
         y[hf.parse_name(model.species[sp])+'_truncated'] = signatures[sp][0]
     y.to_csv(file_path+'tr_sig.txt')

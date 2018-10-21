@@ -19,7 +19,7 @@ TroPy depends on PySB so the easiest  way to use it is to have a PySB model and 
 ```python
 # Import libraries
 import numpy as np
-from tropical.dynamic_signatures_range import run_tropical
+from tropical.discretize import Discretize
 from tropical.examples.double_enzymatic.mm_two_paths_model import model
 from pysb.simulator.scipyode import ScipyOdeSimulator
 
@@ -27,7 +27,9 @@ from pysb.simulator.scipyode import ScipyOdeSimulator
 tspan = np.linspace(0, 50, 101)
 sim = ScipyOdeSimulator(model, tspan=tspan).run()
 
-tro = run_tropical(model, simulations=sim, passengers_by='imp_nodes', diff_par=0.5)
+tro = Discretize(model=model, simulations=sim, diff_par=1)
+tro.get_signatures()
+
 ```
 ![alt text](https://github.com/LoLab-VU/tropical/blob/master/tropical/examples/double_enzymatic/figures/s0.png)
 

@@ -489,7 +489,7 @@ class AnalysisCluster(object):
 
             for sps, col in enumerate(colors):
                 sp_pctge = sps_avg[sps]
-                ax.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=1)
+                ax.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=self.tspan[2]-self.tspan[1])
                 y_offset = y_offset + sp_pctge
 
             ax.set(xlabel='Time', ylabel='Percentage')
@@ -609,10 +609,9 @@ class AnalysisCluster(object):
                     # print (pars[:, self.model.parameters.index(va)])
             f = sympy.lambdify(var, rate)
             values = f(*arg)
-            for col in range(values.shape[1]):
-                if (values[:, col] < 0).all():
-                    values[:, col] = 0
-            values_avg = np.average(values, axis=0, weights=values >= 0)
+            # values[values < 0] = 0
+            values_avg = np.average(values, axis=0)
+            values_avg[values_avg < 0] = 0
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
@@ -636,10 +635,8 @@ class AnalysisCluster(object):
 
             f = sympy.lambdify(var, rate)
             values = f(*arg)
-            for col in range(values.shape[1]):
-                if (values[:, col] > 0).all():
-                    values[:, col] = 0
-            values_avg = np.average(values, axis=0, weights=values <= 0)
+            values_avg = np.average(values, axis=0)
+            values_avg[values_avg > 0] = 0
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
@@ -673,12 +670,12 @@ class AnalysisCluster(object):
 
             for prxn, pcol in zip(range(len(products_matched)), pcolors):
                 sp_pctge = products_avg[prxn]
-                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=1)
+                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2]-self.tspan[1])
                 y_poffset = y_poffset + sp_pctge
 
             for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
                 sp_pctge = reactants_avg[rrxn]
-                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=1)
+                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2]-self.tspan[1])
                 y_roffset = y_roffset + sp_pctge
 
             ax1.set(title='Products reactions')
