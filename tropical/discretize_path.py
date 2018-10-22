@@ -6,11 +6,9 @@ import pandas as pd
 from math import log10
 import sympy
 import tropical.util as hf
-from tropical.util import parse_name
 from collections import defaultdict, OrderedDict
 from anytree import Node, findall
 from anytree.exporter import DictExporter
-from anytree.importer import DictImporter
 from collections import ChainMap
 import time
 try:
@@ -23,6 +21,13 @@ try:
 except ImportError:
     h5py = None
 
+# Types of analysis that have been implemented. For `production` the analysis consists in
+# finding the dominant path that is producing a species defined by the target parameter.
+# For consumption the analysis consists in finding the dominant path that is consuming a
+# species defined by the target.
+TYPE_ANALYSIS_DICT = {'production': ['in_edges', 0],
+                      'consumption': ['out_edges', 1]}
+
 
 class DomPath(object):
     """
@@ -31,23 +36,28 @@ class DomPath(object):
     ----------
     model: PySB model
         Model to analyze
-    tspan: vector-like
-        Time of the simulation
+    simulations: PySB SimulationResult object or str
+        simulations used to perform the analysis. If str it should be the
+        path to a simulation result in hdf5 format
+    type_analysis: str
+        Type of analysis to perform. It can be `production` or `consumption`
     dom_om: float
         Order of magnitude to consider dominancy
-    target
-    depth
+    target: str
+        Species target. It has to be in a format `s1` where the number
+        represents the species index
+    depth: int
+        Depth of the traceback starting from target
     """
-    def __init__(self, model, simulations, dom_om, target, depth):
+    def __init__(self, model, simulations, type_analysis, dom_om, target, depth):
         self._model = model
         self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
         self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
+        self._type_analysis = type_analysis
         self._dom_om = dom_om
         self._target = target
         self._depth = depth
-        if self._nsims == 1:
-            self._parameters = self._parameters[0]
-        generate_equations(self.model)  # TODO make sure this is needed
+        generate_equations(self.model)
 
     @property
     def model(self):
@@ -72,6 +82,10 @@ class DomPath(object):
     @property
     def par_name_idx(self):
         return self._par_name_idx
+
+    @property
+    def type_analysis(self):
+        return self._type_analysis
 
     @property
     def dom_om(self):
@@ -177,22 +191,29 @@ class DomPath(object):
         return rxns_df
 
     @staticmethod
-    def get_reaction_incoming_species(network, r):
+    def species_connected_to_node(network, r, type_edge, idx_r):
         """
-        Gets all the edges that are coming from species nodes and are going to a reaction node r
+        Obtains the species connected to a node.
         Parameters
         ----------
         network: nx.Digraph
             Networkx directed network
         r: str
             Node name
+        type_edge: str
+            it can be `in_edges` or `out_edges`
+        idx_r: int
+            Index of the reaction node in the edge returned by the in_edges or out_edges function
 
         Returns
         -------
-        Species that are involved in reaction r
+        If `type_edge` == in_edges and `r` == 0 this function returns the species that are being consumed
+        by the reaction node r.
+        If `type_edge` == out_edges and `r` == 1 this function returns the species that are being produced
+        by the reaction node r.
         """
-        in_edges = network.in_edges(r)
-        sp_nodes = [n[0] for n in in_edges]
+        in_edges = getattr(network, type_edge)(r)
+        sp_nodes = [n[idx_r] for n in in_edges]
         # Sort the incoming nodes to get the same results in each simulation
         return natural_sort(sp_nodes)
 
@@ -202,7 +223,7 @@ class DomPath(object):
         Parameters
         ----------
         target : str
-            Node label from network, Node from which the pathway starts
+            Node t_idx from network, Node from which the pathway starts
         depth : int
             The depth of the pathway
 
@@ -218,7 +239,7 @@ class DomPath(object):
         signature = [0] * len(self.tspan[1:])
         prev_neg_rr = []
         # First we iterate over time points
-        for label, t in enumerate(self.tspan[1:]):
+        for t_idx, t in enumerate(self.tspan[1:]):
             # Get reaction rates that are negative to see which edges have to be reversed
             neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
             if not neg_rr or prev_neg_rr == neg_rr:
@@ -254,23 +275,27 @@ class DomPath(object):
                         dom_r1 = []
                         for node in nodes:
                             # node = s1
-                            # Obtaining the incoming edges of the species node
-                            in_edges = network.in_edges(node)
-                            if not in_edges:
+                            # Obtaining the edges connected to the species node. It would be
+                            # in_edges if type_analysis is `production` and out_edges if
+                            # type_analysis is `consumption`
+                            type_edge, idx_r = TYPE_ANALYSIS_DICT[self.type_analysis]
+                            connected_edges = getattr(network, type_edge)(node)
+                            if not connected_edges:
                                 continue
                             # Obtaining the reaction rate value of the rate node that connects to
                             # the species node
-                            fluxes_in = {edge: log10(reaction_flux_df.loc[edge[0], t])
-                                         for edge in in_edges if reaction_flux_df.loc[edge[0], t] > 0}
+                            fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[idx_r], t]))
+                                         for edge in connected_edges if reaction_flux_df.loc[edge[idx_r], t] != 0}
+
                             if not fluxes_in:
                                 continue
 
                             max_val = np.amax(list(fluxes_in.values()))
                             # Obtaining dominant species and reactions nodes
-                            dom_r_nodes = [n[0] for n, i in fluxes_in.items() if i > (max_val - self.dom_om)]
+                            dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - self.dom_om)]
                             # Sort the dominant r nodes to get the same results in each simulation
                             dom_r_nodes = natural_sort(dom_r_nodes)
-                            dom_sp_nodes = [self.get_reaction_incoming_species(network, reaction_nodes)
+                            dom_sp_nodes = [self.species_connected_to_node(network, reaction_nodes, type_edge, idx_r)
                                             for reaction_nodes in dom_r_nodes]
                             # Get the species nodes from the reaction nodes to keep back tracking the pathway
                             all_dom_nodes[node] = dom_sp_nodes
@@ -297,27 +322,66 @@ class DomPath(object):
                         # sp_paths.append((sp, idx+1))
             # sp_paths.insert(0, (self.target, 0))
 
-            rdom_label = list_to_int(find_numbers(all_rdom_noodes_str))
+            # if not dominant path define a label 1
+            if not list(find_numbers(all_rdom_noodes_str)):
+                rdom_label = -1
+            else:
+                rdom_label = list_to_int(find_numbers(all_rdom_noodes_str))
             path_rlabels[rdom_label] = DictExporter().export(root)
-            signature[label] = rdom_label
+            signature[t_idx] = rdom_label
             # path_sp_labels[rdom_label] = t_paths
         return signature, path_rlabels
 
-    def get_path_signatures(self, cpu_cores=1, verbose=False):
-        if cpu_cores == 1 or self.nsims == 1:
-            if self.nsims == 1:
-                signatures, labels = self.dominant_paths(self.trajectories, self.parameters)
-                signatures_labels = {'signatures': signatures, 'labels': labels}
-                return signatures_labels
+    def get_path_signatures(self, cpu_cores=1, sample_simulations=None, verbose=False):
+        """
+
+        Parameters
+        ----------
+        cpu_cores
+        sample_simulations
+        verbose
+
+        Returns
+        -------
+
+        """
+        if sample_simulations:
+            if isinstance(sample_simulations, int):
+                trajectories = self.trajectories[:sample_simulations]
+                parameters = self.parameters[:sample_simulations]
+                nsims = sample_simulations
+            elif isinstance(sample_simulations, list):
+                trajectories = self.trajectories[sample_simulations]
+                parameters = self.parameters[sample_simulations]
+                nsims = len(sample_simulations)
             else:
-                all_signatures = [0] * self.nsims
-                all_labels = [0] * self.nsims
-                for idx in range(self.nsims):
-                    all_signatures[idx], all_labels[idx] = self.dominant_paths(self.trajectories[idx], self.parameters[idx])
+                raise TypeError('Sample method not supported')
+        else:
+            trajectories = self.trajectories
+            parameters = self.parameters
+            nsims = self.nsims
+
+        if cpu_cores == 1 or nsims == 1:
+            if nsims == 1:
+                # This assumes that the pysb simulation used the squeeze_output
+                # which is the default
+                if sample_simulations:
+                    trajectories = trajectories[0]
+                    parameters = parameters[0]
+                else:
+                    parameters = parameters[0]
+                signatures, labels = self.dominant_paths(trajectories, parameters)
+                # signatures_labels = {'signatures': signatures, 'labels': labels}
+                return signatures, labels
+            else:
+                all_signatures = [0] * nsims
+                all_labels = [0] * nsims
+                for idx in range(nsims):
+                    all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx])
                 all_labels = dict(ChainMap(*all_labels))
                 all_signatures = np.array(all_signatures)
-                signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
-                return signatures_labels
+                # signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
+                return all_signatures, all_labels
         else:
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
@@ -326,7 +390,7 @@ class DomPath(object):
         #     self.parameters = [self.parameters]
 
             p = Pool(cpu_cores)
-            res = p.amap(self.dominant_paths, self.trajectories, self.parameters)
+            res = p.amap(self.dominant_paths, trajectories, parameters)
             if verbose:
                 while not res.ready():
                     print('We\'re not done yet, %s tasks to go!' % res._number_left)
@@ -344,30 +408,12 @@ class DomPath(object):
             new_paths = {new_labels[key]: value for key, value in all_labels.items()}
             del all_labels
             signatures_df = signatures_to_dataframe(signatures, self.tspan)
+
             def reencode(x):
                 return new_labels[x]
             signatures_df = signatures_df.applymap(reencode)
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
             return signatures_df, new_paths
-
-    def accessible_species(self):
-        """
-        Get a list of accessible species from the target at the specified
-        depth.
-
-        Returns
-        -------
-        list
-            List of accessible species.
-
-        """
-
-        di_bi_graph = self.create_bipartite_graph()
-        #u_bi_graph = nx.Graph(di_bi_graph.edges())
-        u_bi_graph = di_bi_graph.reverse()
-        acc_spec = [x for x in nx.dfs_predecessors(u_bi_graph, source=self._target, depth_limit=2*self._depth) if x.startswith('s')]
-        acc_spec.append(self._target)
-        return acc_spec
 
 
 def signatures_to_dataframe(signatures, tspan):
@@ -389,7 +435,7 @@ def find_numbers(dom_r_str):
 
 
 def list_to_int(nums):
-        return int(''.join(map(str, nums)))
+    return int(''.join(map(str, nums)))
 
 
 def merge_dicts(dicts):
