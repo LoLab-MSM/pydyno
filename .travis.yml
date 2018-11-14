@@ -13,9 +13,11 @@ before_install:
 - conda install --yes -c conda-forge python="$PYVER"
     numpy scipy matplotlib seaborn sympy nose h5py
     pandas scikit-learn coveralls future cython
+    editdistance pathos
     networkx pydot
 - conda install --yes -c alubbock pysb
-- pip install python-coveralls pathos hdbscan editdistance anytree
+- if [[ $PYVER == 2.7 ]]; then conda update --yes numpy; fi
+- pip install anytree hdbscan
 - mkdir -p ~/.config/matplotlib
 - echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
 

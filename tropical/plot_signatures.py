@@ -21,18 +21,18 @@ class PlotSequences(object):
     Class to plot dynamic signatures sequences
     """
 
-    def __init__(self, sequence_obj, no_clustering=False):
+    def __init__(self, clus_sequence_obj, no_clustering=False):
         """
 
         Parameters
         ----------
-        sequence_obj
+        clus_sequence_obj
         """
         # TODO: find a way to make repeated sequences a big lane proportional to the number of repetitions
-        self.unique = sequence_obj.unique
-        self.sequences = sequence_obj.sequences
-        self.unique_states = sequence_obj.unique_states
-        self.diss = sequence_obj.diss
+        self.unique = clus_sequence_obj.unique
+        self.sequences = clus_sequence_obj.sequences
+        self.unique_states = clus_sequence_obj.unique_states
+        self.diss = clus_sequence_obj.diss
         if len(self.unique_states) <= 128:
             colors = distinct_colors(len(self.unique_states))
         else:
@@ -44,9 +44,9 @@ class PlotSequences(object):
         if no_clustering:
             self.cluster_labels = np.zeros(len(self.sequences), dtype=np.int)
         else:
-            if sequence_obj.diss is None or sequence_obj.labels is None:
+            if clus_sequence_obj.diss is None or clus_sequence_obj.labels is None:
                 raise Exception('Clustering has not been done in the ClusterSequence class')
-            self.cluster_labels = sequence_obj.labels
+            self.cluster_labels = clus_sequence_obj.labels
 
     def cmap_norm(self):
         cmap = ListedColormap(listvalues(self.states_colors))
