@@ -22,7 +22,7 @@ import matplotlib.patches as mpatches
 plt.ioff()
 
 
-class AnalysisCluster(object):
+class VisualizeClusters(object):
     """
     Class to visualize species trajectories and parameter distributions in different clusters
 
@@ -46,12 +46,12 @@ class AnalysisCluster(object):
         # Check simulation results
         self._all_simulations, self._all_parameters, self._nsims, self._tspan = hf.get_simulations(sim_results)
 
-        if clusters is not None:
-            # Check clusters
-            self._clusters = self.check_clusters_arg(clusters, self.nsims)
-        else:
+        if clusters is None:
             no_clusters = {0: range(len(self.all_parameters))}
             self._clusters = no_clusters
+        else:
+            # Check clusters
+            self._clusters = self.check_clusters_arg(clusters, self.nsims)
 
     @property
     def model(self):

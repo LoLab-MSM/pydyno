@@ -4,7 +4,7 @@ import numpy as np
 from pysb.testing import *
 import os
 from pysb.simulator.scipyode import ScipyOdeSimulator
-from tropical.cluster_analysis import AnalysisCluster
+from tropical.clusters_visualization import VisualizeClusters
 
 
 class TestClusteringAnalysisBase(object):
@@ -25,7 +25,7 @@ class TestClusteringAnalysisBase(object):
         labels = [1, 0]
         self.model = model
         sims = ScipyOdeSimulator(self.model, tspan=tspan, param_values=pars).run()
-        self.clus = AnalysisCluster(self.model, clusters=labels, sim_results=sims)
+        self.clus = VisualizeClusters(self.model, clusters=labels, sim_results=sims)
 
     def tearDown(self):
         self.signatures = None

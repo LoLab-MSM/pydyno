@@ -5,7 +5,22 @@ from collections import Iterable
 from sklearn.metrics.pairwise import pairwise_distances
 import editdistance
 import tropical.lcs as lcs
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.colors import ListedColormap, BoundaryNorm
+import math
+from scipy import stats  # I could remove this dependence, mode implementation only depends on numpy
+from tropical.distinct_colors import distinct_colors
+from collections import OrderedDict
+from sklearn import metrics
+from matplotlib.collections import LineCollection
+from future.utils import listvalues
+from tropical.util import get_labels_entropy
 
+
+# TODO there must be a better way to define the fontsize
+n_row_fontsize = {1: 'medium', 2: 'medium', 3: 'small', 4: 'small', 5: 'x-small', 6: 'x-small', 7: 'xx-small',
+                  8: 'xx-small', 9: 'xx-small'}
 
 # Valid metrics from scikit-learn
 _VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
@@ -49,6 +64,11 @@ def levenshtein(seq1, seq2):
 
 
 class Sequences(object):
+    """
+    seqdata: str, pd.DataFrame, np.ndarray
+        Sequence data from the discretization of a PySB model. If str it must be a csv file
+        with the sequences as rows and the first row must have the time points of the simulation.
+    """
     def __init__(self, seqdata):
         # Checking seqdata
         if isinstance(seqdata, str):
@@ -65,13 +85,48 @@ class Sequences(object):
         else:
             raise TypeError('data type not valid')
 
+        # Making sure that we have a count name in the data frame
+        if 'count' not in data_seqs.index.names:
+            data_seqs['count'] = 1
+            data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
+
         self._sequences = data_seqs
 
+        # Obtaining unique states in the sequences
+        unique_states = pd.unique(data_seqs[data_seqs.columns.tolist()].values.ravel())
+        unique_states.sort()
+        self._unique_states = unique_states
+
+        # Assigning a color to each unique state
+        if len(self._unique_states) <= 128:
+            colors = distinct_colors(len(self._unique_states))
+        else:
+            import seaborn as sns
+            # TODO find a way to obtain maximally different colors
+            colors = sns.color_palette('hls', len(self._unique_states))
+        self._states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self._unique_states))
+        self.cmap, self.norm = self.cmap_norm()
+
+        # Dissimilarity matrix
         self._diss = None
+
+    def __repr__(self):
+        """
+        Return a string representation of the sequences.
+        """
+        return str(self._sequences)
+
+    def cmap_norm(self):
+        cmap = ListedColormap(listvalues(self._states_colors))
+        bounds = list(self._states_colors)
+        bounds.append(bounds[-1] + 1)
+        norm = BoundaryNorm(bounds, cmap.N)
+        return cmap, norm
 
     def unique_sequences(self):
         """
-        Obtain the unique sequence in the dataframe
+        Obtain the unique sequence in the dataframe of sequences. This adds a new
+        column with the count of the repeated sequences
         Returns
         -------
         pd.DataFrame with the unique sequences
@@ -80,7 +135,7 @@ class Sequences(object):
         data_seqs = self._sequences.groupby(self._sequences.columns.tolist(),
                                             sort=False).size().rename('count').reset_index()
         data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
-        return data_seqs
+        return Sequences(data_seqs)
 
     def truncate_sequences(self, idx):
         """
@@ -92,15 +147,25 @@ class Sequences(object):
 
         Returns
         -------
-
+        Sequences truncated at the idx indicated
         """
         data_seqs = self._sequences[self._sequences.columns.tolist()[:idx]]
-        return data_seqs
-
-    assign = lambda d, k: lambda f: d.setdefault(k, f)
-    representativeness = {}
+        return Sequences(data_seqs)
 
     def dissimilarity_matrix(self, metric='LCS', n_jobs=1):
+        """
+        Get dissimilarity matrix using the passed metric
+        Parameters
+        ----------
+        metric: str
+            One of the metrics defined in _VALID_METRICS
+        n_jobs: int
+            Number of processors used to calculate the dissimilarity matrix
+
+        Returns
+        -------
+        dissimilarity matrix: np.ndarray
+        """
         # Sort sequences
         sorted_seqs = self._sequences.sort_values(by=self._sequences.columns.tolist(), inplace=False)
         old_sorted_idxs = np.argsort(sorted_seqs.index)
@@ -135,19 +200,28 @@ class Sequences(object):
         return diss
 
     @property
+    def sequences(self):
+        return self._sequences
+
+    @property
     def diss(self):
         if self._diss is None:
-            print('dissimilarity_matrix function must be ran before'
+            print('dissimilarity_matrix function must be ran beforehand '
                   'to obtain the values.')
         return self._diss
 
     @property
     def unique_states(self):
-        unique_states = pd.unique(self._sequences[self._sequences.columns.tolist()].values.ravel())
-        unique_states.sort()
-        return unique_states
+        return self._unique_states
 
-    @assign(representativeness, 'neighborhood')
+    @property
+    def states_colors(self):
+        return self._states_colors
+
+    _assign = lambda d, k: lambda f: d.setdefault(k, f)
+    representativeness = {}
+
+    @_assign(representativeness, 'neighborhood')
     def neighborhood_density(self, proportion, sequences_idx=None):
         """
         Representativeness using neighborhood density method
@@ -184,7 +258,7 @@ class Sequences(object):
         decreasing_seqs = seqs.iloc[seqs_neighbours.argsort()[::-1]]
         return decreasing_seqs.iloc[0].values
 
-    @assign(representativeness, 'centrality')
+    @_assign(representativeness, 'centrality')
     def centrality(self, sequences_idx=None):
         if sequences_idx is not None:
             seqs = self._sequences.iloc[sequences_idx]
@@ -196,12 +270,12 @@ class Sequences(object):
         decreasing_seqs = seqs.iloc[seqs_centrality_idx]
         return decreasing_seqs.iloc[0].name, decreasing_seqs.iloc[0].values
 
-    @assign(representativeness, 'frequency')
+    @_assign(representativeness, 'frequency')
     def frequency(self, sequences_idx=None):
         decreasing_seqs = self.neighborhood_density(proportion=1, sequences_idx=sequences_idx)
         return decreasing_seqs
 
-    def dispatch(self, k):  # , *args, **kwargs):
+    def _dispatch(self, k):  # , *args, **kwargs):
         try:
             method = self.representativeness[k].__get__(self, type(self))
         except KeyError:
@@ -222,7 +296,7 @@ class Sequences(object):
         -------
 
         """
-        rep_method = self.dispatch(method)
+        rep_method = self._dispatch(method)
         if clus_labels is not None:
             clusters = set(clus_labels)
             clus_rep = {}
@@ -235,6 +309,252 @@ class Sequences(object):
         else:
             rep = rep_method(**kwargs)
             return rep
+
+    def plot_sequences(self, type_fig='modal', cluster_labels=None, title='', filename='', sort_seq=None):  # , legend_plot=False):
+        """
+        Function to plot three different figures of the sequences.
+        The modal figure takes the mode state at each time and plots
+        the percentage of that state compated to all the other states.
+
+        The trajectories figure plots each of the sequences.
+
+        The entropy figure plots the entropy calculated from the
+        percentages of each of the states at each time relative
+        to the total.
+
+        Parameters
+        ----------
+        type_fig: str
+            Type of figure to plot. Valid values are: `modal`, `trajectories`, `entropy`
+        title: str
+            Title of the figure
+        filename: str
+            Name of file
+        sort_seq: str
+            Method to sort sequences for a plot. Valid values are: `silhouette`.
+             It is only available when the type of plot is `trajectories`
+
+        Returns
+        -------
+
+        """
+        if cluster_labels is None:
+            cluster_labels = np.zeros(len(self._sequences), dtype=np.int)
+        else:
+            # Check that cluster labels length is the same as the number of sequences
+            if len(cluster_labels) != len(self._sequences):
+                raise ValueError('The number of clusters labels must be the same as '
+                                 'the number of sequences')
+
+        clusters = set(cluster_labels)
+        if -1 in clusters:
+            clusters = list(clusters)[:-1]  # this is to not plot the signatures that can't be clustered :( from hdbscan
+        else:
+            clusters = list(clusters)
+        n_rows = int(math.ceil(len(clusters) / 3.))
+        if len(clusters) == 1:
+            f, axs = plt.subplots(n_rows, 1, sharex=True, figsize=(8, 6))
+            axs = [axs]
+        elif len(clusters) == 2:
+            f, axs = plt.subplots(n_rows, 2, sharex=True, figsize=(8, 6))
+        else:
+            f, axs = plt.subplots(n_rows, 3, sharex=True, figsize=(8, 6))
+            f.subplots_adjust(hspace=.6, wspace=.4)
+            axs = axs.reshape(n_rows * 3)
+
+            plots_off = (n_rows * 3) - len(clusters)
+            for i in range(1, plots_off + 1):
+                axs[-i].axis('off')
+
+        if type_fig == 'modal':
+            self.__modal(cluster_labels, clusters, axs, n_rows)
+            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.ylim((0, 1))
+            plt.suptitle(title)
+            f.text(0.5, 0.04, 'Time (h)', ha='center')
+            plt.savefig(filename + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
+
+        elif type_fig == 'trajectories':
+            self.__trajectories(cluster_labels, clusters, axs, n_rows, sort_seq)
+            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.suptitle(title)
+            f.text(0.5, 0.04, 'Time (h)', ha='center')
+            plt.savefig(filename + 'cluster_all_tr' + '.pdf', bbox_inches='tight', format='pdf')
+
+        elif type_fig == 'entropy':
+            self.__entropy(cluster_labels, clusters, f, axs, n_rows)
+            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+            plt.suptitle(title)
+            # f.text(0.5, 0.04, 'Time (h)', ha='center')
+            plt.savefig(filename + 'entropy' + '.pdf', bbox_inches='tight', format='pdf')
+
+        else:
+            raise NotImplementedError('Type of visualization not implemented')
+
+        return
+
+    def __modal(self, cluster_labels, clusters, axs, nrows):
+        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
+            clus_seqs = self.sequences.iloc[cluster_labels == clus]
+            n_seqs = clus_seqs.shape[0]
+            total_seqs = 0
+            for seq in clus_seqs.index.values:
+                total_seqs += seq[1]
+
+            modal_states, mode_counts = stats.mode(clus_seqs, axis=0)
+            mc_norm = np.divide(mode_counts[0], n_seqs, dtype=np.float)
+            width_bar = self.sequences.columns[1] - self.sequences.columns[0]
+            colors = [self.states_colors[c] for c in modal_states[0]]
+            legend_patches = [mpatches.Patch(color=self.states_colors[c], label=c) for c in set(modal_states[0])]
+            axs[clus].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
+            axs[clus].legend(handles=legend_patches, fontsize='x-small')
+            axs[clus].set_ylabel('Freq (n={0})'.format(total_seqs), fontsize=n_row_fontsize[nrows])  # Frequency
+            axs[clus].set_title('Cluster {0}'.format(clus), fontsize=n_row_fontsize[nrows])
+        return
+
+    def __trajectories(self, cluster_labels, clusters, axs, nrows, sort_seq=None):
+        # TODO search for other types of sorting
+        if sort_seq == 'silhouette':
+            sort_values = metrics.silhouette_samples(X=self.diss, labels=cluster_labels, metric='precomputed')
+        else:
+            sort_values = np.random.rand(len(cluster_labels))
+
+        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
+            clus_seqs = self.sequences.iloc[cluster_labels == clus]
+            total_seqs = 0
+            for seq in clus_seqs.index.values:
+                total_seqs += seq[1]
+
+            clus_sort_samples = sort_values[cluster_labels == clus]
+            clus_sil_sort = np.argsort(clus_sort_samples)
+            clus_seqs = clus_seqs.iloc[clus_sil_sort]
+            xx = self.sequences.columns
+            count_seqs = 0
+
+            for seq in clus_seqs.itertuples(index=False):
+                y = np.array([count_seqs] * (clus_seqs.shape[1]))
+                points = np.array([xx, y]).T.reshape(-1, 1, 2)
+                segments = np.concatenate([points[:-1], points[1:]], axis=1)
+                lc = LineCollection(segments, cmap=self.cmap, norm=self.norm)
+                lc.set_array(np.array(seq))
+                lc.set_linewidth(10)
+                axs[clus].add_collection(lc)
+                axs[clus].set_ylabel('Seq (n={0})'.format(total_seqs), fontsize=n_row_fontsize[nrows])  # Sequences
+                axs[clus].set_ylim(0, len(clus_seqs))
+                axs[clus].set_xlim(xx.min(), xx.max())
+                axs[clus].set_title('Cluster {0}'.format(clus), fontsize=n_row_fontsize[nrows])
+                count_seqs += 1
+        return
+
+    def __entropy(self, cluster_labels, clusters, fig, axs, nrows):
+        max_entropy = 0
+        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
+            clus_seqs = self.sequences.iloc[cluster_labels == clus]
+            total_seqs = 0
+            for seq in clus_seqs.index.values:
+                total_seqs += seq[1]
+
+            time_points = clus_seqs.shape[1]
+            entropies = [0] * time_points
+
+            for col_idx, col_t in enumerate(clus_seqs):
+                entropy = get_labels_entropy(clus_seqs[col_t].values)
+                entropies[col_idx] = entropy
+
+            if max(entropies) > max_entropy:
+                max_entropy = max(entropies)
+
+            axs[clus].plot(range(time_points), entropies)
+            # axs[clus].set_ylabel('Entropy', fontsize='small')
+            axs[clus].set_title('Cluster {0}'.format(clus), fontsize=n_row_fontsize[nrows])
+
+        for clus in clusters:
+            axs[clus].set_ylim(0, max_entropy)
+
+        fig.add_subplot(111, frameon=False)
+        plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+        plt.grid(False)
+        plt.xlabel("Time")
+        plt.ylabel("Entropy")
+        return
+
+    # def transition_rate_matrix(self, time_varying=False, lag=1):
+    #     # this code comes from seqtrate from the TraMineR package in r
+    #     nbetat = len(self.unique_states)
+    #     sdur = self.sequences.shape[1]
+    #     alltransitions = np.arange(0, sdur - lag)
+    #     numtransition = len(alltransitions)
+    #     row_index = pd.MultiIndex.from_product([alltransitions, self.unique_states],
+    #                                            names=['time_idx', 'from_state'])  # , names=row_names)
+    #     col_index = pd.MultiIndex.from_product([self.unique_states], names=['to_state'])  # , names=column_names)
+    #     if time_varying:
+    #         array_zeros = np.zeros(shape=(nbetat * numtransition, nbetat))
+    #         tmat = pd.DataFrame(array_zeros, index=row_index, columns=col_index)
+    #         for sl in alltransitions:
+    #             for x in self.unique_states:
+    #                 colxcond = self.sequences[[sl]] == x
+    #                 PA = colxcond.sum().values[0]
+    #                 if PA == 0:
+    #                     tmat.loc[sl, x] = 0
+    #                 else:
+    #                     for y in self.unique_states:
+    #                         PAB_p = np.logical_and(colxcond, self.sequences[[sl + lag]] == y)
+    #                         PAB = PAB_p.sum().values[0]
+    #                         tmat.loc[sl, x][[y]] = PAB / PA
+    #     else:
+    #         tmat = pd.DataFrame(index=self.unique_states, columns=self.unique_states)
+    #         for x in self.unique_states:
+    #             # PA = 0
+    #             colxcond = self.sequences[alltransitions] == x
+    #             if numtransition > 1:
+    #                 PA = colxcond.sum(axis=1).sum()
+    #             else:
+    #                 PA = colxcond.sum()
+    #             if PA == 0:
+    #                 tmat.loc[x] = 0
+    #             else:
+    #                 for y in self.unique_states:
+    #                     if numtransition > 1:
+    #                         PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
+    #                         PAB = PAB_p.sum(axis=1).sum()
+    #                     else:
+    #                         PAB_p = np.logical_and(colxcond, self.sequences[alltransitions + lag] == y)
+    #                         PAB = PAB_p.sum()
+    #                     tmat.loc[x][[y]] = PAB / PA
+    #
+    #     return tmat
+
+    # def seqlogp(self, prob='trate', time_varying=True, begin='freq'):
+    #     sl = self.sequences.shape[1]  # all sequences have the same length for our analysis
+    #     maxage = sl
+    #     nbtrans = maxage - 1
+    #     agedtr = np.zeros(maxage)
+
+    # def cluster_percentage_color(self, representative_method='centrality', **kwargs):
+    #     if self.labels is None:
+    #         raise Exception('you must cluster the signatures first')
+    #
+    #     rep_method = self.dispatch(representative_method)
+    #     clusters = set(self.labels)
+    #     colors = distinct_colors(len(clusters))
+    #     cluster_inf = {}
+    #     for clus in clusters:
+    #         clus_seqs = self.sequences.iloc[self.labels == clus]
+    #         clus_idxs = clus_seqs.index.get_level_values(0).values
+    #         rep = rep_method(sequences_idx=clus_idxs, **kwargs)
+    #         n_seqs = clus_seqs.shape[0]
+    #         # This is to sum over the index of sequences that have the sequence repetitions
+    #         if self.unique:
+    #             total_seqs = 0
+    #             for seq in clus_seqs.index.values:
+    #                 total_seqs += seq[1]
+    #         else:
+    #             total_seqs = n_seqs
+    #
+    #         cluster_percentage = total_seqs / self.n_sequences
+    #         cluster_inf[clus] = (cluster_percentage, colors[clus], rep)
+    #
+    #     return cluster_inf
 
 
 data = np.array([[11, 12, 13, 14, 15], [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [6, 7, 8, 12, 11],
