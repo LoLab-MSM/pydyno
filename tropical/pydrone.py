@@ -1,7 +1,7 @@
 from tropical.clustering import ClusterSequences
 from tropical.discretize import Discretize
 from tropical.plot_signatures import PlotSequences
-from tropical.cluster_analysis import AnalysisCluster
+from tropical.clusters_visualization import VisualizeClusters
 
 
 class Pydrone(object):
@@ -73,5 +73,5 @@ class Pydrone(object):
         if self.sp_cluster_sequences is None:
             raise ValueError('No clustering has been done')
         labels = self.sp_cluster_sequences.labels
-        ac = AnalysisCluster(self.model, self.simulations, labels)
+        ac = VisualizeClusters(self.model, self.simulations, labels)
         return ac
