@@ -210,6 +210,12 @@ class Sequences(object):
                   'to obtain the values.')
         return self._diss
 
+    @diss.setter
+    def diss(self, value):
+        if not isinstance(value, np.ndarray):
+            raise TypeError('dissimilarity matrix must be a numpy ndarray')
+        self._diss = value
+
     @property
     def unique_states(self):
         return self._unique_states
