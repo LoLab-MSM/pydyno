@@ -26,7 +26,7 @@ Monomer('S', ['e', 'type'], {'type': ['1','2']})
 Monomer('P')
 
 # Rules
-Rule('ReversibleBinding_1', E(s=None) + S(e=None, type='1')  E(s=1) % S(e=1, type='1'), kf1, kr1)
+Rule('ReversibleBinding_1', E(s=None) + S(e=None, type='1') | E(s=1) % S(e=1, type='1'), kf1, kr1)
 Rule('Production_1', E(s=1) % S(e=1, type='1') >> E(s=None) + P(), kcat1)
 Rule('ReversibleBinding_2', E(s=None) + S(e=None, type='2') | E(s=1) % S(e=1, type='2'), kf2, kr2)
 Rule('Production_2', E(s=1) % S(e=1, type='2') >> E(s=None) + P(), kcat2)
