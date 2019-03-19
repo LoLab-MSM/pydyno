@@ -39,7 +39,7 @@ def kMedoids(D, k, tmax=100):
 
     # initialize a dictionary to represent clusters
     C = {}
-    for t in xrange(tmax):
+    for t in range(tmax):
         # determine clusters, i. e. arrays of data indices
         J = np.argmin(D[:,M], axis=1)
         for kappa in range(k):
