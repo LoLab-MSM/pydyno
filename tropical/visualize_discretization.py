@@ -10,6 +10,17 @@ from anytree.exporter import DotExporter
 
 
 def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_values):
+    """
+
+    :param model: pysb model
+    :param tspan: vector-like, Time of the simulation
+    :param y: species simulation
+    :param sp_to_vis: Int, species index to visualize
+    :param all_signatures: signatures from tropical
+    :param plot_type: str, `p` for production and `c` and consumption
+    :param param_values: Parameters used for the simulation
+    :return:
+    """
     mach_eps = np.finfo(float).eps
     species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
     par_name_idx = {j.name: i for i, j in enumerate(model.parameters)}
@@ -17,12 +28,14 @@ def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, para
         raise Exception('None of the input species is a driver')
 
     for sp in species_ready:
+        sp = int(sp)
+        sp_plot = '__s{0}_{1}'.format(sp, plot_type)
 
         # Setting up figure
         fig, axs = plt.subplots(nrows=3, ncols=1, sharex=True)
         fig.subplots_adjust(hspace=0.4)
 
-        signature = all_signatures[sp][plot_type]
+        signature = all_signatures.loc[sp_plot].values[0]
 
         axs[2].scatter(tspan, [str(s) for s in signature])
         # plt.yticks(list(set(signature)))
@@ -97,10 +110,10 @@ def visualization_path(model, path, type_analysis, filename):
     root = importer.import_(path)
 
     if type_analysis == 'production':
-        DotExporter(root, graph='strict digraph', options=["rankdir=RL;"], nodenamefunc=nodenamefunc,
+        DotExporter(root, graph='strict digraph', options=["rankdir=TB;"], nodenamefunc=nodenamefunc,
                     edgeattrfunc=edgeattrfunc).to_picture(filename)
     elif type_analysis == 'consumption':
-        DotExporter(root, graph='strict digraph', options=["rankdir=LR;"], nodenamefunc=nodenamefunc,
+        DotExporter(root, graph='strict digraph', options=["rankdir=TB;"], nodenamefunc=nodenamefunc,
                     edgeattrfunc=None).to_picture(filename)
     else:
         raise ValueError('Type of visualization not implemented')
