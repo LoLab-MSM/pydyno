@@ -156,8 +156,6 @@ class FreqAnalysis(object):
         paths: dict
             Nested tree structure dict of paths as returned from
                 DomPath.get_path_signatures()
-        model: pysb.Model
-            The model that is being used.
 
         Returns
         -------
