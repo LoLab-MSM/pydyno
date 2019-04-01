@@ -22,7 +22,7 @@ import matplotlib.patches as mpatches
 plt.ioff()
 
 
-class VisualizeClusters(object):
+class VisualizeTrajectories(object):
     """
     Class to visualize species trajectories and parameter distributions in different clusters
 
