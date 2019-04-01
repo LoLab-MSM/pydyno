@@ -6,6 +6,7 @@ import pandas as pd
 from math import log10
 import sympy
 import tropical.util as hf
+from tropical.sequence_analysis import Sequences
 from collections import defaultdict, OrderedDict
 from anytree import Node, findall
 from anytree.exporter import DictExporter
@@ -337,9 +338,12 @@ class DomPath(object):
 
         Parameters
         ----------
-        cpu_cores
-        sample_simulations
-        verbose
+        cpu_cores : int
+            Number of cores to use in the function
+        sample_simulations : int
+            Number of simulations to use for the analysis
+        verbose : bool
+            Print the number of processes left
 
         Returns
         -------
@@ -380,8 +384,13 @@ class DomPath(object):
                     all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx])
                 all_labels = dict(ChainMap(*all_labels))
                 all_signatures = np.array(all_signatures)
-                # signatures_labels = {'signatures': all_signatures, 'labels': all_labels}
-                return all_signatures, all_labels
+                unique_signatures = np.unique(all_signatures)
+                new_labels = {va: i for i, va in enumerate(unique_signatures)}
+                new_paths = {new_labels[key]: value for key, value in all_labels.items()}
+                del all_labels
+                signatures_df = signatures_to_dataframe(all_signatures, self.tspan)
+                signatures_df = signatures_df.applymap(lambda x: new_labels[x])
+                return Sequences(signatures_df), new_paths
         else:
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
@@ -408,12 +417,9 @@ class DomPath(object):
             new_paths = {new_labels[key]: value for key, value in all_labels.items()}
             del all_labels
             signatures_df = signatures_to_dataframe(signatures, self.tspan)
-
-            def reencode(x):
-                return new_labels[x]
-            signatures_df = signatures_df.applymap(reencode)
+            signatures_df = signatures_df.applymap(lambda x: new_labels[x])
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-            return signatures_df, new_paths
+            return Sequences(signatures_df), new_paths
 
 
 def signatures_to_dataframe(signatures, tspan):
@@ -422,8 +428,6 @@ def signatures_to_dataframe(signatures, tspan):
         # be equilibration issues
         return tspan[t+1]
 
-    if not isinstance(signatures, np.ndarray):
-        signatures = np.concatenate(signatures)
     s = pd.DataFrame(signatures)
     s.rename(time_values, axis='columns', inplace=True)
     return s
