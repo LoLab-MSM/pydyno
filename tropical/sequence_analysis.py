@@ -120,7 +120,7 @@ class Sequences(object):
         self._states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self._unique_states))
         self.cmap, self.norm = self.cmap_norm()
 
-        # Dissimilarity matrix
+        # Dissimilarity matrix, cluster labels and cluster method
         self._diss = None
         self.labels = None
         self.cluster_method = None
