@@ -1,9 +1,9 @@
 import numpy as np
 from nose.tools import *
-from tropical import discretize
+from tropical.discretize import Discretize
+from tropical.discretize_path import DomPath
 from pysb.examples.tyson_oscillator import model
 from pysb.simulator import ScipyOdeSimulator
-from pysb.simulator.base import SimulatorException
 from pysb.testing import *
 
 
@@ -12,7 +12,7 @@ class TestDynSignBase(object):
         self.model = model
         self.time = np.linspace(0, 100, 100)
         self.sim = ScipyOdeSimulator(self.model, tspan=self.time).run()
-        self.tro = discretize.Discretize(self.model, self.sim, 1)
+        self.tro = Discretize(self.model, self.sim, 1)
 
     def tearDown(self):
         self.model = None
@@ -43,7 +43,46 @@ class TestDinSygnSingle(TestDynSignBase):
     def test_equations_to_tropicalize_invalid_method(self):
         self.tro.get_important_nodes(get_passengers_by='random')
 
-    # @raises(AssertionError)
-    # def test_set_combinations_no_eqs_for_trop(self):
-    #     self.tro.set_combinations_sm()
+    class TestPathSignBase(object):
+        def setUp(self):
+            self.model = model
+            self.time = np.linspace(0, 100, 100)
+            self.sim = ScipyOdeSimulator(self.model, tspan=self.time).run()
+            self.dom = DomPath(model=self.model, simulations=self.sim, type_analysis='consumption',
+                               dom_om=1, target='s2', depth=2)
+
+        def tearDown(self):
+            self.model = None
+            self.time = None
+            self.sim = None
+
+    class TestPathSygnSingle(TestPathSignBase):
+
+        def test_run_tropical(self):
+            signatures, paths = self.dom.get_path_signatures()
+            assert np.array_equal(signatures.sequences.values,
+                                  np.array([[0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2,
+                                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2,
+                                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                                         [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2,
+                                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2,
+                                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+                                         [0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
+                                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]))
+
+        def test_run_tropical_multi_one(self):
+            self.dom.get_path_signatures(cpu_cores=2)
+
 

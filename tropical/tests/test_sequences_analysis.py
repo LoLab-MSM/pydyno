@@ -45,6 +45,11 @@ class TestSequenceAnalysis(TestClusteringBase):
                                              [0., 10., 10., 8., 0., 10.],
                                              [10., 0., 10., 10., 10., 0.]]))
 
+    def test_truncate_sequence(self):
+        tseq = self.signatures.truncate_sequences(idx=2)
+        assert len(tseq.sequences.columns) == 2
+        assert len(tseq.sequences.columns) < len(self.signatures.sequences.columns)
+
     def test_diss_matrix_levenshtein(self):
         self.signatures.dissimilarity_matrix(metric='levenshtein')
         seq_len = len(self.signatures.sequences)
@@ -88,3 +93,7 @@ class TestSequenceAnalysis(TestClusteringBase):
     def test_entropy(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
         self.signatures.plot_sequences(type_fig='entropy', plot_all=True)
+
+    def test_modal(self):
+        self.signatures.dissimilarity_matrix(metric='LCS')
+        self.signatures.plot_sequences(type_fig='modal', plot_all=True)
