@@ -2,8 +2,7 @@ language: python
 sudo: required
 dist: trusty
 env:
-- PYVER=2.7
-- PYVER=3.7
+- PYVER=3.6
 before_install:
 - wget http://repo.continuum.io/miniconda/Miniconda${PYVER:0:1}-latest-Linux-x86_64.sh
     -O miniconda.sh
@@ -12,7 +11,7 @@ before_install:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - conda install --yes -c conda-forge python="$PYVER"
     numpy scipy matplotlib seaborn sympy nose h5py
-    pandas scikit-learn coveralls future cython
+    pandas scikit-learn coveralls cython
     editdistance pathos hdbscan
     networkx pydot
 - conda install --yes -c alubbock pysb

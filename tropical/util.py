@@ -7,7 +7,6 @@ from pysb.bng import generate_equations
 from pysb.simulator import SimulationResult
 from itertools import compress
 from scipy.optimize import curve_fit
-from future.utils import itervalues
 from networkx.drawing.nx_pydot import from_pydot
 from pydot import graph_from_dot_data
 from anytree.importer import DictImporter
@@ -53,7 +52,7 @@ def label2rr(model, species):
             counter += 1
     counter2 = 0
     mons_ready = {}
-    for sp in itervalues(monomials):
+    for sp in monomials.values():
         if -1*sp in monomials.values():
             continue
         else:

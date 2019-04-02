@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sympy
 from tropical.util import parse_name, rate_2_interactions, label2rr
-from future.utils import iteritems
 import re
 from pysb.bng import generate_equations
 from anytree.importer import DictImporter
@@ -45,7 +44,7 @@ def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, para
         # plt.ylim(0, max(y_pos))
 
         reaction_rates = label2rr(model, sp)
-        for rr_idx, rr in iteritems(reaction_rates):
+        for rr_idx, rr in reaction_rates.items():
             mon = rr
             var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]
             arg_f1 = [0] * len(var_to_study)

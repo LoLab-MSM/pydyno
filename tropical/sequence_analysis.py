@@ -1,4 +1,3 @@
-from __future__ import division
 import pandas as pd
 import numpy as np
 import os
@@ -14,7 +13,6 @@ from scipy import stats  # I could remove this dependence, mode implementation o
 from tropical.distinct_colors import distinct_colors
 from collections import OrderedDict
 from matplotlib.collections import LineCollection
-from future.utils import listvalues
 from tropical.util import get_labels_entropy
 
 import sklearn.cluster as cluster
@@ -132,7 +130,7 @@ class Sequences(object):
         return str(self._sequences)
 
     def cmap_norm(self):
-        cmap = ListedColormap(listvalues(self._states_colors))
+        cmap = ListedColormap(list(self._states_colors.values()))
         bounds = list(self._states_colors)
         bounds.append(bounds[-1] + 1)
         norm = BoundaryNorm(bounds, cmap.N)

@@ -1,6 +1,5 @@
 import tropical.util as hf
 import numpy as np
-from future.utils import iteritems, listvalues
 from sympy import Symbol, lambdify
 from collections import OrderedDict
 from pysb import Parameter
@@ -89,8 +88,8 @@ class Discretize(object):
                 # Creates dictionary whose key is the reaction rate index and the value is the log value
                 # of the reaction rate
                 reactions_values = {idx: np.log10(np.abs(array[idx])) for idx in mons_idx}
-                max_val = np.amax(listvalues(reactions_values))
-                rr_monomials = [n for n, i in iteritems(reactions_values) if i > (max_val - diff_par) and max_val > -5]
+                max_val = np.amax(list(reactions_values.values()))
+                rr_monomials = [n for n, i in reactions_values.items() if i > (max_val - diff_par) and max_val > -5]
 
                 # If there is no a set of dominant reaction rates, then all the
                 # reaction rates are equally dominant

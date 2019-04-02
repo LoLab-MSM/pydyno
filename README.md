@@ -14,6 +14,7 @@ execution modes and thus multiple potential drivers in signal execution. Here we
 identify signaling drivers and characterize dynamic signal processes within a network. Our method, TroPy, 
 combines physical chemistry, statistical clustering, and tropical algebra formalisms to identify interactions 
 that drive time-dependent behavior in signaling pathways. 
+
 ## Running TroPy
 
 TroPy depends on PySB so the easiest  way to use it is to have a PySB model and you can simply do:
