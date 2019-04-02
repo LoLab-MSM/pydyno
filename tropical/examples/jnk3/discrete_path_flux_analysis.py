@@ -12,11 +12,8 @@ param_values[rates_of_interest_mask] = 10 ** pars
 # param_values[44] = param_values[44] * 0.5
 tspan = np.linspace(0, 60, 100)
 
-# viz = ModelVisualization(model)
-# data = viz.static_view(get_passengers=False)
 sim = ScipyOdeSimulator(model, tspan, param_values=[param_values, param_values/2]).run()
 # dompath = run_dompath_multi(sim, ref=100, target='s27', depth=3, cpu_cores=2)
-d = DomPath(model, sim, target='s27', depth=7, dom_om=0.5)
-q, paths = d.get_path_signatures(cpu_cores=2)
-print(paths.keys())
-# visualization_path(model, paths[list(paths.keys())[0]], 'test.pdf')
+d = DomPath(model, sim, type_analysis='consumption', target='s27', depth=7, dom_om=0.5)
+signatures, paths = d.get_path_signatures(cpu_cores=2)
+visualization_path(model, paths[1], type_analysis='consumption', filename='test.pdf')
