@@ -83,8 +83,8 @@ class TestSequenceAnalysis(TestClusteringBase):
 
     def test_all_trajectories(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.signatures.plot_sequences(type_fig='trajectories')
+        self.signatures.plot_sequences(type_fig='trajectories', plot_all=True)
 
     def test_entropy(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.signatures.plot_sequences(type_fig='entropy')
+        self.signatures.plot_sequences(type_fig='entropy', plot_all=True)
