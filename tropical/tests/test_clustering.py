@@ -1,9 +1,8 @@
 # from tropical.examples.double_enzymatic.mm_two_paths_model import model
-# from nose.tools import *
+from nose.tools import *
 import numpy as np
-from tropical import clustering
 from tropical.sequence_analysis import Sequences
-from pysb.testing import *
+# from pysb.testing import *
 import os
 
 
@@ -20,74 +19,72 @@ class TestClusteringBase(object):
         seqsdata = [[2, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
                     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]
         self.signatures = Sequences(seqsdata)
-        self.clus = clustering.ClusterSequences(self.signatures)
 
     def tearDown(self):
         self.signatures = None
-        self.clus = None
 
 
 class TestClusteringSingle(TestClusteringBase):
 
     def test_hdbscan(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.hdbscan_clustering()
-        assert self.clus.cluster_method == 'hdbscan'
-        assert len(self.clus.labels) == len(self.signatures.sequences)
-        assert not np.isnan(self.clus.labels).any()
+        self.signatures.hdbscan_clustering()
+        assert self.signatures.cluster_method == 'hdbscan'
+        assert len(self.signatures.labels) == len(self.signatures.sequences)
+        assert not np.isnan(self.signatures.labels).any()
 
     @raises(Exception)
     def test_hdbscan_no_diss_matrix(self):
-        self.clus.hdbscan_clustering()
+        self.signatures.hdbscan_clustering()
 
     # The k-medoids implementation throws an error when the clusters are empty
-    # def test_kmedoids(self):
-    #     self.signatures.dissimilarity_matrix(metric='LCS')
-    #     self.clus.Kmedoids(2)
-    #     assert self.clus.cluster_method == 'kmedoids'
-    #     assert len(self.clus.labels) == len(self.clus.sequences)
-    #     assert not np.isnan(self.clus.labels).any()
+    def test_kmedoids(self):
+        self.signatures.dissimilarity_matrix(metric='LCS')
+        self.signatures.Kmedoids(2)
+        assert self.signatures.cluster_method == 'kmedoids'
+        assert len(self.signatures.labels) == len(self.signatures.sequences)
+        assert not np.isnan(self.signatures.labels).any()
 
     @raises(Exception)
     def test_kmedoids_no_diss_matrix(self):
-        self.clus.Kmedoids(2)
+        self.signatures.Kmedoids(2)
 
     def test_agglomerative(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.agglomerative_clustering(2)
-        assert self.clus.cluster_method == 'agglomerative'
-        assert len(self.clus.labels) == len(self.signatures.sequences)
-        assert not np.isnan(self.clus.labels).any()
+        self.signatures.agglomerative_clustering(2)
+        assert self.signatures.cluster_method == 'agglomerative'
+        assert len(self.signatures.labels) == len(self.signatures.sequences)
+        assert not np.isnan(self.signatures.labels).any()
 
     def test_spectral(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.spectral_clustering(2)
-        assert self.clus.cluster_method == 'spectral'
-        assert len(self.clus.labels) == len(self.signatures.sequences)
-        assert not np.isnan(self.clus.labels).any()
+        self.signatures.spectral_clustering(2)
+        assert self.signatures.cluster_method == 'spectral'
+        assert len(self.signatures.labels) == len(self.signatures.sequences)
+        assert not np.isnan(self.signatures.labels).any()
 
     def test_silhouette_score_hdbscan(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.hdbscan_clustering(min_cluster_size=2, min_samples=1)
-        score = self.clus.silhouette_score()
+        self.signatures.hdbscan_clustering(min_cluster_size=2, min_samples=1)
+        score = self.signatures.silhouette_score()
         assert 1 > score > -1
 
     def test_silhouette_score_agglomerative(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.agglomerative_clustering(2)
-        score = self.clus.silhouette_score()
+        self.signatures.agglomerative_clustering(2)
+        score = self.signatures.silhouette_score()
         assert 1 > score > -1
 
     @raises(Exception)
     def test_silhouette_score_without_clustering(self):
-        self.clus.silhouette_score()
+        self.signatures.silhouette_score()
 
     def test_silhouette_spectral_range_2_4(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
         k_range = range(2, 4)
-        clus_info_range = self.clus.silhouette_score_spectral_range(k_range)
+        clus_info_range = self.signatures.silhouette_score_spectral_range(k_range)
         clust_n = k_range[-1]
-        clus_info_int = self.clus.silhouette_score_spectral_range(clust_n)
+        clus_info_int = self.signatures.silhouette_score_spectral_range(clust_n)
         assert len(k_range) == len(clus_info_range['num_clusters'])
         scores = np.array([True for i in clus_info_range['cluster_silhouette'] if 1 > i > -1])
         assert scores.all() == True
@@ -97,9 +94,9 @@ class TestClusteringSingle(TestClusteringBase):
     def test_silhouette_score_agglomerative_range_2_4(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
         k_range = range(2, 4)
-        clus_info_range = self.clus.silhouette_score_agglomerative_range(k_range)
+        clus_info_range = self.signatures.silhouette_score_agglomerative_range(k_range)
         clust_n = k_range[-1]
-        clus_info_int = self.clus.silhouette_score_agglomerative_range(clust_n)
+        clus_info_int = self.signatures.silhouette_score_agglomerative_range(clust_n)
         assert len(k_range) == len(clus_info_range['num_clusters'])
         scores = np.array([True for i in clus_info_range['cluster_silhouette'] if 1 > i > -1])
         assert scores.all() == True
@@ -108,23 +105,23 @@ class TestClusteringSingle(TestClusteringBase):
 
     @raises(TypeError)
     def test_silhouette_score_spectral_wrong_type(self):
-        self.clus.silhouette_score_spectral_range('4')
+        self.signatures.silhouette_score_spectral_range('4')
 
     @raises(TypeError)
     def test_silhouette_score_agglomerative_wrong_type(self):
-        self.clus.silhouette_score_agglomerative_range('4')
+        self.signatures.silhouette_score_agglomerative_range('4')
 
     @raises(TypeError)
     def test_silhouette_score_agglomerative_invalid_range(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.silhouette_score_agglomerative_range('bla')
+        self.signatures.silhouette_score_agglomerative_range('bla')
 
     def test_calinski_harabaz_score(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
-        self.clus.agglomerative_clustering(2)
-        score = self.clus.calinski_harabaz_score()
+        self.signatures.agglomerative_clustering(2)
+        score = self.signatures.calinski_harabaz_score()
         assert score == 17.0
 
     @raises(Exception)
     def test_calinski_harabaz_score_without_clustering(self):
-        self.clus.calinski_harabaz_score()
+        self.signatures.calinski_harabaz_score()
