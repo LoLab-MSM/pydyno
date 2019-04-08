@@ -28,6 +28,11 @@ try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
     Pool = None
+try:
+    import h5py
+except ImportError:
+    h5py = None
+
 
 # TODO there must be a better way to define the fontsize
 n_row_fontsize = {1: 'medium', 2: 'medium', 3: 'small', 4: 'small', 5: 'x-small', 6: 'x-small', 7: 'xx-small',
@@ -41,6 +46,7 @@ _VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
                   'russellrao', 'seuclidean', 'sokalmichener',
                   'sokalsneath', 'sqeuclidean', 'yule', "wminkowski"]
 
+_VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
 def lcs_dist_same_length(seq1, seq2):
     """
@@ -96,10 +102,13 @@ class Sequences(object):
         else:
             raise TypeError('data type not valid')
 
+        # Rename index if seq_idx doesn't exist in the dataframe
+        if 'seq_idx' not in data_seqs.index.names:
+            data_seqs.index.rename('seq_idx', inplace=True)
         # Making sure that we have a count name in the data frame
         if 'count' not in data_seqs.index.names:
             data_seqs['count'] = 1
-            data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
+            data_seqs.set_index(['count'], append=True, inplace=True)
 
         self._sequences = data_seqs
 
@@ -120,8 +129,8 @@ class Sequences(object):
 
         # Dissimilarity matrix, cluster labels and cluster method
         self._diss = None
-        self.labels = None
-        self.cluster_method = None
+        self._labels = None
+        self._cluster_method = None
 
     def __repr__(self):
         """
@@ -228,6 +237,31 @@ class Sequences(object):
         if not isinstance(value, np.ndarray):
             raise TypeError('dissimilarity matrix must be a numpy ndarray')
         self._diss = value
+
+    @property
+    def labels(self):
+        if self._labels is None:
+            print('A clustering function must be run beforehand '
+                  'to obtain the label values')
+        return self._labels
+
+    @labels.setter
+    def labels(self, value):
+        # TODO: write some checks for the labels
+        self._labels = value
+
+    @property
+    def cluster_method(self):
+        if self._cluster_method is None:
+            print('A clustering function must be run beforehand'
+                  'to save the clustering method name')
+        return self._cluster_method
+
+    @cluster_method.setter
+    def cluster_method(self, value):
+        if value not in _VALID_CLUSTERING:
+            raise ValueError('Clustering method not valid')
+        self._cluster_method = value
 
     @property
     def unique_states(self):
@@ -364,9 +398,9 @@ class Sequences(object):
             cluster_labels = np.zeros(len(self._sequences), dtype=np.int)
         else:
             # Check that the sequences has been clustered
-            if self.labels is None:
+            if self._labels is None:
                 raise Exception('Cluster the sequences first')
-            cluster_labels = self.labels
+            cluster_labels = self._labels
 
         clusters = set(cluster_labels)
         if -1 in clusters:
@@ -391,7 +425,6 @@ class Sequences(object):
         if type_fig == 'modal':
             self.__modal(cluster_labels, clusters, axs, n_rows)
             plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
-            plt.ylim((0, 1))
             plt.suptitle(title)
             f.text(0.5, 0.04, 'Time (h)', ha='center')
             plt.savefig(filename + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
@@ -428,6 +461,7 @@ class Sequences(object):
             width_bar = self.sequences.columns[1] - self.sequences.columns[0]
             colors = [self.states_colors[c] for c in modal_states[0]]
             legend_patches = [mpatches.Patch(color=self.states_colors[c], label=c) for c in set(modal_states[0])]
+            axs[clus].set_ylim(0, 1)
             axs[clus].bar(self.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
             axs[clus].legend(handles=legend_patches, fontsize='x-small')
             axs[clus].set_ylabel('Freq (n={0})'.format(total_seqs), fontsize=n_row_fontsize[nrows])  # Frequency
@@ -525,9 +559,9 @@ class Sequences(object):
         hdb = hdbscan.HDBSCAN(min_cluster_size=min_cluster_size, min_samples=min_samples,
                               alpha=alpha, cluster_selection_method=cluster_selection_method,
                               metric='precomputed', **kwargs).fit(self.diss)
-        self.labels = hdb.labels_
+        self._labels = hdb.labels_
 
-        self.cluster_method = 'hdbscan'
+        self._cluster_method = 'hdbscan'
         return
 
     def Kmedoids(self, n_clusters):
@@ -548,15 +582,15 @@ class Sequences(object):
         labels = np.empty(len(self.sequences), dtype=np.int32)
         for lb, seq_idx in kmedoids[1].items():
             labels[seq_idx] = lb
-        self.cluster_method = 'kmedoids'
-        self.labels = labels
+        self._cluster_method = 'kmedoids'
+        self._labels = labels
         return
 
     def agglomerative_clustering(self, n_clusters, linkage='average', **kwargs):
         ac = cluster.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed',
                                              linkage=linkage, **kwargs).fit(self.diss)
-        self.labels = ac.labels_
-        self.cluster_method = 'agglomerative'
+        self._labels = ac.labels_
+        self._cluster_method = 'agglomerative'
         return
 
     def spectral_clustering(self, n_clusters, random_state=None, n_jobs=1, **kwargs):
@@ -564,8 +598,8 @@ class Sequences(object):
         kernel = np.exp(-self.diss * gamma)
         sc = cluster.SpectralClustering(n_clusters=n_clusters, random_state=random_state,
                                         affinity='precomputed', n_jobs=n_jobs, **kwargs).fit(kernel)
-        self.labels = sc.labels_
-        self.cluster_method = 'spectral'
+        self._labels = sc.labels_
+        self._cluster_method = 'spectral'
 
     def silhouette_score(self):
         """
@@ -574,17 +608,17 @@ class Sequences(object):
         -------
 
         """
-        if self.labels is None:
+        if self._labels is None:
             raise Exception('you must cluster the signatures first')
-        if self.cluster_method == 'hdbscan':
+        if self._cluster_method == 'hdbscan':
             # Keep only clustered sequences
-            clustered = np.where(self.labels != -1)[0]
-            updated_labels = self.labels[clustered]
+            clustered = np.where(self._labels != -1)[0]
+            updated_labels = self._labels[clustered]
             updated_diss = self.diss[clustered][:, clustered]
             score = metrics.silhouette_score(updated_diss, updated_labels, metric='precomputed')
             return score
         else:
-            score = metrics.silhouette_score(self.diss, self.labels, metric='precomputed')
+            score = metrics.silhouette_score(self.diss, self._labels, metric='precomputed')
             return score
 
     def silhouette_score_spectral_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
@@ -651,10 +685,90 @@ class Sequences(object):
             return clusters_df
 
     def calinski_harabaz_score(self):
-        if self.labels is None:
+        if self._labels is None:
             raise Exception('you must cluster the signatures first')
-        score = metrics.calinski_harabaz_score(self.sequences, self.labels)
+        score = metrics.calinski_harabaz_score(self.sequences, self._labels)
         return score
+
+    def save(self, filename):
+        """
+        Save a Sequence object to a HDF5 format file
+        Parameters
+        ----------
+        filename: str
+            Filename to which the data will be saved
+        dataset_name: str or None
+            Dataset name. If None, it will default to 'result'. If the
+            dataset_name already exists within the group, a ValueError is
+            raised.
+        group_name: str or None
+            Group name. If None, will default to the name of the model.
+        append: bool
+            If False, raise IOError if the specified file already exists. If
+            True, append to existing file (or create if it doesn't exist).
+
+        """
+        if h5py is None:
+            raise Exception('Please install the h5py package for this feature')
+
+        group_name = 'discretization_result'
+
+        with h5py.File(filename, 'w-') as hdf:
+            grp = hdf.create_group(group_name)
+            grp.create_dataset('sequences', data=self.sequences.to_records(),
+                               compression='gzip', shuffle=True)
+            if self._diss is not None:
+                grp.create_dataset('dissimilarity_matrix', data=self.diss,
+                                   compression='gzip', shuffle=True)
+            if self._labels is not None:
+                dset = grp.create_group('clustering_information')
+                dset.create_dataset('cluster_labels', data=self._labels,
+                                    compression='gzip', shuffle=True)
+                dset.attrs['cluster_method'] = self._cluster_method
+
+    @classmethod
+    def load(cls, filename):
+        """
+        Load a sequence result from a HDF5 format file.
+        Parameters
+        ----------
+        filename: str
+            Filename from which to load data
+
+        Returns
+        -------
+        Sequences
+            Sequences obtained from doing a discretization analysis
+        """
+        if h5py is None:
+            raise Exception('Please "pip install h5py" for this feature')
+
+        with h5py.File(filename, 'r') as hdf:
+            grp = hdf['discretization_result']
+            seqs = grp['sequences'][:]
+
+            dm = None
+            cluster_method = None
+            labels = None
+
+            if 'dissimilarity_matrix' in grp.keys():
+                dm = grp['dissimilarity_matrix'][:]
+
+            if 'clustering_information' in grp.keys():
+                cluster_dset = grp['clustering_information']
+                cluster_method = cluster_dset.attrs['cluster_method']
+                labels = cluster_dset['cluster_labels'][:]
+
+            seqRes = cls(
+                seqdata=pd.DataFrame.from_records(seqs, index=['seq_idx', 'count'])
+            )
+            seqRes.cluster_method = cluster_method
+            seqRes.labels = labels
+            seqRes.diss = dm
+
+        return seqRes
+
+
 
     #TODO: Develop gap statistics score for sequences. Maybe get elbow plot as well
 
