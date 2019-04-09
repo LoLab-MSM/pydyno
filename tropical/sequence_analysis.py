@@ -156,7 +156,9 @@ class Sequences(object):
         """
         data_seqs = self._sequences.groupby(self._sequences.columns.tolist(),
                                             sort=False).size().rename('count').reset_index()
-        data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
+        data_seqs.index.rename('seq_idx', inplace=True)
+        data_seqs.set_index(['count'], append=True, inplace=True)
+        # data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
         return Sequences(data_seqs)
 
     def truncate_sequences(self, idx):
