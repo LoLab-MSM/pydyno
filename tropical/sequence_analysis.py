@@ -236,9 +236,16 @@ class Sequences(object):
 
     @diss.setter
     def diss(self, value):
-        if not isinstance(value, np.ndarray):
+        if isinstance(value, np.ndarray):
+            if value.shape != (len(self.sequences.shape), len(self.sequences.shape)):
+                self._diss = value
+            else:
+                raise ValueError("new dissimilarity matrix must be a square matrix of order"
+                                 "equal to the length of the number of sequences")
+        elif value is None:
+            self._diss = None
+        else:
             raise TypeError('dissimilarity matrix must be a numpy ndarray')
-        self._diss = value
 
     @property
     def labels(self):
@@ -249,8 +256,16 @@ class Sequences(object):
 
     @labels.setter
     def labels(self, value):
-        # TODO: write some checks for the labels
-        self._labels = value
+        if isinstance(value, Iterable):
+            if len(value) != len(self.sequences):
+                self._labels = value
+            else:
+                raise ValueError('The new cluster labels must be the same length as'
+                                 'the number of sequences')
+        elif value is None:
+            self._labels = None
+        else:
+            raise TypeError('Labels must be a vector with the labels from clustering')
 
     @property
     def cluster_method(self):
@@ -261,9 +276,10 @@ class Sequences(object):
 
     @cluster_method.setter
     def cluster_method(self, value):
-        if value not in _VALID_CLUSTERING:
+        if value in _VALID_CLUSTERING + [None]:
+            self._cluster_method = value
+        else:
             raise ValueError('Clustering method not valid')
-        self._cluster_method = value
 
     @property
     def unique_states(self):
