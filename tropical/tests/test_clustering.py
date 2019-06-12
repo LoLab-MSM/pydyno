@@ -18,7 +18,7 @@ class TestClusteringBase(object):
     def setUp(self):
         seqsdata = [[2, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
                     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]
-        self.signatures = Sequences(seqsdata)
+        self.signatures = Sequences(seqsdata, 's0')
 
     def tearDown(self):
         self.signatures = None

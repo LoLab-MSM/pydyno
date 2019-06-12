@@ -86,7 +86,7 @@ class Sequences(object):
         Sequence data from the discretization of a PySB model. If str it must be a csv file
         with the sequences as rows and the first row must have the time points of the simulation.
     """
-    def __init__(self, seqdata):
+    def __init__(self, seqdata, target):
         # Checking seqdata
         if isinstance(seqdata, str):
             if os.path.isfile(seqdata):
@@ -111,6 +111,7 @@ class Sequences(object):
             data_seqs.set_index(['count'], append=True, inplace=True)
 
         self._sequences = data_seqs
+        self._target = target
 
         # Obtaining unique states in the sequences
         unique_states = pd.unique(data_seqs[data_seqs.columns.tolist()].values.ravel())
@@ -159,7 +160,7 @@ class Sequences(object):
         data_seqs.index.rename('seq_idx', inplace=True)
         data_seqs.set_index(['count'], append=True, inplace=True)
         # data_seqs.set_index([list(range(len(data_seqs))), 'count'], inplace=True)
-        return Sequences(data_seqs)
+        return Sequences(data_seqs, self.target)
 
     def truncate_sequences(self, idx):
         """
@@ -174,7 +175,7 @@ class Sequences(object):
         Sequences truncated at the idx indicated
         """
         data_seqs = self._sequences[self._sequences.columns.tolist()[:idx]]
-        return Sequences(data_seqs)
+        return Sequences(data_seqs, self.target)
 
     def dissimilarity_matrix(self, metric='LCS', n_jobs=1):
         """
@@ -226,6 +227,10 @@ class Sequences(object):
     @property
     def sequences(self):
         return self._sequences
+
+    @property
+    def target(self):
+        return self._target
 
     @property
     def diss(self):

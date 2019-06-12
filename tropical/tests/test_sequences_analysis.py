@@ -18,7 +18,7 @@ class TestClusteringBase(object):
     def setUp(self):
         seqsdata = np.array([[11, 12, 13, 14, 15], [1, 2, 3, 4, 5], [6, 7, 8, 9, 10],
                              [6, 7, 8, 12, 11], [11, 12, 13, 14, 15], [1, 2, 3, 4, 5]])
-        self.signatures = Sequences(seqsdata)
+        self.signatures = Sequences(seqsdata, 's0')
 
         self.labels = [0, 1, 2, 3, 0, 1]
 

@@ -8,25 +8,31 @@ from anytree.importer import DictImporter
 from anytree.exporter import DotExporter
 
 
-def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, param_values):
+def visualization_sp(sim, sim_idx, sp_to_vis, all_signatures, plot_type):
     """
 
-    :param model: pysb model
-    :param tspan: vector-like, Time of the simulation
-    :param y: species simulation
-    :param sp_to_vis: Int, species index to visualize
-    :param all_signatures: signatures from tropical
-    :param plot_type: str, `p` for production and `c` and consumption
-    :param param_values: Parameters used for the simulation
-    :return:
+    Parameters
+    ----------
+    sim : pysb.simulator.SimulationResult
+        Simulation from which the signatures were obtained
+    sim_idx : Int,
+        Index of the simulation to use for the visualization
+    sp_to_vis : Int
+        Index of the species discretization to visualize
+    all_signatures: pd.DataFrame
+        Pandas dataframe that contains the signatures
+    plot_type: str
+        `p` for production and `c` for consumption
+
     """
+
+    model = sim._model
+    tspan = sim.tout[sim_idx]
+    param_values = sim.param_values[sim_idx]
     mach_eps = np.finfo(float).eps
-    species_ready = list(set(sp_to_vis).intersection(all_signatures.keys()))
     par_name_idx = {j.name: i for i, j in enumerate(model.parameters)}
-    if not species_ready:
-        raise Exception('None of the input species is a driver')
 
-    for sp in species_ready:
+    for sp in sp_to_vis:
         sp = int(sp)
         sp_plot = '__s{0}_{1}'.format(sp, plot_type)
 
@@ -34,11 +40,11 @@ def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, para
         fig, axs = plt.subplots(nrows=3, ncols=1, sharex=True)
         fig.subplots_adjust(hspace=0.4)
 
-        signature = all_signatures.loc[sp_plot].values[0]
+        signature = all_signatures.loc[sp_plot].values[sim_idx]
 
         axs[2].scatter(tspan, [str(s) for s in signature])
         # plt.yticks(list(set(signature)))
-        axs[2].set_ylabel('Dominant terms', fontsize=12)
+        axs[2].set_ylabel('Dom rxns', fontsize=12)
         axs[2].set_xlabel('Time(s)', fontsize=14)
         axs[2].set_xlim(0, tspan[-1])
         # plt.ylim(0, max(y_pos))
@@ -50,8 +56,8 @@ def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, para
             arg_f1 = [0] * len(var_to_study)
             for idx, va in enumerate(var_to_study):
                 if str(va).startswith('__'):
-                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                    arg_f1[idx] = np.maximum(mach_eps, y[:, sp_idx])
+                    sp_idx = str(va)
+                    arg_f1[idx] = np.maximum(mach_eps, sim.all[sim_idx][sp_idx])
                 else:
                     arg_f1[idx] = param_values[par_name_idx[va.name]]
 
@@ -63,9 +69,9 @@ def visualization_sp(model, tspan, y, sp_to_vis, all_signatures, plot_type, para
         axs[1].legend(bbox_to_anchor=(1., 0.85), ncol=3, title='Reaction rates')
 
         # TODO: fix this for observables.
-        axs[0].plot(tspan, y[:, sp], label=parse_name(model.species[sp]))
-        axs[0].set_ylabel(r'Concentration [$\mu$M]', fontsize=12)
-        axs[0].legend(bbox_to_anchor=(1.32, 0.85), ncol=1)
+        axs[0].plot(tspan, sim.all[sim_idx]['__s{0}'.format(sp)], label=parse_name(model.species[sp]))
+        axs[0].set_ylabel(r'Conc [$\mu$M]', fontsize=12)
+        axs[0].legend(bbox_to_anchor=(1, 0.85), ncol=1)
         fig.suptitle('Discretization' + ' ' + parse_name(model.species[sp]), y=1.0)
 
         # plt.tight_layout()
@@ -116,5 +122,45 @@ def visualization_path(model, path, type_analysis, filename):
                     edgeattrfunc=None).to_picture(filename)
     else:
         raise ValueError('Type of visualization not implemented')
+
+
+def visualization_seq_paths(sim, sim_idx, all_signatures):
+    """
+
+    Parameters
+    ----------
+    sim : pysb.simulator.SimulationResult
+        Simulation from which the signatures were obtained
+    sim_idx : Int,
+        Index of the simulation to use for the visualization
+    all_signatures: tropical.sequence_analysis.Sequences
+        Sequences class that contains the signatures
+
+    """
+
+    model = sim._model
+    tspan = sim.tout[sim_idx]
+    sp_plot = int(''.join(filter(str.isdigit, all_signatures.target)))
+
+    # Setting up figure
+    fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True)
+    fig.subplots_adjust(hspace=0.4)
+
+    signature = all_signatures.sequences.loc[sim_idx].values[0]
+    axs[1].scatter(tspan[1:], signature)
+    # axs[1].set_yticks(list(set(signature)))
+    axs[1].set_ylabel('Dom paths', fontsize=12)
+    axs[1].set_xlabel('Time(s)', fontsize=14)
+    axs[1].set_xlim(0, tspan[-1])
+    # plt.ylim(0, max(y_pos))
+
+    # TODO: fix this for observables.
+    axs[0].plot(tspan, sim.all[sim_idx]['__s{0}'.format(sp_plot)], label=parse_name(model.species[sp_plot]))
+    axs[0].set_ylabel(r'Conc [$\mu$M]', fontsize=12)
+    axs[0].legend(bbox_to_anchor=(1, 0.85), ncol=1)
+    fig.suptitle('Discretization' + ' ' + parse_name(model.species[sp_plot]), y=1.0)
+
+    # plt.tight_layout()
+    fig.savefig('s{0}'.format(sp_plot) + '.pdf', format='pdf', bbox_inches='tight')
 
 

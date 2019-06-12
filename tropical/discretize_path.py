@@ -390,7 +390,7 @@ class DomPath(object):
                 del all_labels
                 signatures_df = signatures_to_dataframe(all_signatures, self.tspan)
                 signatures_df = signatures_df.applymap(lambda x: new_labels[x])
-                return Sequences(signatures_df), new_paths
+                return Sequences(signatures_df, self.target), new_paths
         else:
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
@@ -419,7 +419,7 @@ class DomPath(object):
             signatures_df = signatures_to_dataframe(signatures, self.tspan)
             signatures_df = signatures_df.applymap(lambda x: new_labels[x])
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-            return Sequences(signatures_df), new_paths
+            return Sequences(signatures_df, self.target), new_paths
 
 
 def signatures_to_dataframe(signatures, tspan):
@@ -434,7 +434,7 @@ def signatures_to_dataframe(signatures, tspan):
 
 
 def find_numbers(dom_r_str):
-    n = map(int, re.findall('\d+', dom_r_str))
+    n = map(int, re.findall(r'\d+', dom_r_str))
     return n
 
 
