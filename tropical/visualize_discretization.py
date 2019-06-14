@@ -155,7 +155,12 @@ def visualization_seq_paths(sim, sim_idx, all_signatures):
     # plt.ylim(0, max(y_pos))
 
     # TODO: fix this for observables.
-    axs[0].plot(tspan, sim.all[sim_idx]['__s{0}'.format(sp_plot)], label=parse_name(model.species[sp_plot]))
+    if sim.nsims == 1 and sim.squeeze:
+        sp_sim = sim.all['__s{0}'.format(sp_plot)]
+    else:
+        sp_sim = sim.all[sim_idx]['__s{0}'.format(sp_plot)]
+
+    axs[0].plot(tspan, sp_sim, label=parse_name(model.species[sp_plot]))
     axs[0].set_ylabel(r'Conc [$\mu$M]', fontsize=12)
     axs[0].legend(bbox_to_anchor=(1, 0.85), ncol=1)
     fig.suptitle('Discretization' + ' ' + parse_name(model.species[sp_plot]), y=1.0)
