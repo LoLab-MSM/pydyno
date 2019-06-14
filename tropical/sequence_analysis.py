@@ -48,9 +48,10 @@ _VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
 
 _VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
+
 def lcs_dist_same_length(seq1, seq2):
     """
-
+    Longest common subsequence metric
     Parameters
     ----------
     seq1 : array-like
@@ -82,7 +83,10 @@ def levenshtein(seq1, seq2):
 
 class Sequences(object):
     """
-    seqdata: str, pd.DataFrame, np.ndarray
+    Class to do analysis and visualizations of discretized trajectories
+    Parameters
+    ----------
+    seqdata: str, pd.DataFrame, np.ndarray, list
         Sequence data from the discretization of a PySB model. If str it must be a csv file
         with the sequences as rows and the first row must have the time points of the simulation.
     """
@@ -262,10 +266,10 @@ class Sequences(object):
     @labels.setter
     def labels(self, value):
         if isinstance(value, Iterable):
-            if len(value) != len(self.sequences):
+            if len(value) != self.sequences.shape[1]:
                 self._labels = value
             else:
-                raise ValueError('The new cluster labels must be the same length as'
+                raise ValueError('The new cluster labels must be the same length as '
                                  'the number of sequences')
         elif value is None:
             self._labels = None
