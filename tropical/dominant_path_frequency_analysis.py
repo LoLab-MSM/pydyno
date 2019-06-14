@@ -7,6 +7,7 @@ from anytree.importer import DictImporter
 
 class FreqAnalysis(object):
     """
+    Class to perform frequency analysis on the discretize simulation results
     Parameters
     ----------
     model: PySB model
