@@ -12,6 +12,7 @@ from anytree import Node, findall
 from anytree.exporter import DictExporter
 from collections import ChainMap
 import time
+
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
@@ -32,7 +33,7 @@ TYPE_ANALYSIS_DICT = {'production': ['in_edges', 0],
 
 class DomPath(object):
     """
-
+    Class to discretize the simulated trajectory of a model species
     Parameters
     ----------
     model: PySB model
@@ -50,6 +51,7 @@ class DomPath(object):
     depth: int
         Depth of the traceback starting from target
     """
+
     def __init__(self, model, simulations, type_analysis, dom_om, target, depth):
         self._model = model
         self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
@@ -216,17 +218,17 @@ class DomPath(object):
         in_edges = getattr(network, type_edge)(r)
         sp_nodes = [n[idx_r] for n in in_edges]
         # Sort the incoming nodes to get the same results in each simulation
-        return natural_sort(sp_nodes)
+        return _natural_sort(sp_nodes)
 
     def dominant_paths(self, trajectories, parameters):
         """
-        Traceback a dominant path from a defined target
+        Traceback a dominant path from a user defined target
         Parameters
         ----------
-        target : str
-            Node t_idx from network, Node from which the pathway starts
-        depth : int
-            The depth of the pathway
+        trajectories : PySB SimulationResult object
+            Simulation result to use to obtain the dominant_paths
+        parameters : vector-like
+            Parameter set used for the trajectories simulation
 
         Returns
         -------
@@ -295,7 +297,7 @@ class DomPath(object):
                             # Obtaining dominant species and reactions nodes
                             dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - self.dom_om)]
                             # Sort the dominant r nodes to get the same results in each simulation
-                            dom_r_nodes = natural_sort(dom_r_nodes)
+                            dom_r_nodes = _natural_sort(dom_r_nodes)
                             dom_sp_nodes = [self.species_connected_to_node(network, reaction_nodes, type_edge, idx_r)
                                             for reaction_nodes in dom_r_nodes]
                             # Get the species nodes from the reaction nodes to keep back tracking the pathway
@@ -319,15 +321,15 @@ class DomPath(object):
                     for sp in sps:
                         p = findall(root, filter_=lambda n: n.name == pa and n.order == idx)
                         for m in p:
-                            Node(sp, parent=m, order=idx+1)
+                            Node(sp, parent=m, order=idx + 1)
                         # sp_paths.append((sp, idx+1))
             # sp_paths.insert(0, (self.target, 0))
 
             # if not dominant path define a label 1
-            if not list(find_numbers(all_rdom_noodes_str)):
+            if not list(_find_numbers(all_rdom_noodes_str)):
                 rdom_label = -1
             else:
-                rdom_label = list_to_int(find_numbers(all_rdom_noodes_str))
+                rdom_label = _list_to_int(_find_numbers(all_rdom_noodes_str))
             path_rlabels[rdom_label] = DictExporter().export(root)
             signature[t_idx] = rdom_label
             # path_sp_labels[rdom_label] = t_paths
@@ -375,34 +377,28 @@ class DomPath(object):
                 else:
                     parameters = parameters[0]
                 signatures, labels = self.dominant_paths(trajectories, parameters)
+                signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
                 # signatures_labels = {'signatures': signatures, 'labels': labels}
-                return signatures, labels
+                return Sequences(signatures_df, self.target), new_paths
             else:
                 all_signatures = [0] * nsims
                 all_labels = [0] * nsims
                 for idx in range(nsims):
                     all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx])
-                all_labels = dict(ChainMap(*all_labels))
-                all_signatures = np.array(all_signatures)
-                unique_signatures = np.unique(all_signatures)
-                new_labels = {va: i for i, va in enumerate(unique_signatures)}
-                new_paths = {new_labels[key]: value for key, value in all_labels.items()}
-                del all_labels
-                signatures_df = signatures_to_dataframe(all_signatures, self.tspan)
-                signatures_df = signatures_df.applymap(lambda x: new_labels[x])
+                signatures_df, new_paths = _reencode_signatures_paths(all_signatures, all_labels, self.tspan)
                 return Sequences(signatures_df, self.target), new_paths
         else:
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
-        # if self.nsims == 1:
-        #     self.trajectories = [self.trajectories]
-        #     self.parameters = [self.parameters]
+            # if self.nsims == 1:
+            #     self.trajectories = [self.trajectories]
+            #     self.parameters = [self.parameters]
 
             p = Pool(cpu_cores)
             res = p.amap(self.dominant_paths, trajectories, parameters)
             if verbose:
                 while not res.ready():
-                    print('We\'re not done yet, %s tasks to go!' % res._number_left)
+                    print('We\'re not done yet, {0} tasks to go!'.format(res._number_left))
                     time.sleep(60)
             signatures_labels = res.get()
             signatures = [0] * len(signatures_labels)
@@ -410,47 +406,48 @@ class DomPath(object):
             for idx, sl in enumerate(signatures_labels):
                 signatures[idx] = sl[0]
                 labels[idx] = sl[1]
-            all_labels = dict(ChainMap(*labels))
-            signatures = np.array(signatures)
-            unique_signatures = np.unique(signatures)
-            new_labels = {va: i for i, va in enumerate(unique_signatures)}
-            new_paths = {new_labels[key]: value for key, value in all_labels.items()}
-            del all_labels
-            signatures_df = signatures_to_dataframe(signatures, self.tspan)
-            signatures_df = signatures_df.applymap(lambda x: new_labels[x])
+            signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
             return Sequences(signatures_df, self.target), new_paths
 
 
-def signatures_to_dataframe(signatures, tspan):
+def _reencode_signatures_paths(signatures, labels, tspan):
+    if isinstance(labels, list):
+        all_labels = dict(ChainMap(*labels))
+        signatures = np.array(signatures)
+    else:
+        all_labels = labels
+        signatures = np.array(signatures, ndmin=2)
+    unique_signatures = np.unique(signatures)
+    new_labels = {va: i for i, va in enumerate(unique_signatures)}
+    new_paths = {new_labels[key]: value for key, value in all_labels.items()}
+    del all_labels
+    signatures_df = _signatures_to_dataframe(signatures, tspan)
+    signatures_df = signatures_df.applymap(lambda x: new_labels[x])
+    return signatures_df, new_paths
+
+
+def _signatures_to_dataframe(signatures, tspan):
     def time_values(t):
-        # We add 1 because the first time point is ignored because there could
+        # We add 1 because the first time point is ignored as there could
         # be equilibration issues
-        return tspan[t+1]
+        return tspan[t + 1]
 
     s = pd.DataFrame(signatures)
     s.rename(time_values, axis='columns', inplace=True)
     return s
 
 
-def find_numbers(dom_r_str):
+def _find_numbers(dom_r_str):
     n = map(int, re.findall(r'\d+', dom_r_str))
     return n
 
 
-def list_to_int(nums):
+def _list_to_int(nums):
     return int(''.join(map(str, nums)))
 
 
-def merge_dicts(dicts):
-    super_dict = defaultdict(set)
-    for d in dicts:
-        for k, v in d.items():  # use d.iteritems() in python 2
-            super_dict[k].add(v)
-    return super_dict
-
-
-def natural_sort(l):
+def _natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
