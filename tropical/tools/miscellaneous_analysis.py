@@ -45,16 +45,16 @@ def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_ch
         param_values = np.array([p.value for p in model.parameters])
 
     new_pars = dict((p.name, param_values[i]) for i, p in enumerate(model.parameters))
+    solver = ScipyOdeSimulator(model=model, tspan=tspan)
 
     for idx, par in enumerate(parameters_to_change):
         plt.figure()
-        solver = ScipyOdeSimulator(model=model, tspan=tspan)
         y = solver.run(param_values=new_pars).species
         nummol = np.copy(y[time_change:time_change+1])#.T.reshape(len(model.species)))
         sp_before = y[:, specie]
         plt.plot(tspan, sp_before, 'o-', label='before')
         for i in np.linspace(0.1, fold_change, len(model.species)):
-            params = new_pars
+            params = {**new_pars}
             params[par] *= i
             y1 = solver.run(initials=nummol, param_values=params).species
             sp_after = y1[:-time_change, specie]
