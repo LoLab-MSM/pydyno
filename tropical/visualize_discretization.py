@@ -133,7 +133,7 @@ def visualization_seq_paths(sim, sim_idx, all_signatures):
         Simulation from which the signatures were obtained
     sim_idx : Int,
         Index of the simulation to use for the visualization
-    all_signatures: tropical.sequence_analysis.Sequences
+    all_signatures: tropical.sequences.Sequences
         Sequences class that contains the signatures
 
     """

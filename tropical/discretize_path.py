@@ -6,8 +6,8 @@ import pandas as pd
 from math import log10
 import sympy
 import tropical.util as hf
-from tropical.sequence_analysis import Sequences
-from collections import defaultdict, OrderedDict
+from tropical.sequences import Sequences
+from collections import OrderedDict
 from anytree import Node, findall
 from anytree.exporter import DictExporter
 from collections import ChainMap
@@ -335,12 +335,12 @@ class DomPath(object):
             # path_sp_labels[rdom_label] = t_paths
         return signature, path_rlabels
 
-    def get_path_signatures(self, cpu_cores=1, sample_simulations=None, verbose=False):
+    def get_path_signatures(self, num_processors=1, sample_simulations=None, verbose=False):
         """
 
         Parameters
         ----------
-        cpu_cores : int
+        num_processors : int
             Number of cores to use in the function
         sample_simulations : int
             Number of simulations to use for the analysis
@@ -367,7 +367,7 @@ class DomPath(object):
             parameters = self.parameters
             nsims = self.nsims
 
-        if cpu_cores == 1 or nsims == 1:
+        if num_processors == 1 or nsims == 1:
             if nsims == 1:
                 # This assumes that the pysb simulation used the squeeze_output
                 # which is the default
@@ -394,7 +394,7 @@ class DomPath(object):
             #     self.trajectories = [self.trajectories]
             #     self.parameters = [self.parameters]
 
-            p = Pool(cpu_cores)
+            p = Pool(num_processors)
             res = p.amap(self.dominant_paths, trajectories, parameters)
             if verbose:
                 while not res.ready():

@@ -83,6 +83,6 @@ class TestDinSygnSingle(TestDynSignBase):
                                           2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]))
 
         def test_run_tropical_multi_one(self):
-            self.dom.get_path_signatures(cpu_cores=2)
+            self.dom.get_path_signatures(num_processors=2)
 
 

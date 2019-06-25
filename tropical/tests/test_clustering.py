@@ -1,7 +1,7 @@
 # from tropical.examples.double_enzymatic.mm_two_paths_model import model
 from nose.tools import *
 import numpy as np
-from tropical.sequence_analysis import Sequences
+from tropical.sequences import Sequences
 # from pysb.testing import *
 import os
 
