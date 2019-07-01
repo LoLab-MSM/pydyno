@@ -17,6 +17,13 @@ else:
     build_requires = (['numpy>=1.14'] if 'bdist_wheel' in sys.argv[1:]
                       else [])
 
+try:
+    from Cython.Distutils.build_ext import build_ext
+except ImportError:
+    use_cython = False
+else:
+    use_cython = True
+
 
 # factory function
 def my_build_ext(pars):
@@ -49,13 +56,20 @@ cmdclass = {'build_py': build_py}
 
 #### Extension modules
 ext_modules = []
-
-cmdclass.update({'build_ext': my_build_ext})
-ext_modules += [Extension("tropical.lcs",
-                          ["tropical/lcs/clcs.c",
-                           "tropical/lcs/lcs.c"],
-                          libraries=math_lib,
-                          include_dirs=py_inc)]
+if use_cython:
+    cmdclass.update({'build_ext': build_ext})
+    ext_modules += [Extension("tropical.lcs",
+                              ["tropical/lcs/clcs.c",
+                               "tropical/lcs/lcs.pyx"],
+                              libraries=math_lib,
+                              include_dirs=py_inc)]
+else:
+    cmdclass.update({'build_ext': my_build_ext})
+    ext_modules += [Extension("tropical.lcs",
+                              ["tropical/lcs/clcs.c",
+                               "tropical/lcs/lcs.c"],
+                              libraries=math_lib,
+                              include_dirs=py_inc)]
 
 install_requires = ['pysb', 'seaborn', 'anytree', 'scikit-learn', 'pydot',
                     'editdistance', 'pandas', 'networkx']
@@ -71,7 +85,7 @@ setup(name='DynSign',
       install_requires=install_requires,
       setup_requires=build_requires,
       test_suite='nose.collector',
-      tests_require=['pathos', 'hdbscan'],
+      tests_require=['pathos', 'hdbscan', 'cython'],
       cmdclass=cmdclass,
       ext_modules=ext_modules,
       keywords=['systems', 'biology', 'model'],
