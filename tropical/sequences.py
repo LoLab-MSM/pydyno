@@ -123,12 +123,20 @@ class Sequences(object):
         self._unique_states = unique_states
 
         # Assigning a color to each unique state
-        if len(self._unique_states) <= 128:
+        n_unique_states = len(self._unique_states)
+        if n_unique_states <= 1022:
             colors = distinct_colors(len(self._unique_states))
         else:
-            import seaborn as sns
-            # TODO find a way to obtain maximally different colors
-            colors = sns.color_palette('hls', len(self._unique_states))
+            n_iterations = int(np.floor(n_unique_states/1022))
+            colors = distinct_colors(1022)
+            remaining_states = n_unique_states - 1022
+            for _ in range(n_iterations):
+                if remaining_states > 1022:
+                    colors += distinct_colors(1022)
+                    remaining_states -= 1022
+                else:
+                    colors += distinct_colors(remaining_states)
+
         self._states_colors = OrderedDict((state, colors[x]) for x, state, in enumerate(self._unique_states))
         self.cmap, self.norm = self.cmap_norm()
 
