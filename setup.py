@@ -18,8 +18,9 @@ else:
                       else [])
 
 try:
-    from Cython.Distutils.build_ext import build_ext
+    from Cython.Distutils.build_ext import build_ext as _build_ext
 except ImportError:
+    from setuptools.command.build_ext import build_ext as _build_ext
     use_cython = False
 else:
     use_cython = True
@@ -28,7 +29,6 @@ else:
 # factory function
 def my_build_ext(pars):
     # import delayed:
-    from setuptools.command.build_ext import build_ext as _build_ext#
 
     # include_dirs adjusted:
     class build_ext(_build_ext):
@@ -57,7 +57,7 @@ cmdclass = {'build_py': build_py}
 #### Extension modules
 ext_modules = []
 if use_cython:
-    cmdclass.update({'build_ext': build_ext})
+    cmdclass.update({'build_ext': my_build_ext})
     ext_modules += [Extension("tropical.lcs",
                               ["tropical/lcs/clcs.c",
                                "tropical/lcs/lcs.pyx"],
