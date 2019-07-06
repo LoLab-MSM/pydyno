@@ -6,7 +6,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -766,16 +765,47 @@ class VisualizeTrajectories(object):
             for idx, clus in self.clusters.items():
                 cluster_pars = self.all_parameters[clus]
                 sp_ic_values = cluster_pars[:, sp_ic]
-                data_violin[count] = np.log10(sp_ic_values)
+                data_violin[count] = sorted(np.log10(sp_ic_values))
                 clus_labels[count] = idx
                 count += 1
 
-            g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
-            g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
-            fig = g.get_figure()
-            fig.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
+            fig, ax1 = plt.subplots(nrows=1, ncols=1)
+            ax1.set_title('Parameter {0}'.format(self.model.parameters[sp_ic].name))
+            ax1.set_ylabel('Parameter values (log10)')
+            parts = ax1.violinplot(data_violin, showmeans=False, showmedians=False, showextrema=False)
+
+            for pc in parts['bodies']:
+                pc.set_facecolor('#D43F3A')
+                pc.set_edgecolor('black')
+                pc.set_alpha(1)
+
+            percentile_data = np.array([np.percentile(data, [25, 50, 75]) for data in data_violin])
+            quartile1 = percentile_data[:, 0]
+            medians = percentile_data[:, 1]
+            quartile3 = percentile_data[:, 2]
+
+            whiskers = np.array([_adjacent_values(sorted_array, q1, q3)
+                                 for sorted_array, q1, q3 in zip(data_violin, quartile1, quartile3)])
+            whiskersMin, whiskersMax = whiskers[:, 0], whiskers[:, 1]
+
+            inds = np.arange(1, len(medians) + 1)
+            ax1.scatter(inds, medians, marker='o', color='white', s=30, zorder=3)
+            ax1.vlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
+            ax1.vlines(inds, whiskersMin, whiskersMax, color='k', linestyle='-', lw=1)
+
+            # set style for the axes
+            _set_axis_style(ax1, clus_labels)
+
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
             fig.savefig(final_save_path + '.pdf', format='pdf')
+
+            ### Code to plot violinplots with seaborn
+            # g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
+            # g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
+            # fig = g.get_figure()
+            # fig.suptitle('Parameter {0}'.format(self.model.parameters[sp_ic].name))
+            # final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
+            # fig.savefig(final_save_path + '.pdf', format='pdf')
         return
 
     def plot_violin_kd(self, par_idxs, save_path=''):
@@ -806,12 +836,42 @@ class VisualizeTrajectories(object):
                 clus_labels[count] = idx
                 count += 1
 
-            g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
-            g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
-            fig = g.get_figure()
-            fig.suptitle('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
-            final_save_path = os.path.join(save_path, 'violin_sp_{0}_kd'.format(self.model.parameters[kd_pars[0]].name))
+            fig, ax1 = plt.subplots(nrows=1, ncols=1)
+            ax1.set_title('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
+            ax1.set_ylabel('Parameter values (log10)')
+            parts = ax1.violinplot(data_violin, showmeans=False, showmedians=False, showextrema=False)
+
+            for pc in parts['bodies']:
+                pc.set_facecolor('#D43F3A')
+                pc.set_edgecolor('black')
+                pc.set_alpha(1)
+
+            percentile_data = np.array([np.percentile(data, [25, 50, 75]) for data in data_violin])
+            quartile1 = percentile_data[:, 0]
+            medians = percentile_data[:, 1]
+            quartile3 = percentile_data[:, 2]
+
+            whiskers = np.array([_adjacent_values(sorted_array, q1, q3)
+                                 for sorted_array, q1, q3 in zip(data_violin, quartile1, quartile3)])
+            whiskersMin, whiskersMax = whiskers[:, 0], whiskers[:, 1]
+
+            inds = np.arange(1, len(medians) + 1)
+            ax1.scatter(inds, medians, marker='o', color='white', s=30, zorder=3)
+            ax1.vlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
+            ax1.vlines(inds, whiskersMin, whiskersMax, color='k', linestyle='-', lw=1)
+
+            # set style for the axes
+            _set_axis_style(ax1, clus_labels)
+
+            final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[kd_pars[0]].name))
             fig.savefig(final_save_path + '.pdf', format='pdf')
+
+            # g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
+            # g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
+            # fig = g.get_figure()
+            # fig.suptitle('Parameter {0}'.format(self.model.parameters[kd_pars[0]].name))
+            # final_save_path = os.path.join(save_path, 'violin_sp_{0}_kd'.format(self.model.parameters[kd_pars[0]].name))
+            # fig.savefig(final_save_path + '.pdf', format='pdf')
         return
 
     def plot_sp_ic_overlap(self, par_idxs, save_path=''):
@@ -906,3 +966,21 @@ class VisualizeTrajectories(object):
             saturation = (90 + np.random.rand() * 10) / 100.
             colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
         return colors
+
+
+def _adjacent_values(vals, q1, q3):
+    upper_adjacent_value = q3 + (q3 - q1) * 1.5
+    upper_adjacent_value = np.clip(upper_adjacent_value, q3, vals[-1])
+
+    lower_adjacent_value = q1 - (q3 - q1) * 1.5
+    lower_adjacent_value = np.clip(lower_adjacent_value, vals[0], q1)
+    return lower_adjacent_value, upper_adjacent_value
+
+
+def _set_axis_style(ax, labels):
+    ax.get_xaxis().set_tick_params(direction='out')
+    ax.xaxis.set_ticks_position('bottom')
+    ax.set_xticks(np.arange(1, len(labels) + 1))
+    ax.set_xticklabels(labels)
+    ax.set_xlim(0.25, len(labels) + 0.75)
+    ax.set_xlabel('Clusters')
