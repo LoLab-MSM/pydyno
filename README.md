@@ -35,5 +35,5 @@ tro = Discretize(model=model, simulations=sim, diff_par=1)
 tro.get_signatures()
 
 ```
-![alt text](https://github.com/LoLab-VU/tropical/blob/master/tropical/examples/double_enzymatic/figures/s0.png)
+![discretization](https://github.com/LoLab-VU/pydyno/blob/master/pydyno/examples/double_enzymatic/figures/s0.png)
 
