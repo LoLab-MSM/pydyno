@@ -1,5 +1,5 @@
 import numpy as np
-from tropical.examples.double_enzymatic.mm_two_paths_model import model
+from pydyno.examples.double_enzymatic.mm_two_paths_model import model
 from simplepso.pso import PSO
 from pysb.simulator import ScipyOdeSimulator
 import os

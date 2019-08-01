@@ -1,7 +1,7 @@
 import numpy as np
 from pysb.bng import generate_equations
 import pandas as pd
-from tropical.util import parse_name
+from pydyno.util import parse_name
 from anytree.importer import DictImporter
 
 

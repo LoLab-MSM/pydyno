@@ -1,10 +1,10 @@
-from tropical.examples.double_enzymatic.mm_two_paths_model import model
+from pydyno.examples.double_enzymatic.mm_two_paths_model import model
 # from nose.tools import *
 import numpy as np
 from pysb.testing import *
 import os
 from pysb.simulator.scipyode import ScipyOdeSimulator
-from tropical.visualize_trajectories import VisualizeTrajectories
+from pydyno.visualize_trajectories import VisualizeTrajectories
 
 
 class TestClusteringAnalysisBase(object):

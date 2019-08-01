@@ -58,16 +58,16 @@ cmdclass = {'build_py': build_py}
 ext_modules = []
 if use_cython:
     cmdclass.update({'build_ext': my_build_ext})
-    ext_modules += [Extension("tropical.lcs",
-                              ["tropical/lcs/clcs.c",
-                               "tropical/lcs/lcs.pyx"],
+    ext_modules += [Extension("pydyno.lcs",
+                              ["pydyno/lcs/clcs.c",
+                               "pydyno/lcs/lcs.pyx"],
                               libraries=math_lib,
                               include_dirs=py_inc)]
 else:
     cmdclass.update({'build_ext': my_build_ext})
-    ext_modules += [Extension("tropical.lcs",
-                              ["tropical/lcs/clcs.c",
-                               "tropical/lcs/lcs.c"],
+    ext_modules += [Extension("pydyno.lcs",
+                              ["pydyno/lcs/clcs.c",
+                               "pydyno/lcs/lcs.c"],
                               libraries=math_lib,
                               include_dirs=py_inc)]
 
@@ -75,8 +75,8 @@ install_requires = ['pysb', 'matplotlib', 'anytree', 'scikit-learn', 'pydot',
                     'editdistance', 'pandas', 'networkx']
 
 
-setup(name='DynSign',
-      version='1.0',
+setup(name='pydyno',
+      version='0.1',
       description='Dynamic analysis of systems biology models',
       author='Oscar Ortega',
       author_email='oscar.ortega@vanderbilt.edu',

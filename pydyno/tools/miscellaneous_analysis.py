@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import tropical.util as hf
+import pydyno.util as hf
 import pandas as pd
-from tropical.discretize import Discretize
+from pydyno.discretize import Discretize
 from pysb.integrate import ScipyOdeSimulator
 
 

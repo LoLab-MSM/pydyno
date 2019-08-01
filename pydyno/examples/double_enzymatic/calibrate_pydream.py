@@ -4,7 +4,7 @@ from pydream.convergence import Gelman_Rubin
 import numpy as np
 import os
 from pysb.simulator import ScipyOdeSimulator
-from tropical.examples.double_enzymatic.mm_two_paths_model import model
+from pydyno.examples.double_enzymatic.mm_two_paths_model import model
 from scipy.stats import norm
 
 directory = os.path.dirname(__file__)

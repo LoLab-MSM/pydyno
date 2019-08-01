@@ -9,11 +9,11 @@ import numpy as np
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import tropical.util as hf
+import pydyno.util as hf
 from pysb.bng import generate_equations
 from pysb.pattern import SpeciesPatternMatcher, ReactionPatternMatcher
 import sympy
-from tropical.distinct_colors import distinct_colors
+from pydyno.distinct_colors import distinct_colors
 import matplotlib.patches as mpatches
 
 plt.ioff()

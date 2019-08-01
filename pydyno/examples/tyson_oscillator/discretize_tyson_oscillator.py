@@ -1,5 +1,5 @@
-from tropical.discretize import Discretize
-from tropical.examples.tyson_oscillator.run_tyson_oscillator import model
+from pydyno.discretize import Discretize
+from pydyno.examples.tyson_oscillator.run_tyson_oscillator import model
 import numpy as np
 from pysb.simulator import ScipyOdeSimulator
 

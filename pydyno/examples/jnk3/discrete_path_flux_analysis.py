@@ -1,8 +1,8 @@
-from tropical.discretize_path import DomPath
-from tropical.examples.jnk3.jnk3_no_ask1 import model
+from pydyno.discretize_path import DomPath
+from pydyno.examples.jnk3.jnk3_no_ask1 import model
 import numpy as np
 from pysb.simulator import ScipyOdeSimulator
-from tropical.visualize_discretization import visualization_path
+from pydyno.visualize_discretization import visualization_path
 
 param_values = np.array([p.value for p in model.parameters])
 idx_pars_calibrate = [1, 5, 9, 11, 15, 17, 19, 23, 25, 27, 31, 35, 36, 37, 38, 39, 41, 43] #pydream3

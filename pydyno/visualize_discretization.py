@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sympy
-from tropical.util import parse_name, rate_2_interactions, label2rr
+from pydyno.util import parse_name, rate_2_interactions, label2rr
 import re
 from pysb.bng import generate_equations
 from anytree.importer import DictImporter

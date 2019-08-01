@@ -4,20 +4,20 @@ import os
 from collections import Iterable
 from sklearn.metrics.pairwise import pairwise_distances
 import editdistance
-import tropical.lcs as lcs
+import pydyno.lcs as lcs
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import math
 from scipy import stats  # I could remove this dependence, mode implementation only depends on numpy
-from tropical.distinct_colors import distinct_colors
+from pydyno.distinct_colors import distinct_colors
 from collections import OrderedDict
 from matplotlib.collections import LineCollection
-from tropical.util import get_labels_entropy
+from pydyno.util import get_labels_entropy
 
 import sklearn.cluster as cluster
 from sklearn import metrics
-from tropical.kmedoids import kMedoids
+from pydyno.kmedoids import kMedoids
 
 try:
     import hdbscan

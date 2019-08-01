@@ -1,4 +1,4 @@
-import tropical.util as hf
+import pydyno.util as hf
 import numpy as np
 from sympy import Symbol, lambdify
 from collections import OrderedDict

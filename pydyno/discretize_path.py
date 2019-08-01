@@ -5,8 +5,8 @@ import re
 import pandas as pd
 from math import log10
 import sympy
-import tropical.util as hf
-from tropical.sequences import Sequences
+import pydyno.util as hf
+from pydyno.sequences import Sequences
 from collections import OrderedDict
 from anytree import Node, findall
 from anytree.exporter import DictExporter
