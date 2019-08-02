@@ -1,1 +1,1 @@
-recursive-include tropical *.js *.json *.html
+recursive-include pydyno/lcs *.c *.h *.pxd *.pyx
