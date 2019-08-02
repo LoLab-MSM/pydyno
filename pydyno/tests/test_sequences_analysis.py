@@ -1,12 +1,12 @@
 # from pydyno.examples.double_enzymatic.mm_two_paths_model import model
 # from nose.tools import *
-import numpy as np
-from pydyno.sequences import Sequences
-from pysb.testing import *
 import os
+import numpy as np
+from pysb.testing import *
+from pydyno.seqanalysis import SeqAnalysis
 
 
-class TestClusteringBase(object):
+class TestClusteringBase:
     @classmethod
     def tearDownClass(cls):
         dir_name = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +18,7 @@ class TestClusteringBase(object):
     def setUp(self):
         seqsdata = np.array([[11, 12, 13, 14, 15], [1, 2, 3, 4, 5], [6, 7, 8, 9, 10],
                              [6, 7, 8, 12, 11], [11, 12, 13, 14, 15], [1, 2, 3, 4, 5]])
-        self.signatures = Sequences(seqsdata, 's0')
+        self.signatures = SeqAnalysis(seqsdata, 's0')
 
         self.labels = [0, 1, 2, 3, 0, 1]
 
@@ -73,7 +73,7 @@ class TestSequenceAnalysis(TestClusteringBase):
     def test_frequency(self):
         self.signatures.dissimilarity_matrix(metric='LCS')
         rep0 = self.signatures.frequency(sequences_idx=None)
-        np.testing.assert_allclose(rep0, np.array([6,  7,  8, 12, 11]))
+        np.testing.assert_allclose(rep0, np.array([6, 7, 8, 12, 11]))
 
     # def test_cluster_percentage_color(self):
     #     self.clus.diss_matrix(metric='LCS')

@@ -1,12 +1,12 @@
 # from pydyno.examples.double_enzymatic.mm_two_paths_model import model
-from nose.tools import *
-import numpy as np
-from pydyno.sequences import Sequences
-# from pysb.testing import *
 import os
+import numpy as np
+from nose.tools import *
+from pydyno.seqanalysis import SeqAnalysis
+# from pysb.testing import *
 
 
-class TestClusteringBase(object):
+class TestClusteringBase:
     @classmethod
     def tearDownClass(cls):
         dir_name = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +18,7 @@ class TestClusteringBase(object):
     def setUp(self):
         seqsdata = [[2, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
                     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]
-        self.signatures = Sequences(seqsdata, 's0')
+        self.signatures = SeqAnalysis(seqsdata, 's0')
 
     def tearDown(self):
         self.signatures = None

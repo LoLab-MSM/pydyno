@@ -1,17 +1,17 @@
+import re
+from math import log10
+from collections import OrderedDict
+from collections import ChainMap
+import time
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
-import re
 import pandas as pd
-from math import log10
 import sympy
-import pydyno.util as hf
-from pydyno.sequences import Sequences
-from collections import OrderedDict
 from anytree import Node, findall
 from anytree.exporter import DictExporter
-from collections import ChainMap
-import time
+import pydyno.util as hf
+from pydyno.seqanalysis import SeqAnalysis
 
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
@@ -31,7 +31,7 @@ TYPE_ANALYSIS_DICT = {'production': ['in_edges', 0],
                       'consumption': ['out_edges', 1]}
 
 
-class DomPath(object):
+class DomPath:
     """
     Class to discretize the simulated trajectory of a model species
     Parameters
@@ -117,7 +117,7 @@ class DomPath(object):
             slabel += '\\l'
             color = "#ccffcc"
             # color species with an initial condition differently
-            if len([s for s in ic_species if s.is_equivalent_to(cp)]):
+            if [s for s in ic_species if s.is_equivalent_to(cp)]:
                 color = "#aaffff"
             graph.add_node(species_node,
                            label=slabel,
@@ -379,14 +379,14 @@ class DomPath(object):
                 signatures, labels = self.dominant_paths(trajectories, parameters)
                 signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
                 # signatures_labels = {'signatures': signatures, 'labels': labels}
-                return Sequences(signatures_df, self.target), new_paths
+                return SeqAnalysis(signatures_df, self.target), new_paths
             else:
                 all_signatures = [0] * nsims
                 all_labels = [0] * nsims
                 for idx in range(nsims):
                     all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx])
                 signatures_df, new_paths = _reencode_signatures_paths(all_signatures, all_labels, self.tspan)
-                return Sequences(signatures_df, self.target), new_paths
+                return SeqAnalysis(signatures_df, self.target), new_paths
         else:
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
@@ -408,7 +408,7 @@ class DomPath(object):
                 labels[idx] = sl[1]
             signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-            return Sequences(signatures_df, self.target), new_paths
+            return SeqAnalysis(signatures_df, self.target), new_paths
 
 
 def _reencode_signatures_paths(signatures, labels, tspan):
