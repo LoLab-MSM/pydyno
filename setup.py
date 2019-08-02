@@ -76,7 +76,7 @@ install_requires = ['pysb', 'matplotlib', 'anytree', 'scikit-learn', 'pydot',
 
 
 setup(name='pydyno',
-      version='0.1',
+      version='0.1.1',
       description='Dynamic analysis of systems biology models',
       author='Oscar Ortega',
       author_email='oscar.ortega@vanderbilt.edu',
