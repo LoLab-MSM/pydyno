@@ -5,7 +5,7 @@ env:
 - PYVER=3.6
 before_install:
 - wget http://repo.continuum.io/miniconda/Miniconda${PYVER:0:1}-latest-Linux-x86_64.sh
-    -O miniconda.sh
+  -O miniconda.sh
 - chmod +x miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
@@ -25,7 +25,7 @@ deploy:
   distributions: sdist bdist_wheel
   username: ortega2247
   password:
-    secure: hGLQPyMrZ+o+N5EA2vcMUEwuYCwb9wszrjvSTjdJkzUc2aF6mdQeB3BEierBF+F2+15Nh/VEnWncJcubWvVwyhgGNVNmgao1l3dddNOPMACB5mO6jgqT+vCtflh3tN+Au8F4KikyByRBBGoYcvwqvzZhNHoOtpqZ8fx8nTYmmr5CPHG/TJxCmGrTXMwIyONHt4DOu5hl9D/OBsbbBELW4jFC2lhFaTtFJCjIYkPGJVwT2YgUr4dtA+f/fQOlb7JWbF3VM077Gpm7xoLDZ5V6AbLTVzQqrw3VbYQHk2jhp9o+OkCmcsieCtodk/ph6aBMPkkjR8R+rskCbDCH3/ABTUIAJh++bcOoTEEimwpGnANWcvoMLRj4bDKOokGGjtRcJk64ximsY9/n5qSy4nuvUO9vI/u8ZZrHh2mJDV9x5maplCsvZRNsxXs57qNoZYyKzoFIwswWtLAMEH+8ni8k/mFci9V+QOJq/DosGbInXCrtKOo+z9Ig0jQ8cnpzObQavbBflNV3NbOjJI6eDRxW0HJFK6DfhrQUhI67aJighdIprn6LxKnPEBBSqWUmJWH7CjZFFC3iUzSZAJ6kaP7Mc9Vb/QUMp4MD6ojoMPeoHDOZlNmN/VjbgYeAds44LeNOD78GIfjwTEWvUpE80scIPklgS5ABkwlIVsLBZN1N1O8=
+    secure: a5IJr3aDCwQRpKdwQ8+XyXZjpSZLjWDWPw7EYwqKVcouLDAIiJPK4XYhC5Qr9oEdWeMnWffiD1tszfH0I3VNGBV/QBAwwqQNDn9GtfYCWzTCz0KlHJaPIQYFMyVtD8d9EQbm2bf05VFgND2jEDq0CS1XrwkusbV+V3YuCfIJF8p7hRz/As58JeJSjE9dliTWexIpSNfjIb0exGo2nf3pj6nHzRkpIKtbSolzv9kf/0/O/wBI5lqCiYy1mgxmfQyGzsgRMssr5fUhKXBEAWYOLapfJHdg8Apc+DMmaHCG98xskCvXvBBMZwAoEbiPrQ28MXxtP8UsWMmNolDDX9waD1HpxW/eYclo35nSDfX4MAm6+U5lq6eyUTcS9xOEnYKpitjoFRjwfW1Hi9sjMKRod1JiuiWn6Nz0XMowrNygLpqtO+B90vVCa9W5uNsQqyw18T97xCz4kdtuxc1Niw1ztjk0XRgpLpLuvYmZV0JY/QjbYG1shbKmcTRw49S1CVQ7HO6G59OciBc/OselaFhO/OKrfXK+5uHFWY7HA7tna0L8OcZm7oza60WgZXXvaIrpCR0QxKm91S497mZSlsWFSmKlGvSXutEQ1wNxpsbc2nydtyUgoCcKQVrXLh/JFzf7qRTugGmN4hc+YVimG4dfFt9ykcPM04UZGRFhTYkOmMs=
   on:
     tags: true
 notifications:
