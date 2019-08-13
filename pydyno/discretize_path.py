@@ -41,25 +41,12 @@ class DomPath:
     simulations: PySB SimulationResult object or str
         simulations used to perform the analysis. If str it should be the
         path to a simulation result in hdf5 format
-    type_analysis: str
-        Type of analysis to perform. It can be `production` or `consumption`
-    dom_om: float
-        Order of magnitude to consider dominancy
-    target: str
-        Species target. It has to be in a format `s1` where the number
-        represents the species index
-    depth: int
-        Depth of the traceback starting from target
     """
 
-    def __init__(self, model, simulations, type_analysis, dom_om, target, depth):
+    def __init__(self, model, simulations):
         self._model = model
         self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
         self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
-        self._type_analysis = type_analysis
-        self._dom_om = dom_om
-        self._target = target
-        self._depth = depth
         generate_equations(self.model)
 
     @property
@@ -85,22 +72,6 @@ class DomPath:
     @property
     def par_name_idx(self):
         return self._par_name_idx
-
-    @property
-    def type_analysis(self):
-        return self._type_analysis
-
-    @property
-    def dom_om(self):
-        return self._dom_om
-
-    @property
-    def target(self):
-        return self._target
-
-    @property
-    def depth(self):
-        return self._depth
 
     def create_bipartite_graph(self):
         """
@@ -170,10 +141,9 @@ class DomPath:
         -------
 
         """
-        param_values = parameters
         rxns_names = ['r{0}'.format(rxn) for rxn in range(len(self.model.reactions_bidirectional))]
         rxns_df = pd.DataFrame(columns=self.tspan, index=rxns_names)
-        param_dict = dict((p.name, param_values[i]) for i, p in enumerate(self.model.parameters))
+        param_dict = dict((p.name, parameters[i]) for i, p in enumerate(self.model.parameters))
 
         for idx, reac in enumerate(self.model.reactions_bidirectional):
             rate_reac = reac['rate']
@@ -220,7 +190,7 @@ class DomPath:
         # Sort the incoming nodes to get the same results in each simulation
         return _natural_sort(sp_nodes)
 
-    def dominant_paths(self, trajectories, parameters):
+    def dominant_paths(self, trajectories, parameters, target, type_analysis, depth, dom_om):
         """
         Traceback a dominant path from a user defined target
         Parameters
@@ -229,6 +199,15 @@ class DomPath:
             Simulation result to use to obtain the dominant_paths
         parameters : vector-like
             Parameter set used for the trajectories simulation
+        target: str
+            Species target. It has to be in a format `s1` where the number
+            represents the species index
+        type_analysis: str
+            Type of analysis to perform. It can be `production` or `consumption`
+        depth: int
+            Depth of the traceback starting from target
+        dom_om: float
+            Order of magnitude to consider dominancy
 
         Returns
         -------
@@ -248,26 +227,15 @@ class DomPath:
             if not neg_rr or prev_neg_rr == neg_rr:
                 pass
             else:
-                # Compare the negative indices from the current iteration to the previous one
-                # and flip the edges of the ones that have changed
-                rr_changes = list(set(neg_rr).symmetric_difference(set(prev_neg_rr)))
-
-                for r_node in rr_changes:
-                    # remove in and out edges of the node to add them in the reversed direction
-                    in_edges = network.in_edges(r_node)
-                    out_edges = network.out_edges(r_node)
-                    edges_to_remove = list(in_edges) + list(out_edges)
-                    network.remove_edges_from(edges_to_remove)
-                    edges_to_add = [edge[::-1] for edge in edges_to_remove]
-                    network.add_edges_from(edges_to_add)
+                self._flip_network_edges(network, neg_rr, prev_neg_rr)
 
                 prev_neg_rr = neg_rr
 
-            dom_nodes = {self.target: [[self.target]]}
-            all_rdom_nodes = [0] * self.depth
-            t_paths = [0] * self.depth
+            dom_nodes = {target: [[target]]}
+            all_rdom_nodes = [0] * depth
+            t_paths = [0] * depth
             # Iterate over the depth
-            for d in range(self.depth):
+            for d in range(depth):
                 all_dom_nodes = OrderedDict()
                 dom_r3 = []
                 for node_doms in dom_nodes.values():
@@ -281,7 +249,7 @@ class DomPath:
                             # Obtaining the edges connected to the species node. It would be
                             # in_edges if type_analysis is `production` and out_edges if
                             # type_analysis is `consumption`
-                            type_edge, idx_r = TYPE_ANALYSIS_DICT[self.type_analysis]
+                            type_edge, idx_r = TYPE_ANALYSIS_DICT[type_analysis]
                             connected_edges = getattr(network, type_edge)(node)
                             if not connected_edges:
                                 continue
@@ -295,7 +263,7 @@ class DomPath:
 
                             max_val = np.amax(list(fluxes_in.values()))
                             # Obtaining dominant species and reactions nodes
-                            dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - self.dom_om)]
+                            dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
                             # Sort the dominant r nodes to get the same results in each simulation
                             dom_r_nodes = _natural_sort(dom_r_nodes)
                             dom_sp_nodes = [self.species_connected_to_node(network, reaction_nodes, type_edge, idx_r)
@@ -312,18 +280,8 @@ class DomPath:
                 t_paths[d] = dom_nodes
 
             all_rdom_noodes_str = str(all_rdom_nodes)
-            # sp_paths = []
             # This is to create a tree with the information of the dominant species
-            root = Node(self.target, order=0)
-            for idx, ds in enumerate(t_paths):
-                for pa, v in ds.items():
-                    sps = np.concatenate(v)
-                    for sp in sps:
-                        p = findall(root, filter_=lambda n: n.name == pa and n.order == idx)
-                        for m in p:
-                            Node(sp, parent=m, order=idx + 1)
-                        # sp_paths.append((sp, idx+1))
-            # sp_paths.insert(0, (self.target, 0))
+            root = self._create_tree(target, t_paths)
 
             # if not dominant path define a label 1
             if not list(_find_numbers(all_rdom_noodes_str)):
@@ -335,11 +293,49 @@ class DomPath:
             # path_sp_labels[rdom_label] = t_paths
         return signature, path_rlabels
 
-    def get_path_signatures(self, num_processors=1, sample_simulations=None, verbose=False):
+    @staticmethod
+    def _flip_network_edges(network, neg_rr, prev_neg_rr):
+        # Compare the negative indices from the current iteration to the previous one
+        # and flip the edges of the ones that have changed
+        rr_changes = list(set(neg_rr).symmetric_difference(set(prev_neg_rr)))
+
+        for r_node in rr_changes:
+            # remove in and out edges of the node to add them in the reversed direction
+            in_edges = network.in_edges(r_node)
+            out_edges = network.out_edges(r_node)
+            edges_to_remove = list(in_edges) + list(out_edges)
+            network.remove_edges_from(edges_to_remove)
+            edges_to_add = [edge[::-1] for edge in edges_to_remove]
+            network.add_edges_from(edges_to_add)
+
+    @staticmethod
+    def _create_tree(target, t_paths):
+        # This is to create a tree with the information of the dominant species
+        root = Node(target, order=0)
+        for idx, ds in enumerate(t_paths):
+            for pa, v in ds.items():
+                sps = np.concatenate(v)
+                for sp in sps:
+                    p = findall(root, filter_=lambda n: n.name == pa and n.order == idx)
+                    for m in p:
+                        Node(sp, parent=m, order=idx + 1)
+        return root
+
+    def get_path_signatures(self, target, type_analysis, depth, dom_om,
+                            num_processors=1, sample_simulations=None, verbose=False):
         """
 
         Parameters
         ----------
+        target: str
+            Species target. It has to be in a format `s1` where the number
+            represents the species index
+        type_analysis: str
+            Type of analysis to perform. It can be `production` or `consumption`
+        depth: int
+            Depth of the traceback starting from target
+        dom_om: float
+            Order of magnitude to consider dominancy
         num_processors : int
             Number of cores to use in the function
         sample_simulations : int
@@ -376,17 +372,19 @@ class DomPath:
                     parameters = parameters[0]
                 else:
                     parameters = parameters[0]
-                signatures, labels = self.dominant_paths(trajectories, parameters)
+                signatures, labels = self.dominant_paths(trajectories, parameters,
+                                                         target, type_analysis, depth, dom_om)
                 signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
                 # signatures_labels = {'signatures': signatures, 'labels': labels}
-                return SeqAnalysis(signatures_df, self.target), new_paths
+                return SeqAnalysis(signatures_df, target), new_paths
             else:
                 all_signatures = [0] * nsims
                 all_labels = [0] * nsims
                 for idx in range(nsims):
-                    all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx])
+                    all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx],
+                                                                               target, type_analysis, depth, dom_om)
                 signatures_df, new_paths = _reencode_signatures_paths(all_signatures, all_labels, self.tspan)
-                return SeqAnalysis(signatures_df, self.target), new_paths
+                return SeqAnalysis(signatures_df, target), new_paths
         else:
             if Pool is None:
                 raise Exception('Please install the pathos package for this feature')
@@ -408,7 +406,7 @@ class DomPath:
                 labels[idx] = sl[1]
             signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
             # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-            return SeqAnalysis(signatures_df, self.target), new_paths
+            return SeqAnalysis(signatures_df, target), new_paths
 
 
 def _reencode_signatures_paths(signatures, labels, tspan):
