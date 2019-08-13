@@ -1,8 +1,8 @@
 import re
 from math import log10
-from collections import OrderedDict
-from collections import ChainMap
-import time
+from collections import OrderedDict, ChainMap
+from concurrent.futures import ProcessPoolExecutor
+from pysb.simulator.scipyode import SerialExecutor
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
@@ -12,11 +12,6 @@ from anytree import Node, findall
 from anytree.exporter import DictExporter
 import pydyno.util as hf
 from pydyno.seqanalysis import SeqAnalysis
-
-try:
-    from pathos.multiprocessing import ProcessingPool as Pool
-except ImportError:
-    Pool = None
 
 try:
     import h5py
@@ -163,166 +158,8 @@ class DomPath:
         rxns_df['Total'] = rxns_df.sum(axis=1)
         return rxns_df
 
-    @staticmethod
-    def species_connected_to_node(network, r, type_edge, idx_r):
-        """
-        Obtains the species connected to a node.
-        Parameters
-        ----------
-        network: nx.Digraph
-            Networkx directed network
-        r: str
-            Node name
-        type_edge: str
-            it can be `in_edges` or `out_edges`
-        idx_r: int
-            Index of the reaction node in the edge returned by the in_edges or out_edges function
-
-        Returns
-        -------
-        If `type_edge` == in_edges and `r` == 0 this function returns the species that are being consumed
-        by the reaction node r.
-        If `type_edge` == out_edges and `r` == 1 this function returns the species that are being produced
-        by the reaction node r.
-        """
-        in_edges = getattr(network, type_edge)(r)
-        sp_nodes = [n[idx_r] for n in in_edges]
-        # Sort the incoming nodes to get the same results in each simulation
-        return _natural_sort(sp_nodes)
-
-    def dominant_paths(self, trajectories, parameters, target, type_analysis, depth, dom_om):
-        """
-        Traceback a dominant path from a user defined target
-        Parameters
-        ----------
-        trajectories : PySB SimulationResult object
-            Simulation result to use to obtain the dominant_paths
-        parameters : vector-like
-            Parameter set used for the trajectories simulation
-        target: str
-            Species target. It has to be in a format `s1` where the number
-            represents the species index
-        type_analysis: str
-            Type of analysis to perform. It can be `production` or `consumption`
-        depth: int
-            Depth of the traceback starting from target
-        dom_om: float
-            Order of magnitude to consider dominancy
-
-        Returns
-        -------
-
-        """
-        network = self.create_bipartite_graph()
-        reaction_flux_df = self.get_reaction_flux_df(trajectories, parameters)
-
-        path_rlabels = {}
-        # path_sp_labels = {}
-        signature = [0] * len(self.tspan[1:])
-        prev_neg_rr = []
-        # First we iterate over time points
-        for t_idx, t in enumerate(self.tspan[1:]):
-            # Get reaction rates that are negative to see which edges have to be reversed
-            neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
-            if not neg_rr or prev_neg_rr == neg_rr:
-                pass
-            else:
-                self._flip_network_edges(network, neg_rr, prev_neg_rr)
-
-                prev_neg_rr = neg_rr
-
-            dom_nodes = {target: [[target]]}
-            all_rdom_nodes = [0] * depth
-            t_paths = [0] * depth
-            # Iterate over the depth
-            for d in range(depth):
-                all_dom_nodes = OrderedDict()
-                dom_r3 = []
-                for node_doms in dom_nodes.values():
-                    # Looping over dominant nodes i.e [[s1, s2], [s4, s8]]
-                    dom_r2 = []
-                    for nodes in node_doms:
-                        # Looping over one of the dominants i.e. [s1, s2]
-                        dom_r1 = []
-                        for node in nodes:
-                            # node = s1
-                            # Obtaining the edges connected to the species node. It would be
-                            # in_edges if type_analysis is `production` and out_edges if
-                            # type_analysis is `consumption`
-                            type_edge, idx_r = TYPE_ANALYSIS_DICT[type_analysis]
-                            connected_edges = getattr(network, type_edge)(node)
-                            if not connected_edges:
-                                continue
-                            # Obtaining the reaction rate value of the rate node that connects to
-                            # the species node
-                            fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[idx_r], t]))
-                                         for edge in connected_edges if reaction_flux_df.loc[edge[idx_r], t] != 0}
-
-                            if not fluxes_in:
-                                continue
-
-                            max_val = np.amax(list(fluxes_in.values()))
-                            # Obtaining dominant species and reactions nodes
-                            dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
-                            # Sort the dominant r nodes to get the same results in each simulation
-                            dom_r_nodes = _natural_sort(dom_r_nodes)
-                            dom_sp_nodes = [self.species_connected_to_node(network, reaction_nodes, type_edge, idx_r)
-                                            for reaction_nodes in dom_r_nodes]
-                            # Get the species nodes from the reaction nodes to keep back tracking the pathway
-                            all_dom_nodes[node] = dom_sp_nodes
-                            # all_rdom_nodes.append(dom_r_nodes)
-                            dom_r1.append(sorted(dom_r_nodes))
-
-                        dom_nodes = all_dom_nodes
-                        dom_r2.append(dom_r1)
-                    dom_r3.append(dom_r2)
-                all_rdom_nodes[d] = dom_r3
-                t_paths[d] = dom_nodes
-
-            all_rdom_noodes_str = str(all_rdom_nodes)
-            # This is to create a tree with the information of the dominant species
-            root = self._create_tree(target, t_paths)
-
-            # if not dominant path define a label 1
-            if not list(_find_numbers(all_rdom_noodes_str)):
-                rdom_label = -1
-            else:
-                rdom_label = _list_to_int(_find_numbers(all_rdom_noodes_str))
-            path_rlabels[rdom_label] = DictExporter().export(root)
-            signature[t_idx] = rdom_label
-            # path_sp_labels[rdom_label] = t_paths
-        return signature, path_rlabels
-
-    @staticmethod
-    def _flip_network_edges(network, neg_rr, prev_neg_rr):
-        # Compare the negative indices from the current iteration to the previous one
-        # and flip the edges of the ones that have changed
-        rr_changes = list(set(neg_rr).symmetric_difference(set(prev_neg_rr)))
-
-        for r_node in rr_changes:
-            # remove in and out edges of the node to add them in the reversed direction
-            in_edges = network.in_edges(r_node)
-            out_edges = network.out_edges(r_node)
-            edges_to_remove = list(in_edges) + list(out_edges)
-            network.remove_edges_from(edges_to_remove)
-            edges_to_add = [edge[::-1] for edge in edges_to_remove]
-            network.add_edges_from(edges_to_add)
-
-    @staticmethod
-    def _create_tree(target, t_paths):
-        # This is to create a tree with the information of the dominant species
-        root = Node(target, order=0)
-        for idx, ds in enumerate(t_paths):
-            for pa, v in ds.items():
-                sps = np.concatenate(v)
-                for sp in sps:
-                    p = findall(root, filter_=lambda n: n.name == pa and n.order == idx)
-                    for m in p:
-                        Node(sp, parent=m, order=idx + 1)
-        return root
-
     def get_path_signatures(self, target, type_analysis, depth, dom_om,
-                            num_processors=1, sample_simulations=None, verbose=False):
+                            num_processors=1, sample_simulations=None):
         """
 
         Parameters
@@ -362,51 +199,35 @@ class DomPath:
             trajectories = self.trajectories
             parameters = self.parameters
             nsims = self.nsims
+        if nsims == 1:
+            trajectories = [trajectories]
 
-        if num_processors == 1 or nsims == 1:
-            if nsims == 1:
-                # This assumes that the pysb simulation used the squeeze_output
-                # which is the default
-                if sample_simulations:
-                    trajectories = trajectories[0]
-                    parameters = parameters[0]
-                else:
-                    parameters = parameters[0]
-                signatures, labels = self.dominant_paths(trajectories, parameters,
-                                                         target, type_analysis, depth, dom_om)
-                signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
-                # signatures_labels = {'signatures': signatures, 'labels': labels}
-                return SeqAnalysis(signatures_df, target), new_paths
-            else:
-                all_signatures = [0] * nsims
-                all_labels = [0] * nsims
-                for idx in range(nsims):
-                    all_signatures[idx], all_labels[idx] = self.dominant_paths(trajectories[idx], parameters[idx],
-                                                                               target, type_analysis, depth, dom_om)
-                signatures_df, new_paths = _reencode_signatures_paths(all_signatures, all_labels, self.tspan)
-                return SeqAnalysis(signatures_df, target), new_paths
-        else:
-            if Pool is None:
-                raise Exception('Please install the pathos package for this feature')
-            # if self.nsims == 1:
-            #     self.trajectories = [self.trajectories]
-            #     self.parameters = [self.parameters]
+        results = []
+        with SerialExecutor() if num_processors == 1 else \
+                ProcessPoolExecutor(max_workers=num_processors) as executor:
+            for n in range(nsims):
+                network = self.create_bipartite_graph()
+                reaction_flux_df = self.get_reaction_flux_df(trajectories[n], parameters[n])
+                results.append(executor.submit(
+                    _dominant_paths,
+                    network,
+                    reaction_flux_df,
+                    self.tspan,
+                    target,
+                    type_analysis,
+                    depth,
+                    dom_om
+                ))
+            signatures_labels = [r.result() for r in results]
 
-            p = Pool(num_processors)
-            res = p.amap(self.dominant_paths, trajectories, parameters)
-            if verbose:
-                while not res.ready():
-                    print('We\'re not done yet, {0} tasks to go!'.format(res._number_left))
-                    time.sleep(60)
-            signatures_labels = res.get()
-            signatures = [0] * len(signatures_labels)
-            labels = [0] * len(signatures_labels)
-            for idx, sl in enumerate(signatures_labels):
-                signatures[idx] = sl[0]
-                labels[idx] = sl[1]
-            signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
-            # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-            return SeqAnalysis(signatures_df, target), new_paths
+        signatures = [0] * len(signatures_labels)
+        labels = [0] * len(signatures_labels)
+        for idx, sl in enumerate(signatures_labels):
+            signatures[idx] = sl[0]
+            labels[idx] = sl[1]
+        signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
+        # signatures_labels = {'signatures': signatures, 'labels': all_labels}
+        return SeqAnalysis(signatures_df, target), new_paths
 
 
 def _reencode_signatures_paths(signatures, labels, tspan):
@@ -449,3 +270,160 @@ def _natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
+
+
+def _dominant_paths(network, reaction_flux_df, tspan,
+                   target, type_analysis, depth, dom_om):
+    """
+    Traceback a dominant path from a user defined target
+    Parameters
+    ----------
+    trajectories : PySB SimulationResult object
+        Simulation result to use to obtain the dominant_paths
+    parameters : vector-like
+        Parameter set used for the trajectories simulation
+    target: str
+        Species target. It has to be in a format `s1` where the number
+        represents the species index
+    type_analysis: str
+        Type of analysis to perform. It can be `production` or `consumption`
+    depth: int
+        Depth of the traceback starting from target
+    dom_om: float
+        Order of magnitude to consider dominancy
+
+    Returns
+    -------
+
+    """
+    path_rlabels = {}
+    # path_sp_labels = {}
+    signature = [0] * len(tspan[1:])
+    prev_neg_rr = []
+    # First we iterate over time points
+    for t_idx, t in enumerate(tspan[1:]):
+        # Get reaction rates that are negative to see which edges have to be reversed
+        neg_rr = reaction_flux_df.index[reaction_flux_df[t] < 0].tolist()
+        if not neg_rr or prev_neg_rr == neg_rr:
+            pass
+        else:
+            _flip_network_edges(network, neg_rr, prev_neg_rr)
+
+            prev_neg_rr = neg_rr
+
+        dom_nodes = {target: [[target]]}
+        all_rdom_nodes = [0] * depth
+        t_paths = [0] * depth
+        # Iterate over the depth
+        for d in range(depth):
+            all_dom_nodes = OrderedDict()
+            dom_r3 = []
+            for node_doms in dom_nodes.values():
+                # Looping over dominant nodes i.e [[s1, s2], [s4, s8]]
+                dom_r2 = []
+                for nodes in node_doms:
+                    # Looping over one of the dominants i.e. [s1, s2]
+                    dom_r1 = []
+                    for node in nodes:
+                        # node = s1
+                        # Obtaining the edges connected to the species node. It would be
+                        # in_edges if type_analysis is `production` and out_edges if
+                        # type_analysis is `consumption`
+                        type_edge, idx_r = TYPE_ANALYSIS_DICT[type_analysis]
+                        connected_edges = getattr(network, type_edge)(node)
+                        if not connected_edges:
+                            continue
+                        # Obtaining the reaction rate value of the rate node that connects to
+                        # the species node
+                        fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[idx_r], t]))
+                                     for edge in connected_edges if reaction_flux_df.loc[edge[idx_r], t] != 0}
+
+                        if not fluxes_in:
+                            continue
+
+                        max_val = np.amax(list(fluxes_in.values()))
+                        # Obtaining dominant species and reactions nodes
+                        dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
+                        # Sort the dominant r nodes to get the same results in each simulation
+                        dom_r_nodes = _natural_sort(dom_r_nodes)
+                        dom_sp_nodes = [_species_connected_to_node(network, reaction_nodes, type_edge, idx_r)
+                                        for reaction_nodes in dom_r_nodes]
+                        # Get the species nodes from the reaction nodes to keep back tracking the pathway
+                        all_dom_nodes[node] = dom_sp_nodes
+                        # all_rdom_nodes.append(dom_r_nodes)
+                        dom_r1.append(sorted(dom_r_nodes))
+
+                    dom_nodes = all_dom_nodes
+                    dom_r2.append(dom_r1)
+                dom_r3.append(dom_r2)
+            all_rdom_nodes[d] = dom_r3
+            t_paths[d] = dom_nodes
+
+        all_rdom_noodes_str = str(all_rdom_nodes)
+        # This is to create a tree with the information of the dominant species
+        root = _create_tree(target, t_paths)
+
+        # if not dominant path define a label 1
+        if not list(_find_numbers(all_rdom_noodes_str)):
+            rdom_label = -1
+        else:
+            rdom_label = _list_to_int(_find_numbers(all_rdom_noodes_str))
+        path_rlabels[rdom_label] = DictExporter().export(root)
+        signature[t_idx] = rdom_label
+        # path_sp_labels[rdom_label] = t_paths
+    return signature, path_rlabels
+
+
+def _flip_network_edges(network, neg_rr, prev_neg_rr):
+    # Compare the negative indices from the current iteration to the previous one
+    # and flip the edges of the ones that have changed
+    rr_changes = list(set(neg_rr).symmetric_difference(set(prev_neg_rr)))
+
+    for r_node in rr_changes:
+        # remove in and out edges of the node to add them in the reversed direction
+        in_edges = network.in_edges(r_node)
+        out_edges = network.out_edges(r_node)
+        edges_to_remove = list(in_edges) + list(out_edges)
+        network.remove_edges_from(edges_to_remove)
+        edges_to_add = [edge[::-1] for edge in edges_to_remove]
+        network.add_edges_from(edges_to_add)
+
+
+def _create_tree(target, t_paths):
+    # This is to create a tree with the information of the dominant species
+    root = Node(target, order=0)
+    for idx, ds in enumerate(t_paths):
+        for pa, v in ds.items():
+            sps = np.concatenate(v)
+            for sp in sps:
+                p = findall(root, filter_=lambda n: n.name == pa and n.order == idx)
+                for m in p:
+                    Node(sp, parent=m, order=idx + 1)
+    return root
+
+
+def _species_connected_to_node(network, r, type_edge, idx_r):
+    """
+    Obtains the species connected to a node.
+    Parameters
+    ----------
+    network: nx.Digraph
+        Networkx directed network
+    r: str
+        Node name
+    type_edge: str
+        it can be `in_edges` or `out_edges`
+    idx_r: int
+        Index of the reaction node in the edge returned by the in_edges or out_edges function
+
+    Returns
+    -------
+    If `type_edge` == in_edges and `r` == 0 this function returns the species that are being consumed
+    by the reaction node r.
+    If `type_edge` == out_edges and `r` == 1 this function returns the species that are being produced
+    by the reaction node r.
+    """
+    in_edges = getattr(network, type_edge)(r)
+    sp_nodes = [n[idx_r] for n in in_edges]
+    # Sort the incoming nodes to get the same results in each simulation
+    return _natural_sort(sp_nodes)

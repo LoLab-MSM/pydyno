@@ -1,5 +1,7 @@
 import os
 from collections import Iterable, OrderedDict
+from concurrent.futures import ProcessPoolExecutor
+from pysb.simulator.scipyode import SerialExecutor
 import pandas as pd
 import numpy as np
 import editdistance
@@ -17,10 +19,6 @@ try:
 except ImportError:
     hdbscan = None
 
-try:
-    from pathos.multiprocessing import ProcessingPool as Pool
-except ImportError:
-    Pool = None
 try:
     import h5py
 except ImportError:
@@ -77,6 +75,9 @@ class SeqAnalysis:
     sequences: str, pd.DataFrame, np.ndarray, list
         Sequence data from the discretization of a PySB model. If str it must be a csv file
         with the sequences as rows and the first row must have the time points of the simulation.
+    target: str
+        Species target. It has to be in a format `s1` where the number
+        represents the species index
     """
     def __init__(self, sequences, target):
         # Checking seqdata
@@ -337,12 +338,16 @@ class SeqAnalysis:
         Representativeness using neighborhood density method
         Parameters
         ----------
-        proportion
-        diss: dissimilarity matrix
-        sequences_idx
+        proportion : float
+            Proportion of the maximal distance between sequences for a sequence to be considered
+            within a neighborhood
+        sequences_idx : list-like
+            Indices of the sequences used to calculate the neighborhood density
 
         Returns
         -------
+        np.ndarray
+            Representative sequence
 
         """
         seq_len = self._sequences.shape[1]
@@ -370,6 +375,18 @@ class SeqAnalysis:
 
     @_assign(representativeness, 'centrality')
     def centrality(self, sequences_idx=None):
+        """
+        Representativeness using the centrality method
+        Parameters
+        ----------
+        sequences_idx : list-like
+            Indices of the sequences used to calculate the neighborhood density
+
+        Returns
+        -------
+        np.ndarray
+            Representative sequence
+        """
         if sequences_idx is not None:
             seqs = self._sequences.iloc[sequences_idx]
             seqs_diss = self._diss[sequences_idx][:, sequences_idx]
@@ -382,6 +399,18 @@ class SeqAnalysis:
 
     @_assign(representativeness, 'frequency')
     def frequency(self, sequences_idx=None):
+        """
+        Representativeness using the frequency method
+        Parameters
+        ----------
+        sequences_idx : list-like
+            Indices of the sequences used to calculate the neighborhood density
+
+        Returns
+        -------
+        np.ndarray
+            Representative sequence
+        """
         decreasing_seqs = self.neighborhood_density(proportion=1, sequences_idx=sequences_idx)
         return decreasing_seqs
 
@@ -560,13 +589,8 @@ class SeqAnalysis:
         clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
         return clusters_df
 
-    def __agg_cluster_score(self, num_clusters, linkage='average', **kwargs):
-        clusters = cluster.AgglomerativeClustering(num_clusters, linkage=linkage,
-                                                   affinity='precomputed', **kwargs).fit(self.diss)
-        score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
-        return score
-
-    def silhouette_score_agglomerative_range(self, cluster_range, linkage='average', n_jobs=1, **kwargs):
+    def silhouette_score_agglomerative_range(self, cluster_range, linkage='average',
+                                             num_processors=1, **kwargs):
         """
 
         Parameters
@@ -575,6 +599,8 @@ class SeqAnalysis:
             Range of the number of clusterings to obtain the silhouette score
         linkage : str
             Type of agglomerative linkage
+        num_processors : int
+            Number of cores to use
         kwargs : key arguments to pass to the aggomerative clustering function
 
         Returns
@@ -588,21 +614,20 @@ class SeqAnalysis:
             pass
         else:
             raise TypeError('Type not valid')
-        if n_jobs == 1:
-            cluster_silhouette = []
+        results = []
+        with SerialExecutor() if num_processors == 1 else \
+                ProcessPoolExecutor(max_workers=num_processors) as executor:
             for num_clusters in cluster_range:
-                score = self.__agg_cluster_score(num_clusters, linkage=linkage, **kwargs)
-                cluster_silhouette.append(score)
-            clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
-            return clusters_df
-        else:
-            if Pool is None:
-                raise Exception('Please install the pathos package for this feature')
-            p = Pool(n_jobs)
-            res = p.amap(lambda x: self.__agg_cluster_score(x, linkage, **kwargs), cluster_range)
-            scores = res.get()
-            clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': scores})
-            return clusters_df
+                results.append(executor.submit(
+                    _agg_cluster_score,
+                    self.diss,
+                    num_clusters,
+                    linkage,
+                    **kwargs
+                ))
+            cluster_silhouette = [r.result() for r in results]
+        clusters_df = pd.DataFrame({'num_clusters': cluster_range, 'cluster_silhouette': cluster_silhouette})
+        return clusters_df
 
     def calinski_harabaz_score(self):
         if self._labels is None:
@@ -617,15 +642,6 @@ class SeqAnalysis:
         ----------
         filename: str
             Filename to which the data will be saved
-        dataset_name: str or None
-            Dataset name. If None, it will default to 'result'. If the
-            dataset_name already exists within the group, a ValueError is
-            raised.
-        group_name: str or None
-            Group name. If None, will default to the name of the model.
-        append: bool
-            If False, raise IOError if the specified file already exists. If
-            True, append to existing file (or create if it doesn't exist).
 
         """
         if h5py is None:
@@ -687,6 +703,11 @@ class SeqAnalysis:
         return seqRes
 
 
+def _agg_cluster_score(diss, num_clusters, linkage='average', **kwargs):
+    clusters = cluster.AgglomerativeClustering(num_clusters, linkage=linkage,
+                                               affinity='precomputed', **kwargs).fit(diss)
+    score = metrics.silhouette_score(diss, clusters.labels_, metric='precomputed')
+    return score
 
     #TODO: Develop gap statistics score for sequences. Maybe get elbow plot as well
 

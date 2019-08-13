@@ -130,7 +130,7 @@ def get_simulations(simulations):
     elif isinstance(simulations, dict):
         if isinstance(simulations['trajectories'], list):
             trajectories = np.array(simulations['trajectories'])
-        elif isinstance(simulations['trajectories', np.array]):
+        elif isinstance(simulations['trajectories'], np.array):
             trajectories = simulations['trajectories']
         else:
             raise TypeError('Simulation results should be in a numpy array or list format')
@@ -468,8 +468,8 @@ def get_labels_entropy(labels, base=None):
     Function to calculate the entropy from labels
     Parameters
     ----------
-    data: vector-like
-        This has to be a vector of labels
+    labels: vector-like
+        Vector of labels
     base: int
         Base used to calculated the entropy. If none then 2 is used.
 
@@ -488,8 +488,8 @@ def get_probs_entropy(probs, base=None):
     Function to calculate the entropy from states probabilities
     Parameters
     ----------
-    data: vector-like
-        This has to be a vector of labels
+    probs: vector-like
+        Vector of probabilities
     base: int
         Base used to calculated the entropy. If none then 2 is used.
 

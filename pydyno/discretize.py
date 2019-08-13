@@ -13,7 +13,7 @@ except ImportError:
     Pool = None
 
 
-class Discretize(object):
+class Discretize:
     """
     Discretizes species trajectories from a PySB model
     model: pysb.Model
@@ -66,14 +66,16 @@ class Discretize(object):
 
         Parameters
         ----------
-        array : An array with reaction rate values
-        diff_par
+        array : np.ndarray
+            An array with reaction rate as rows and their time-dependant values as columns
+        diff_par : float
+
 
         Returns
         -------
 
         """
-        # Gets the indices of posive and negative reaction rates
+        # Gets the indices of positive and negative reaction rates
         mons_pos_neg = [np.where(array > 0)[0], np.where(array < 0)[0]]
         ascending_order = [False, True]
         mons_types = ['products', 'reactants']
@@ -246,7 +248,7 @@ class Discretize(object):
             res = p.amap(self.__signature, self._trajectories, self.parameters)
             if verbose:
                 while not res.ready():
-                    print ('We\'re not done yet, %s tasks to go!' % res._number_left)
+                    print('We\'re not done yet, %s tasks to go!' % res._number_left)
                     time.sleep(60)
             signatures = res.get()
             signatures = signatures_to_dataframe(signatures, self.tspan, self.nsims)
