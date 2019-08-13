@@ -36,12 +36,16 @@ class VisualizeTrajectories(object):
         SimulationResult object or h5 file with the dynamic solutions of the model for all the parameter sets
     """
 
-    def __init__(self, model, sim_results, clusters):
+    def __init__(self, model, sim_results, clusters, truncate_idx=None):
 
         self._model = model
         generate_equations(model)
         # Check simulation results
         self._all_simulations, self._all_parameters, self._nsims, self._tspan = hf.get_simulations(sim_results)
+
+        if truncate_idx is not None:
+            self._all_simulations = self._all_simulations[:truncate_idx, :]
+            self._tspan = self._tspan[:truncate_idx]
 
         if clusters is None:
             no_clusters = {0: range(len(self.all_parameters))}
@@ -80,39 +84,27 @@ class VisualizeTrajectories(object):
 
     @staticmethod
     def check_clusters_arg(clusters, nsims):  # check clusters
+        def _clusters_to_dict(cluster_labels, n):
+            # Takes a list of cluster labels and create a dictionary where the keys are the labels, and
+            # the values are the indices in the original list
+            number_pars = len(cluster_labels)
+            if number_pars != n:
+                raise ValueError('The number of cluster indices must have the same'
+                                 'length as the number of simulations')
+            num_of_clusters = set(cluster_labels)
+            clus_values = {}
+            for j in num_of_clusters:
+                item_index = np.where(cluster_labels == j)
+                clus_values[j] = item_index[0].tolist()
+            cluster_labels = clus_values
+            return cluster_labels
+
         if isinstance(clusters, collections.Iterable):
-            # check if clusters is a list of files containing the indices or idx of the IC that belong to that cluster
-            if all(os.path.isfile(str(item)) for item in clusters):
-                clus_values = {}
-                number_pars = 0
-                for i, clus in enumerate(clusters):
-                    f = open(clus)
-                    data = csv.reader(f)
-                    pars_idx = [int(d[0]) for d in data]
-                    clus_values[i] = pars_idx
-                    number_pars += len(pars_idx)
-                # self.clusters is a dictionary that contains the index of the parameter values that belong to different
-                # clusters
-                clusters = clus_values
-                number_pars = number_pars
-                if number_pars != nsims:
-                    raise ValueError('The number of cluster indices must have the same'
-                                     'length as the number of simulations')
-                return clusters
-            elif all(isinstance(item, numbers.Number) for item in clusters):
+            if all(isinstance(item, numbers.Number) for item in clusters):
                 if not isinstance(clusters, np.ndarray):
                     clusters = np.array(clusters)
                 pars_clusters = clusters
-                num_of_clusters = set(pars_clusters)
-                clus_values = {}
-                for j in num_of_clusters:
-                    item_index = np.where(pars_clusters == j)
-                    clus_values[j] = item_index[0].tolist()
-                clusters = clus_values
-                number_pars = len(pars_clusters)
-                if number_pars != nsims:
-                    raise ValueError('The number of cluster indices must have the same'
-                                     'length as the number of simulations')
+                clusters = _clusters_to_dict(pars_clusters, nsims)
                 return clusters
             else:
                 raise ValueError('Mixed formats is not supported')
@@ -122,16 +114,7 @@ class VisualizeTrajectories(object):
                 f = open(clusters)
                 data = csv.reader(f)
                 pars_clusters = np.array([int(d[0]) for d in data])
-                num_of_clusters = set(pars_clusters)
-                clus_values = {}
-                for j in num_of_clusters:
-                    item_index = np.where(pars_clusters == j)
-                    clus_values[j] = item_index[0].tolist()
-                clusters = clus_values
-                number_pars = len(pars_clusters)
-                if number_pars != nsims:
-                    raise ValueError('The number of cluster indices must have the same'
-                                     'length as the number of simulations')
+                clusters = _clusters_to_dict(pars_clusters, nsims)
                 return clusters
         else:
             raise TypeError('cluster data structure not supported')
@@ -186,32 +169,38 @@ class VisualizeTrajectories(object):
 
         return
 
+    def _calculate_expr_values(self, y, sp, clus):
+        # Calculates the reaction rate values, observable values or species values
+        # depending in the sp type
+        if isinstance(sp, sympy.Expr):
+            expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
+            expr_args = [0] * len(expr_vars)
+            for va_idx, va in enumerate(expr_vars):
+                if str(va).startswith('__'):
+                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                    expr_args[va_idx] = y[:, :, sp_idx].T
+                else:
+                    par_idx = self.model.parameters.index(va)
+                    expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
+            f_expr = sympy.lambdify(expr_vars, sp)
+            sp_trajectory = f_expr(*expr_args)
+            name = 'expr'
+
+        # Calculate observable
+        elif isinstance(sp, str):
+            sp_trajectory = self._get_observable(sp, y)
+            name = sp
+        else:
+            sp_trajectory = y[:, :, sp].T
+            name = self.model.species[sp]
+        return sp_trajectory, name
+
     def _plot_dynamics_cluster_types(self, plots_dict, species, save_path, fig_label):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
                 # Calculate reaction rate expression
-                if isinstance(sp, sympy.Expr):
-                    expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
-                    expr_args = [0] * len(expr_vars)
-                    for va_idx, va in enumerate(expr_vars):
-                        if str(va).startswith('__'):
-                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                            expr_args[va_idx] = y[:, :, sp_idx].T
-                        else:
-                            par_idx = self.model.parameters.index(va)
-                            expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
-                    f_expr = sympy.lambdify(expr_vars, sp)
-                    sp_trajectory = f_expr(*expr_args)
-                    name = 'expr'
-
-                # Calculate observable
-                elif isinstance(sp, str):
-                    sp_trajectory = self._get_observable(sp, y)
-                    name = sp
-                else:
-                    sp_trajectory = y[:, :, sp].T
-                    name = self.model.species[sp]
+                sp_trajectory, name = self._calculate_expr_values(y, sp, clus)
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan, sp_trajectory,
                                                                             color='blue',
                                                                             alpha=0.2)
@@ -248,27 +237,7 @@ class VisualizeTrajectories(object):
             y = self.all_simulations[clus]
             for sp in species:
                 # Calculate reaction rate expression
-                if isinstance(sp, sympy.Expr):
-                    expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
-                    expr_args = [0] * len(expr_vars)
-                    for va_idx, va in enumerate(expr_vars):
-                        if str(va).startswith('__'):
-                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                            expr_args[va_idx] = y[:, :, sp_idx].T
-                        else:
-                            par_idx = self.model.parameters.index(va)
-                            expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
-                    f_expr = sympy.lambdify(expr_vars, sp)
-                    sp_trajectory = f_expr(*expr_args)
-                    name = 'expr'
-
-                # Calculate observable
-                elif isinstance(sp, str):
-                    sp_trajectory = self._get_observable(sp, y)
-                    name = sp
-                else:
-                    sp_trajectory = y[:, :, sp].T
-                    name = self.model.species[sp]
+                sp_trajectory, name = self._calculate_expr_values(y, sp, clus)
                 if norm_value:
                     norm_trajectories = sp_trajectory/norm_value
                 else:
@@ -299,27 +268,7 @@ class VisualizeTrajectories(object):
             y = self.all_simulations[clus]
             for sp in species:
                 # Calculate reaction rate expression
-                if isinstance(sp, sympy.Expr):
-                    expr_vars = [atom for atom in sp.atoms(sympy.Symbol)]
-                    expr_args = [0] * len(expr_vars)
-                    for va_idx, va in enumerate(expr_vars):
-                        if str(va).startswith('__'):
-                            sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                            expr_args[va_idx] = y[:, :, sp_idx].T
-                        else:
-                            par_idx = self.model.parameters.index(va)
-                            expr_args[va_idx] = self.all_parameters[clus][:, par_idx]
-                    f_expr = sympy.lambdify(expr_vars, sp)
-                    sp_trajectory = f_expr(*expr_args)
-                    name = 'expr'
-
-                # Calculate observable
-                elif isinstance(sp, str):
-                    sp_trajectory = self._get_observable(sp, y)
-                    name = sp
-                else:
-                    sp_trajectory = y[:, :, sp].T
-                    name = self.model.species[sp]
+                sp_trajectory, name = self._calculate_expr_values(y, sp, clus)
                 norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=1))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
                                                                             norm_trajectories,
