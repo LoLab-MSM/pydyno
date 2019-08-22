@@ -48,8 +48,7 @@ class TestDinSygnSingle(TestDynSignBase):
             self.model = model
             self.time = np.linspace(0, 100, 100)
             self.sim = ScipyOdeSimulator(self.model, tspan=self.time).run()
-            self.dom = DomPath(model=self.model, simulations=self.sim, type_analysis='consumption',
-                               dom_om=1, target='s2', depth=2)
+            self.dom = DomPath(model=self.model, simulations=self.sim)
 
         def tearDown(self):
             self.model = None
@@ -59,7 +58,8 @@ class TestDinSygnSingle(TestDynSignBase):
     class TestPathSygnSingle(TestPathSignBase):
 
         def test_run_tropical(self):
-            signatures, paths = self.dom.get_path_signatures()
+            signatures, paths = self.dom.get_path_signatures(type_analysis='consumption',
+                                                             dom_om=1, target='s2', depth=2)
             assert np.array_equal(signatures.sequences.values,
                                   np.array([[0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -83,6 +83,7 @@ class TestDinSygnSingle(TestDynSignBase):
                                           2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]]))
 
         def test_run_tropical_multi_one(self):
-            self.dom.get_path_signatures(num_processors=2)
+            self.dom.get_path_signatures(type_analysis='consumption',
+                                         dom_om=1, target='s2', depth=2, num_processors=2)
 
 
