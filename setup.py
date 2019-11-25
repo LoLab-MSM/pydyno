@@ -2,6 +2,7 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 import sys
+import os
 import platform
 from distutils.sysconfig import get_python_inc
 from setuptools.command.build_py import build_py
@@ -72,12 +73,17 @@ else:
                               include_dirs=py_inc)]
 
 install_requires = ['pysb', 'matplotlib', 'anytree', 'scikit-learn', 'pydot',
-                    'editdistance', 'pandas', 'networkx']
+                    'editdistance', 'pandas', 'networkx', 'numpy', 'sympy']
 
+this_directory = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(this_directory, 'README.md'), 'r') as f:
+    long_description = f.read()
 
 setup(name='pydyno',
       version='0.1.1',
       description='Dynamic analysis of systems biology models',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       author='Oscar Ortega',
       author_email='oscar.ortega@vanderbilt.edu',
       packages=find_packages(),
@@ -89,4 +95,15 @@ setup(name='pydyno',
       cmdclass=cmdclass,
       ext_modules=ext_modules,
       keywords=['systems', 'biology', 'model'],
+      classifiers=[
+          'Development Status :: 4 - Beta',
+          'Environment :: Console',
+          'Intended Audience :: Science/Research',
+          'License :: OSI Approved :: MIT License',
+          'Operating System :: OS Independent',
+          'Programming Language :: Python :: 3',
+          'Topic :: Scientific/Engineering :: Bio-Informatics',
+          'Topic :: Scientific/Engineering :: Chemistry',
+          'Topic :: Scientific/Engineering :: Mathematics',
+      ],
       )

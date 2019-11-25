@@ -1,4 +1,6 @@
 import re
+import json
+import hashlib
 from math import log10
 from collections import OrderedDict, ChainMap
 from concurrent.futures import ProcessPoolExecutor
@@ -76,29 +78,16 @@ class DomPath:
 
         """
         graph = nx.DiGraph(name=self.model.name)
-        ic_species = [cp for cp, parameter in self.model.initial_conditions]
         for i, cp in enumerate(self.model.species):
             species_node = 's%d' % i
             slabel = re.sub(r'% ', r'%\\l', str(cp))
             slabel += '\\l'
-            color = "#ccffcc"
-            # color species with an initial condition differently
-            if [s for s in ic_species if s.is_equivalent_to(cp)]:
-                color = "#aaffff"
             graph.add_node(species_node,
-                           label=slabel,
-                           shape="Mrecord",
-                           fillcolor=color, style="filled", color="transparent",
-                           fontsize="12",
-                           margin="0.06,0")
+                           label=slabel)
         for i, reaction in enumerate(self.model.reactions_bidirectional):
             reaction_node = 'r%d' % i
             graph.add_node(reaction_node,
-                           label=reaction_node,
-                           shape="circle",
-                           fillcolor="lightgray", style="filled", color="transparent",
-                           fontsize="12",
-                           width=".3", height=".3", margin="0.06,0")
+                           label=reaction_node)
             reactants = set(reaction['reactants'])
             products = set(reaction['products'])
             modifiers = reactants & products
@@ -110,7 +99,7 @@ class DomPath:
             for s in products:
                 self.r_link(graph, s, i, _flip=True, **attr_reversible)
             for s in modifiers:
-                self.r_link(graph, s, i, arrowhead="odiamond")
+                self.r_link(graph, s, i, _flip=True, arrowhead="odiamond")
         return graph
 
     @staticmethod
@@ -257,15 +246,6 @@ def _signatures_to_dataframe(signatures, tspan):
     return s
 
 
-def _find_numbers(dom_r_str):
-    n = map(int, re.findall(r'\d+', dom_r_str))
-    return n
-
-
-def _list_to_int(nums):
-    return int(''.join(map(str, nums)))
-
-
 def _natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
@@ -273,15 +253,15 @@ def _natural_sort(l):
 
 
 def _dominant_paths(network, reaction_flux_df, tspan,
-                   target, type_analysis, depth, dom_om):
+                    target, type_analysis, depth, dom_om):
     """
     Traceback a dominant path from a user defined target
     Parameters
     ----------
-    trajectories : PySB SimulationResult object
-        Simulation result to use to obtain the dominant_paths
-    parameters : vector-like
-        Parameter set used for the trajectories simulation
+    network: nx.DiGraph
+        Network obtained from model
+    reaction_flux_df: pd.DataFrame
+        Pandas dataframe with the reaction rates obtained from a simulation of the model
     target: str
         Species target. It has to be in a format `s1` where the number
         represents the species index
@@ -296,6 +276,7 @@ def _dominant_paths(network, reaction_flux_df, tspan,
     -------
 
     """
+    type_edge, node_from_edge = TYPE_ANALYSIS_DICT[type_analysis]
     path_rlabels = {}
     # path_sp_labels = {}
     signature = [0] * len(tspan[1:])
@@ -311,70 +292,114 @@ def _dominant_paths(network, reaction_flux_df, tspan,
 
             prev_neg_rr = neg_rr
 
+        # Starting with the target
         dom_nodes = {target: [[target]]}
-        all_rdom_nodes = [0] * depth
         t_paths = [0] * depth
         # Iterate over the depth
         for d in range(depth):
             all_dom_nodes = OrderedDict()
-            dom_r3 = []
             for node_doms in dom_nodes.values():
-                # Looping over dominant nodes i.e [[s1, s2], [s4, s8]]
-                dom_r2 = []
+                # Looping over dominant nodes e.g [[s1, s2], [s4, s8]]
                 for nodes in node_doms:
-                    # Looping over one of the dominants i.e. [s1, s2]
-                    dom_r1 = []
+                    # Looping over one of the dominants e.g. [s1, s2]
                     for node in nodes:
-                        # node = s1
-                        # Obtaining the edges connected to the species node. It would be
-                        # in_edges if type_analysis is `production` and out_edges if
-                        # type_analysis is `consumption`
-                        type_edge, idx_r = TYPE_ANALYSIS_DICT[type_analysis]
-                        connected_edges = getattr(network, type_edge)(node)
-                        if not connected_edges:
-                            continue
-                        # Obtaining the reaction rate value of the rate node that connects to
-                        # the species node
-                        fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[idx_r], t]))
-                                     for edge in connected_edges if reaction_flux_df.loc[edge[idx_r], t] != 0}
-
-                        if not fluxes_in:
+                        dom_r_nodes = _dominant_connected_reactions(network, node, t,
+                                                                    reaction_flux_df, dom_om, type_edge, node_from_edge)
+                        if dom_r_nodes is None:
                             continue
 
-                        max_val = np.amax(list(fluxes_in.values()))
-                        # Obtaining dominant species and reactions nodes
-                        dom_r_nodes = [n[idx_r] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
-                        # Sort the dominant r nodes to get the same results in each simulation
-                        dom_r_nodes = _natural_sort(dom_r_nodes)
-                        dom_sp_nodes = [_species_connected_to_node(network, reaction_nodes, type_edge, idx_r)
-                                        for reaction_nodes in dom_r_nodes]
-                        # Get the species nodes from the reaction nodes to keep back tracking the pathway
+                        dom_sp_nodes = []
+                        for reaction_nodes in dom_r_nodes:
+                            sp_nodes = _species_connected_to_node(network, reaction_nodes, type_edge, node_from_edge)
+                            if sp_nodes not in dom_sp_nodes:
+                                dom_sp_nodes.append(sp_nodes)
+
+                        # Get the species nodes from the reaction nodes to keep backtracking the pathway
                         all_dom_nodes[node] = dom_sp_nodes
                         # all_rdom_nodes.append(dom_r_nodes)
-                        dom_r1.append(sorted(dom_r_nodes))
 
                     dom_nodes = all_dom_nodes
-                    dom_r2.append(dom_r1)
-                dom_r3.append(dom_r2)
-            all_rdom_nodes[d] = dom_r3
             t_paths[d] = dom_nodes
 
-        all_rdom_noodes_str = str(all_rdom_nodes)
+        dom_path_label = hashlib.sha1(json.dumps(t_paths, sort_keys=True).encode()).hexdigest()
         # This is to create a tree with the information of the dominant species
         root = _create_tree(target, t_paths)
-
-        # if not dominant path define a label 1
-        if not list(_find_numbers(all_rdom_noodes_str)):
-            rdom_label = -1
-        else:
-            rdom_label = _list_to_int(_find_numbers(all_rdom_noodes_str))
-        path_rlabels[rdom_label] = DictExporter().export(root)
-        signature[t_idx] = rdom_label
+        path_rlabels[dom_path_label] = DictExporter().export(root)
+        signature[t_idx] = dom_path_label
         # path_sp_labels[rdom_label] = t_paths
     return signature, path_rlabels
 
 
+def _dominant_connected_reactions(network, species_node, t, reaction_flux_df, dom_om, type_edge, node_from_edge):
+    """
+    Obtains the dominant reaction nodes connected to species_node based on the reaction flux and the
+    dominant threshold
+
+    Parameters
+    ----------
+    network : nx.DiGraph
+        Network used
+    species_node : str
+        Node label
+    t : float
+        Time point
+    reaction_flux_df : pd.DataFrame
+        Pandas dataframe that contains the reaction rates from a simulation
+    dom_om : float
+        Order of magnitude to consider dominancy
+    type_edge : str
+        Type of edges connected to node. It can be `in_edges` or `out_edges`
+    node_from_edge : idx
+        Node to obtain from an edge. It can be the source node or the target node
+
+    Returns
+    -------
+    list
+        List of dominant reaction nodes
+    """
+    # node = s1
+    # Obtaining the edges connected to the species node. It would be
+    # in_edges if type_analysis is `production` and out_edges if
+    # type_analysis is `consumption`
+
+    connected_edges = getattr(network, type_edge)(species_node)
+    if not connected_edges:
+        return None
+    # Obtaining the reaction rate value of the rate node that connects to
+    # the species node
+    fluxes_in = {edge: log10(abs(reaction_flux_df.loc[edge[node_from_edge], t]))
+                 for edge in connected_edges if reaction_flux_df.loc[edge[node_from_edge], t] != 0}
+    if not fluxes_in:
+        return None
+
+    max_val = np.amax(list(fluxes_in.values()))
+    # Obtaining dominant species and reactions nodes
+    dom_r_nodes = [n[node_from_edge] for n, i in fluxes_in.items() if i > (max_val - dom_om)]
+    # Sort the dominant r nodes to get the same results in each simulation
+    dom_r_nodes = _natural_sort(dom_r_nodes)
+    return dom_r_nodes
+
+
 def _flip_network_edges(network, neg_rr, prev_neg_rr):
+    """
+    Flip network edges that represent bidirectional reaction rates. When a network is created edges's
+    direction goes from reactant to product species. For bidirectional reactions the net flux sometimes
+    can go from product (bound species) to reactant species. Hence, to account for this change in flux
+    directionality, this function flip the required edges
+
+    Parameters
+    ----------
+    network : nx.DiGraph
+        Bipartite network obtained from a model
+    neg_rr : list
+        List of reaction labels that have negative reaction rates at the current time point
+    prev_neg_rr : list
+        List of reaction labels that had negative reaction rates at the previous time point
+
+    Returns
+    -------
+
+    """
     # Compare the negative indices from the current iteration to the previous one
     # and flip the edges of the ones that have changed
     rr_changes = list(set(neg_rr).symmetric_difference(set(prev_neg_rr)))
