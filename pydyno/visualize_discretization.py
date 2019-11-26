@@ -78,7 +78,7 @@ def visualization_sp(sim, sim_idx, sp_to_vis, all_signatures, plot_type):
         fig.savefig('s{0}'.format(sp) + '.pdf', format='pdf', bbox_inches='tight')
 
 
-def visualization_path(model, path, type_analysis, filename):
+def visualization_path(model, path, type_analysis, filename, rankdir='TB'):
     """
     Visualize dominant path
     Parameters
@@ -115,10 +115,10 @@ def visualization_path(model, path, type_analysis, filename):
     root = importer.import_(path)
 
     if type_analysis == 'production':
-        DotExporter(root, graph='strict digraph', options=["rankdir=TB;"], nodenamefunc=nodenamefunc,
+        DotExporter(root, graph='strict digraph', options=["rankdir={};".format(rankdir)], nodenamefunc=nodenamefunc,
                     edgeattrfunc=edgeattrfunc).to_picture(filename)
     elif type_analysis == 'consumption':
-        DotExporter(root, graph='strict digraph', options=["rankdir=TB;"], nodenamefunc=nodenamefunc,
+        DotExporter(root, graph='strict digraph', options=["rankdir={};".format(rankdir)], nodenamefunc=nodenamefunc,
                     edgeattrfunc=None).to_picture(filename)
     else:
         raise ValueError('Type of visualization not implemented')
