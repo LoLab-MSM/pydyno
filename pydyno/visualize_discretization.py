@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sympy
-from pydyno.util import parse_name, rate_2_interactions, label2rr
+from pydyno.util import parse_name, rate_2_interactions, species_reaction_rates
 import re
 from pysb.bng import generate_equations
 from anytree.importer import DictImporter
@@ -49,7 +49,7 @@ def visualization_sp(sim, sim_idx, sp_to_vis, all_signatures, plot_type):
         axs[2].set_xlim(0, tspan[-1])
         # plt.ylim(0, max(y_pos))
 
-        reaction_rates = label2rr(model, sp)
+        reaction_rates = species_reaction_rates(model, sp)
         for rr_idx, rr in reaction_rates.items():
             mon = rr
             var_to_study = [atom for atom in mon.atoms(sympy.Symbol)]

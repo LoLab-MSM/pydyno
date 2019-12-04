@@ -36,4 +36,3 @@ tro.get_signatures()
 
 ```
 ![discretization](https://github.com/LoLab-VU/pydyno/blob/master/pydyno/examples/double_enzymatic/figures/s0.png)
-

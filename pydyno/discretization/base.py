@@ -1,7 +1,7 @@
+from abc import ABC, abstractmethod
 import re
 import json
 import hashlib
-from functools import singledispatch
 from math import log10
 from collections import OrderedDict, ChainMap
 from concurrent.futures import ProcessPoolExecutor
@@ -9,15 +9,12 @@ from pysb.simulator.scipyode import SerialExecutor
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
-import pysb
 import pandas as pd
 import sympy
 from anytree import Node, findall
 from anytree.exporter import DictExporter
 import pydyno.util as hf
-from pydyno.util_tellurium import SbmlModel
 from pydyno.seqanalysis import SeqAnalysis
-import tellurium
 
 
 # Types of analysis that have been implemented. For `production` the analysis consists in
@@ -28,10 +25,9 @@ TYPE_ANALYSIS_DICT = {'production': ['in_edges', 0],
                       'consumption': ['out_edges', 1]}
 
 
-class DomPath:
+class DomPath(ABC):
     """
-    Class to discretize the simulated trajectory of a model species
-
+    An abstract base class to discretize simulated trajectories of a model species
     Parameters
     ----------
     model: PySB model
@@ -40,44 +36,15 @@ class DomPath:
         simulations used to perform the analysis. If str it should be the
         path to a simulation result in hdf5 format
     """
-
-    def __init__(self, model, simulations):
-        self.get_reaction_flux_df = singledispatch(self.get_reaction_flux_df)
-        self.get_reaction_flux_df.register(pysb.Model, self._sbml_get_reaction_flux)
-        self.get_reaction_flux_df.register(tellurium.roadrunner.extended_roadrunner.ExtendedRoadRunner,
-                                           self._pysb_get_reaction_flux)
-        if isinstance(model, pysb.Model):
-            self._model = model
-            self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
-            generate_equations(self.model)
-        elif isinstance(model, SbmlModel):
-            self._model = model
-            self._trajectories = simulations.trajectories
-            self._nsims = len(self._trajectories)
-            self._parameters = simulations.parameters
-            self._tspan = simulations.tspan
-            self.all_reaction_flux = simulations.reaction_flux_df
+    @abstractmethod
+    def __init__(self, model):
+        self._model = model
 
     @property
     def model(self):
         return self._model
 
-    @property
-    def trajectories(self):
-        return self._trajectories
-
-    @property
-    def parameters(self):
-        return self._parameters
-
-    @property
-    def nsims(self):
-        return self._nsims
-
-    @property
-    def tspan(self):
-        return self._tspan
-
+    @abstractmethod
     def create_bipartite_graph(self):
         """
         Creates bipartite graph with species and reaction nodes of the pysb model
@@ -85,82 +52,22 @@ class DomPath:
         -------
 
         """
-        graph = nx.DiGraph(name=self.model.name)
-        for i, cp in enumerate(self.model.species):
-            species_node = 's%d' % i
-            slabel = re.sub(r'% ', r'%\\l', str(cp))
-            slabel += '\\l'
-            graph.add_node(species_node,
-                           label=slabel)
-        for i, reaction in enumerate(self.model.reactions_bidirectional):
-            reaction_node = 'r%d' % i
-            graph.add_node(reaction_node,
-                           label=reaction_node)
-            reactants = set(reaction['reactants'])
-            products = set(reaction['products'])
-            modifiers = reactants & products
-            reactants = reactants - modifiers
-            products = products - modifiers
-            attr_reversible = {'dir': 'both', 'arrowtail': 'empty'} if reaction['reversible'] else {}
-            for s in reactants:
-                self.r_link(graph, s, i, **attr_reversible)
-            for s in products:
-                self.r_link(graph, s, i, _flip=True, **attr_reversible)
-            for s in modifiers:
-                self.r_link(graph, s, i, _flip=True, arrowhead="odiamond")
-        return graph
 
-    @staticmethod
-    def r_link(graph, s, r, **attrs):
-        nodes = ('s%d' % s, 'r%d' % r)
-        if attrs.get('_flip'):
-            del attrs['_flip']
-            nodes = reversed(nodes)
-        attrs.setdefault('arrowhead', 'normal')
-        graph.add_edge(*nodes, **attrs)
+        return None
 
-    def get_reaction_flux_df(self):
-        pass
-
-    def _pysb_get_reaction_flux(self, trajectories, parameters):
+    @abstractmethod
+    def get_reaction_flux_df(self, simulation_idx):
         """
         Creates a data frame with the reaction rates values at each time point
-        Parameters
-        ----------
-        trajectories: vector-like
-            Species trajectories used to calculate the reaction rates
-        parameters: vector-like
-            Model parameters. Parameters must have the same order as the model
 
         Returns
         -------
 
         """
-        rxns_names = ['r{0}'.format(rxn) for rxn in range(len(self.model.reactions_bidirectional))]
-        rxns_df = pd.DataFrame(columns=self.tspan, index=rxns_names)
-        param_dict = dict((p.name, parameters[i]) for i, p in enumerate(self.model.parameters))
 
-        for idx, reac in enumerate(self.model.reactions_bidirectional):
-            rate_reac = reac['rate']
-            # Getting species and parameters from the reaction rate
-            variables = [atom for atom in rate_reac.atoms(sympy.Symbol)]
-            args = [0] * len(variables)  # arguments to put in the lambdify function
-            for idx2, va in enumerate(variables):
-                # Getting species index
-                if str(va).startswith('__'):
-                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                    args[idx2] = trajectories[:, sp_idx]
-                else:
-                    args[idx2] = param_dict[va.name]
-            func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=np.lib.scimath.sqrt))
-            react_rate = func(*args)
-            rxns_df.loc['r{0}'.format(idx)] = react_rate
-        rxns_df['Total'] = rxns_df.sum(axis=1)
-        return rxns_df
+        return None
 
-    def _sbml_get_reaction_flux(self, simulation_idx):
-        return self.all_reaction_flux[simulation_idx]
-
+    @abstractmethod
     def get_path_signatures(self, target, type_analysis, depth, dom_om,
                             num_processors=1, sample_simulations=None):
         """
@@ -187,50 +94,8 @@ class DomPath:
         -------
 
         """
-        if sample_simulations:
-            if isinstance(sample_simulations, int):
-                trajectories = self.trajectories[:sample_simulations]
-                parameters = self.parameters[:sample_simulations]
-                nsims = sample_simulations
-            elif isinstance(sample_simulations, list):
-                trajectories = self.trajectories[sample_simulations]
-                parameters = self.parameters[sample_simulations]
-                nsims = len(sample_simulations)
-            else:
-                raise TypeError('Sample method not supported')
-        else:
-            trajectories = self.trajectories
-            parameters = self.parameters
-            nsims = self.nsims
-        if nsims == 1:
-            trajectories = [trajectories]
 
-        results = []
-        with SerialExecutor() if num_processors == 1 else \
-                ProcessPoolExecutor(max_workers=num_processors) as executor:
-            network = self.create_bipartite_graph()
-            for n in range(nsims):
-                reaction_flux_df = self.get_reaction_flux_df(trajectories[n], parameters[n])
-                results.append(executor.submit(
-                    _dominant_paths,
-                    network,
-                    reaction_flux_df,
-                    self.tspan,
-                    target,
-                    type_analysis,
-                    depth,
-                    dom_om
-                ))
-            signatures_labels = [r.result() for r in results]
-
-        signatures = [0] * len(signatures_labels)
-        labels = [0] * len(signatures_labels)
-        for idx, sl in enumerate(signatures_labels):
-            signatures[idx] = sl[0]
-            labels[idx] = sl[1]
-        signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
-        # signatures_labels = {'signatures': signatures, 'labels': all_labels}
-        return SeqAnalysis(signatures_df, target), new_paths
+        return None
 
 
 def _reencode_signatures_paths(signatures, labels, tspan):

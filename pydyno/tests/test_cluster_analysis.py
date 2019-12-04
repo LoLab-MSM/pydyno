@@ -1,5 +1,5 @@
 from pydyno.examples.double_enzymatic.mm_two_paths_model import model
-# from nose.tools import *
+from nose.tools import *
 import numpy as np
 from pysb.testing import *
 import os

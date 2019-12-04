@@ -17,7 +17,7 @@ except ImportError:
     h5py = None
 
 
-def label2rr(model, species):
+def species_reaction_rates(model, species):
     """
 
     Parameters
@@ -28,7 +28,8 @@ def label2rr(model, species):
 
     Returns
     -------
-    The reaction rates of a species sp.
+    Dict
+        The reaction rates of a species sp.
     """
     monomials = {}
     counter = 0
@@ -141,99 +142,6 @@ def get_simulations(simulations):
         raise TypeError('format not supported')
     nsims = len(parameters)
     return trajectories, parameters, nsims, tspan
-
-
-def listdir_fullpath(d):
-    """
-
-    Parameters
-    ----------
-    d : str
-        path to directory
-
-    Returns
-    -------
-    a list of paths of the files in directory
-    """
-    return [os.path.join(d, f) for f in os.listdir(d)]
-
-
-def list_pars_infile(f, new_path=None):
-    """
-
-    Parameters
-    ----------
-    f : str
-        File that contain paths to parameter values
-    new_path : str
-        New path to assign to the parameter sets
-
-    Returns
-    -------
-    list of parameter paths
-    """
-    par_sets = pd.read_csv(f, names=['parameters'])['parameters'].tolist()
-    if new_path:
-        par_sets = [w.replace(w.rsplit('/', 1)[0], new_path) for w in par_sets]
-    return par_sets
-
-
-def read_pars(par_path):
-    """
-
-    Parameters
-    ----------
-    par_path : str
-        Path to parameter file
-
-    Returns
-    -------
-    a list of parameter values
-    """
-    if par_path.endswith('.txt') or par_path.endswith('.csv'):
-        data = np.genfromtxt(par_path, delimiter=',', dtype=None)
-        if len(data.dtype) == 0:
-            pars = data
-        elif len(data.dtype) == 2:
-            pars = data['f1']
-        else:
-            raise Exception('structure of the file is not supported')
-    elif par_path.endswith('.npy'):
-        pars = np.load(par_path)
-    else:
-        raise ValueError('format not supported')
-
-    return pars
-
-
-def read_all_pars(pars_path, new_path=None):
-    """
-
-    Parameters
-    ----------
-    pars_path : str
-        Parameter file or directory path
-    new_path : np.ndarray
-        Array with all the parameters
-
-    Returns
-    -------
-
-    """
-    if isinstance(pars_path, list):
-        par_sets = pars_path
-    elif os.path.isfile(pars_path):
-        par_sets = list_pars_infile(pars_path, new_path)
-    elif os.path.isdir(pars_path):
-        par_sets = listdir_fullpath(pars_path)
-    else:
-        raise Exception("Not valid parameter file or path")
-    pars_0 = read_pars(par_sets[0])
-    all_pars = np.zeros((len(par_sets), len(pars_0)))
-    all_pars[0] = pars_0
-    for idx in range(1, len(par_sets)):
-        all_pars[idx] = read_pars(par_sets[idx])
-    return all_pars
 
 
 def parse_name(spec):
