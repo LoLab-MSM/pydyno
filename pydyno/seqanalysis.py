@@ -449,7 +449,7 @@ class SeqAnalysis:
             rep = rep_method(**kwargs)
             return rep
 
-    def plot_sequences(self, type_fig='modal', plot_all=False, title='', filename='', sort_seq=None):
+    def plot_sequences(self, type_fig='modal', plot_all=False, title='', dir_path='', sort_seq=None):
         """
         Function to plot three different figures of the sequences.
         The modal figure takes the mode state at each time and plots
@@ -481,7 +481,7 @@ class SeqAnalysis:
 
         """
         ps = PlotSequences(self)
-        ps.plot_sequences(type_fig=type_fig, plot_all=plot_all, title=title, filename=filename, sort_seq=sort_seq)
+        ps.plot_sequences(type_fig=type_fig, plot_all=plot_all, title=title, dir_path=dir_path, sort_seq=sort_seq)
 
     # Clustering
 

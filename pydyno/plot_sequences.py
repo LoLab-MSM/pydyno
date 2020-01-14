@@ -1,11 +1,11 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from matplotlib.collections import LineCollection
 from scipy import stats
 from sklearn import metrics
 from pydyno.util import get_labels_entropy
+import os
 
 # TODO there must be a better way to define the fontsize
 N_ROW_FONTSIZE = {1: 'medium', 2: 'medium', 3: 'small', 4: 'small', 5: 'x-small', 6: 'x-small', 7: 'xx-small',
@@ -24,7 +24,7 @@ class PlotSequences:
     def seq_analysis(self, new_seq):
         self._seq_analysis = new_seq
 
-    def plot_sequences(self, type_fig='modal', plot_all=False, title='', filename='', sort_seq=None):
+    def plot_sequences(self, type_fig='modal', plot_all=False, title='', dir_path='', sort_seq=None):
         """
         Function to plot three different figures of the sequences.
         The modal figure takes the mode state at each time and plots
@@ -45,8 +45,9 @@ class PlotSequences:
             sequences in different subplots
         title: str
             Title of the figure
-        filename: str
-            Name of file
+        dir_path: str
+            Path to directory where the plots are going to be saved. File names are
+            assigned automatically
         sort_seq: str
             Method to sort sequences for a plot. Valid values are: `silhouette`.
              It is only available when the type of plot is `trajectories`
@@ -85,31 +86,27 @@ class PlotSequences:
 
         if type_fig == 'modal':
             self.__modal(cluster_labels, clusters, axs, n_rows)
-            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
-            plt.suptitle(title)
-            f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig(filename + 'cluster_modal' + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'trajectories':
             self.__trajectories(cluster_labels, clusters, axs, n_rows, sort_seq)
-            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
-            plt.suptitle(title)
-            f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig(filename + 'cluster_all_tr' + '.pdf', bbox_inches='tight', format='pdf')
 
         elif type_fig == 'entropy':
             self.__entropy(cluster_labels, clusters, f, axs, n_rows)
-            plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
-            plt.suptitle(title)
-            # f.text(0.5, 0.04, 'Time (h)', ha='center')
-            plt.savefig(filename + 'entropy' + '.pdf', bbox_inches='tight', format='pdf')
 
         else:
             raise NotImplementedError('Type of visualization not implemented')
 
+        plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
+        plt.suptitle(title)
+        f.text(0.5, 0.04, 'Time (h)', ha='center')
+        final_path = os.path.join(dir_path, type_fig + '.pdf')
+        plt.savefig(final_path, bbox_inches='tight', format='pdf')
+        # plt.close('all')
+
         return
 
     def __modal(self, cluster_labels, clusters, axs, nrows):
+        color_label_map = {}
         for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.seq_analysis.sequences.iloc[cluster_labels == clus]
             n_seqs = clus_seqs.shape[0]
@@ -121,12 +118,12 @@ class PlotSequences:
             mc_norm = np.divide(mode_counts[0], n_seqs, dtype=np.float)
             width_bar = self.seq_analysis.sequences.columns[1] - self.seq_analysis.sequences.columns[0]
             colors = [self.seq_analysis.states_colors[c] for c in modal_states[0]]
-            legend_patches = [mpatches.Patch(color=self.seq_analysis.states_colors[c], label=c) for c in set(modal_states[0])]
+            color_label_map.update({self.seq_analysis.states_colors[c]:c for c in set(modal_states[0])})
             axs[clus].set_ylim(0, 1)
             axs[clus].bar(self.seq_analysis.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
-            axs[clus].legend(handles=legend_patches, fontsize='x-small')
             axs[clus].set_ylabel('Freq (n={0})'.format(total_seqs), fontsize=N_ROW_FONTSIZE[nrows])  # Frequency
             axs[clus].set_title('Cluster {0}'.format(clus), fontsize=N_ROW_FONTSIZE[nrows])
+
         return
 
     def __trajectories(self, cluster_labels, clusters, axs, nrows, sort_seq=None):

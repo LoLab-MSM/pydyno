@@ -211,7 +211,7 @@ class VisualizeTrajectories(object):
                 axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
                 plt.setp(axHisty.get_yticklabels(), visible=False)
                 hist_data = sp_trajectory[-1, :]
-                axHisty.hist(hist_data, normed=True, orientation='horizontal')
+                axHisty.hist(hist_data, density=True, orientation='horizontal')
                 shape = np.std(hist_data)
                 scale = np.average(hist_data)
 
@@ -231,6 +231,7 @@ class VisualizeTrajectories(object):
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
+                plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
 
     def _plot_dynamics_cluster_types_norm(self, plots_dict, species, save_path, fig_label, norm_value=None):
         for idx, clus in self.clusters.items():
@@ -256,6 +257,7 @@ class VisualizeTrajectories(object):
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_normed_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
+                plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
 
     def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit,
                                                       save_path, fig_label, **kwargs):
@@ -290,6 +292,7 @@ class VisualizeTrajectories(object):
                 final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
+                plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
 
     def _add_function_hist(self, plots_dict, idx, sp_overlap, ftn_result):
         for sp_dist in sp_overlap:
@@ -312,7 +315,7 @@ class VisualizeTrajectories(object):
             pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
             anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=12))
             axHistx.add_artist(anchored_text)
-            axHistx.hist(hist_data_filt, normed=True, bins=20)
+            axHistx.hist(hist_data_filt, density=True, bins=20)
             axHistx.vlines(10230.96, -0.05, 1.05, color='r', linestyle=':', linewidth=2)  # MOMP data
             # axHistx.plot(np.sort(hist_data_filt), pdf) # log fitting to histogram data
             for tl in axHistx.get_xticklabels():
@@ -380,6 +383,7 @@ class VisualizeTrajectories(object):
             final_save_path = os.path.join(save_path, 'hist_ic_type{0}'.format(c_idx))
             plt.savefig(final_save_path + '.png', format='png', dpi=700)
             plt.clf()
+            plt.close()
         return
 
     def plot_pattern_sps_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
@@ -444,6 +448,7 @@ class VisualizeTrajectories(object):
                       title='Species indices')
             final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
             fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            plt.close(fig)
         return
 
     def __entropy_sps(self, sps_matched, plots, save_path, fig_name):
@@ -472,6 +477,7 @@ class VisualizeTrajectories(object):
             plots['plot_cluster{0}'.format(c)][1].set(ylim=(0, max_entropy))
             final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c, fig_name))
             plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
     def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
@@ -634,14 +640,17 @@ class VisualizeTrajectories(object):
 
             final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
             fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            plt.close(fig)
 
             fig_plegend = plt.figure(figsize=(2, 1.25))
             fig_plegend.legend(plegend_patches, plabels, loc='center', frameon=False, ncol=4)
-            plt.savefig('plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.savefig(final_save_path + 'plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.close(fig_plegend)
 
             fig_rlegend = plt.figure(figsize=(2, 1.25))
             fig_rlegend.legend(rlegend_patches, rlabels, loc='center', frameon=False, ncol=4)
-            plt.savefig('rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.savefig(final_save_path + 'rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.close(fig_rlegend)
         return
 
     def __entropy__rxns(self, products_matched, reactants_matched, plots, save_path, fig_name):
@@ -689,6 +698,7 @@ class VisualizeTrajectories(object):
             plots['plot_cluster{0}'.format(c)][1][1].set(ylim=(0, rmax_entropy))
             final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c, fig_name))
             plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
     def plot_violin_pars(self, par_idxs, save_path=''):
@@ -747,6 +757,7 @@ class VisualizeTrajectories(object):
 
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
             fig.savefig(final_save_path + '.pdf', format='pdf')
+            plt.close(fig)
 
             ### Code to plot violinplots with seaborn
             # g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
@@ -814,6 +825,7 @@ class VisualizeTrajectories(object):
 
             final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[kd_pars[0]].name))
             fig.savefig(final_save_path + '.pdf', format='pdf')
+            plt.close(fig)
 
             # g = sns.violinplot(data=data_violin, orient='h', bw='silverman', cut=0, scale='count', inner='box')
             # g.set(yticklabels=clus_labels, xlabel='Parameter Range', ylabel='Clusters')
@@ -869,6 +881,7 @@ class VisualizeTrajectories(object):
 
             final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
             fig.savefig(final_save_path + '.png', format='png', dpi=700)
+            plt.close(fig)
         return
 
     def scatter_plot_pars(self, par_idxs, cluster, save_path=''):
@@ -905,6 +918,7 @@ class VisualizeTrajectories(object):
         final_save_path = os.path.join(save_path, 'scatter_{0}_{1}_cluster_{2}'.format(ic_name0, ic_name1,
                                                                                        cluster))
         plt.savefig(final_save_path + '.png', format='png', dpi=700)
+        plt.close()
 
     @staticmethod
     def _get_colors(num_colors):

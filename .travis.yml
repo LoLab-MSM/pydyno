@@ -10,15 +10,18 @@ before_install:
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
 - conda install --yes -c conda-forge python="$PYVER" numpy scipy matplotlib sympy
-  nose h5py pandas scikit-learn coveralls cython editdistance pathos hdbscan networkx
-  pydot
+  pytest h5py pandas scikit-learn coveralls cython editdistance pathos hdbscan networkx
+  pydot coverage
 - conda install --yes -c alubbock pysb
 - if [[ $PYVER == 2.7 ]]; then conda update --yes numpy; fi
 - pip install anytree
 - mkdir -p ~/.config/matplotlib
 - echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
 install: python setup.py build --build-lib=build/lib
-script: nosetests build/lib/pydyno --with-coverage --cover-package=build/lib/pydyno
+script:
+  |
+  coverage run -m pytest --pyargs pydyno
+  coverage report -m
 after_success: coveralls
 deploy:
   provider: pypi
