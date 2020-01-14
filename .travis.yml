@@ -14,7 +14,7 @@ before_install:
   pydot coverage
 - conda install --yes -c alubbock pysb
 - if [[ $PYVER == 2.7 ]]; then conda update --yes numpy; fi
-- pip install anytree
+- pip install anytree tellurium
 - mkdir -p ~/.config/matplotlib
 - echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
 install: python setup.py build --build-lib=build/lib
