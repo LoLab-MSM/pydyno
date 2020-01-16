@@ -18,7 +18,7 @@ before_install:
 - mkdir -p ~/.config/matplotlib
 - echo "backend:Agg" > ~/.config/matplotlib/matplotlibrc
 install: python setup.py build --build-lib=build/lib
-script: pytest --pyargs pydyno
+script: pytest build/lib
 after_success: coveralls
 deploy:
   provider: pypi
