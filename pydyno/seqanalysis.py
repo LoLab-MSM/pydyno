@@ -151,6 +151,7 @@ class SeqAnalysis:
         """
         Obtain the unique sequence in the dataframe of sequences. This adds a new
         column with the count of the repeated sequences
+
         Returns
         -------
         pd.DataFrame with the unique sequences
@@ -470,8 +471,8 @@ class SeqAnalysis:
             sequences in different subplots
         title: str
             Title of the figure
-        filename: str
-            Name of file
+        dir_path: str
+            Path to directory where plots are going to be saved
         sort_seq: str
             Method to sort sequences for a plot. Valid values are: `silhouette`.
              It is only available when the type of plot is `trajectories`

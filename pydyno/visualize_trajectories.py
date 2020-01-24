@@ -121,7 +121,7 @@ class VisualizeTrajectories(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_cluster_dynamics(self, species, save_path='', fig_name='',
+    def plot_cluster_dynamics(self, species, dir_path='', fig_name='',
                               species_ftn_fit=None, norm=False, norm_value=None,
                               **kwargs):
         """
@@ -131,7 +131,7 @@ class VisualizeTrajectories(object):
         ----------
         species: list-like
             Indices of PySB species that will be plotted or observable names or pysb expressions
-        save_path: str
+        dir_path: str
             Path to folder where the figure is going to be saved
         fig_name: str
             String used to give a name to the cluster figures
@@ -158,16 +158,16 @@ class VisualizeTrajectories(object):
                 # checking if species_to_fit are present in the species that are going to be plotted
                 self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict, species=species,
                                                                    species_ftn_fit=species_ftn_fit,
-                                                                   save_path=save_path, fig_label=fig_name,
+                                                                   dir_path=dir_path, fig_label=fig_name,
                                                                    **kwargs)
 
             else:
                 self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species,
-                                                       save_path=save_path, fig_label=fig_name, norm_value=norm_value)
+                                                       dir_path=dir_path, fig_label=fig_name, norm_value=norm_value)
 
         else:
             self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species,
-                                              save_path=save_path, fig_label=fig_name)
+                                              dir_path=dir_path, fig_label=fig_name)
 
         return
 
@@ -197,7 +197,7 @@ class VisualizeTrajectories(object):
             name = self.model.species[sp]
         return sp_trajectory, name
 
-    def _plot_dynamics_cluster_types(self, plots_dict, species, save_path, fig_label):
+    def _plot_dynamics_cluster_types(self, plots_dict, species, dir_path, fig_label):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
@@ -230,12 +230,12 @@ class VisualizeTrajectories(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([sp_min_conc, sp_max_conc])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_{2}'.format(sp, idx, fig_label))
+                final_save_path = os.path.join(dir_path, 'plot_sp{0}_cluster{1}_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
                 plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
 
-    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, save_path, fig_label, norm_value=None):
+    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, dir_path, fig_label, norm_value=None):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
@@ -256,13 +256,13 @@ class VisualizeTrajectories(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_normed_{2}'.format(sp, idx, fig_label))
+                final_save_path = os.path.join(dir_path, 'plot_sp{0}_cluster{1}_normed_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
                 plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
 
     def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit,
-                                                      save_path, fig_label, **kwargs):
+                                                      dir_path, fig_label, **kwargs):
         sp_overlap = [ii for ii in species_ftn_fit if ii in species]
         if not sp_overlap:
             raise ValueError('species_to_fit must be in species list')
@@ -291,7 +291,7 @@ class VisualizeTrajectories(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
-                final_save_path = os.path.join(save_path, 'plot_sp{0}_cluster{1}_fitted_{2}'.format(sp, idx, fig_label))
+                final_save_path = os.path.join(dir_path, 'plot_sp{0}_cluster{1}_fitted_{2}'.format(sp, idx, fig_label))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
                                                                                format='png', dpi=700)
                 plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
@@ -349,7 +349,7 @@ class VisualizeTrajectories(object):
         obs_values = np.sum(y[:, :, sps], axis=2)
         return obs_values.T
 
-    def hist_clusters_parameters(self, par_idxs, save_path=''):
+    def hist_clusters_parameters(self, par_idxs, dir_path=''):
         """
         Creates a plot for each cluster, and it has histograms of the parameters provided
 
@@ -357,8 +357,8 @@ class VisualizeTrajectories(object):
         ----------
         par_idxs: list-like
             Indices of the model parameters that would be visualized
-        save_path: str
-            Path to where the file is going to be saved
+        dir_path: str
+            Path to directory where the file is going to be saved
 
         Returns
         -------
@@ -382,13 +382,13 @@ class VisualizeTrajectories(object):
             plt.xlabel('Concentration')
             plt.ylabel('Percentage')
             plt.legend(loc=0)
-            final_save_path = os.path.join(save_path, 'hist_ic_type{0}'.format(c_idx))
+            final_save_path = os.path.join(dir_path, 'hist_ic_type{0}'.format(c_idx))
             plt.savefig(final_save_path + '.png', format='png', dpi=700)
             plt.clf()
             plt.close()
         return
 
-    def plot_pattern_sps_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
+    def plot_pattern_sps_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), dir_path='', fig_name=''):
         """
         Creates a plot for each cluster. It has a stacked bar or entropy plot of the percentage
         of the interactions of species at each time point
@@ -400,7 +400,7 @@ class VisualizeTrajectories(object):
             `entropy` to get the entropy of the distributions of the species that match the provided pattern
         y_lim: tuple
             y-axis limits
-        save_path: path to save the file
+        dir_path: path to save the file
         fig_name: str
             Figure name
 
@@ -419,15 +419,15 @@ class VisualizeTrajectories(object):
             plots_dict['plot_cluster{0}'.format(clus)] = plt.subplots()
 
         if type_fig == 'bar':
-            self.__bar_sps(sps_matched, colors, plots_dict, save_path, fig_name)
+            self.__bar_sps(sps_matched, colors, plots_dict, dir_path, fig_name)
 
         elif type_fig == 'entropy':
-            self.__entropy_sps(sps_matched, plots_dict, save_path, fig_name)
+            self.__entropy_sps(sps_matched, plots_dict, dir_path, fig_name)
 
         else:
             raise NotImplementedError('Type of visualization not implemented')
 
-    def __bar_sps(self, sps_matched, colors, plots, save_path, fig_name):
+    def __bar_sps(self, sps_matched, colors, plots, dir_path, fig_name):
         for c_idx, clus in self.clusters.items():
             fig = plots['plot_cluster{0}'.format(c_idx)][0]
             ax = plots['plot_cluster{0}'.format(c_idx)][1]
@@ -448,12 +448,12 @@ class VisualizeTrajectories(object):
             fig.suptitle('Cluster {0}'.format(c_idx))
             ax.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5,
                       title='Species indices')
-            final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
+            final_save_path = os.path.join(dir_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
             fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.close(fig)
         return
 
-    def __entropy_sps(self, sps_matched, plots, save_path, fig_name):
+    def __entropy_sps(self, sps_matched, plots, dir_path, fig_name):
         max_entropy = 0
         for c_idx, clus in self.clusters.items():
             ax = plots['plot_cluster{0}'.format(c_idx)][1]
@@ -477,12 +477,12 @@ class VisualizeTrajectories(object):
 
         for c in self.clusters:
             plots['plot_cluster{0}'.format(c)][1].set(ylim=(0, max_entropy))
-            final_save_path = os.path.join(save_path, 'hist_avg_clus{0}_{1}'.format(c, fig_name))
+            final_save_path = os.path.join(dir_path, 'hist_avg_clus{0}_{1}'.format(c, fig_name))
             plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
-    def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), save_path='', fig_name=''):
+    def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), dir_path='', fig_name=''):
         """
         This function uses the given pattern to match it with reactions in which it is present
         as a product and as a reactant. There are two types of visualization:
@@ -493,9 +493,11 @@ class VisualizeTrajectories(object):
         Parameters
         ----------
         pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
+            Pattern used to obtain distributions
         y_lim: tuple
             y-axis limits
-        save_path: str
+        dir_path: str
+            Path to directory where the plots are going to be saved
         fig_name: str
             Figure name
 
@@ -513,10 +515,10 @@ class VisualizeTrajectories(object):
             plots_dict['plot_cluster{0}'.format(clus)] = plt.subplots(2, sharex=True)
 
         if type_fig == 'bar':
-            self.__bar_rxns(products_matched, reactants_matched, plots_dict, save_path, fig_name)
+            self.__bar_rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name)
 
         elif type_fig == 'entropy':
-            self.__entropy__rxns(products_matched, reactants_matched, plots_dict, save_path, fig_name)
+            self.__entropy__rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name)
 
         else:
             raise NotImplementedError('Type of visualization not implements')
@@ -606,7 +608,7 @@ class VisualizeTrajectories(object):
 
         return products_avg, reactants_avg, plegend_info, rlegend_info
 
-    def __bar_rxns(self, products_matched, reactants_matched, plots, save_path, fig_name):
+    def __bar_rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name):
         for c_idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             pars = self.all_parameters[clus]
@@ -640,7 +642,7 @@ class VisualizeTrajectories(object):
             ax3.grid(False)
             ax3.set(xlabel="Time", ylabel='Percentage')
 
-            final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
+            final_save_path = os.path.join(dir_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
             fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.close(fig)
 
@@ -655,7 +657,7 @@ class VisualizeTrajectories(object):
             plt.close(fig_rlegend)
         return
 
-    def __entropy__rxns(self, products_matched, reactants_matched, plots, save_path, fig_name):
+    def __entropy__rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name):
         pmax_entropy = 0
         rmax_entropy = 0
         for c_idx, clus in self.clusters.items():
@@ -698,12 +700,12 @@ class VisualizeTrajectories(object):
         for c in self.clusters:
             plots['plot_cluster{0}'.format(c)][1][0].set(ylim=(0, pmax_entropy))
             plots['plot_cluster{0}'.format(c)][1][1].set(ylim=(0, rmax_entropy))
-            final_save_path = os.path.join(save_path, 'hist_avg_rxn_clus{0}_{1}'.format(c, fig_name))
+            final_save_path = os.path.join(dir_path, 'hist_avg_rxn_clus{0}_{1}'.format(c, fig_name))
             plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
             plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
-    def plot_violin_pars(self, par_idxs, save_path=''):
+    def plot_violin_pars(self, par_idxs, dir_path=''):
         """
         Creates a plot for each model parameter. Then, makes violin plots for each cluster
 
@@ -711,8 +713,8 @@ class VisualizeTrajectories(object):
         ----------
         par_idxs: list-like
             Indices of the parameters that would be visualized
-        save_path: str
-            Path to where the file is going to be saved
+        dir_path: str
+            Path to directory where the file is going to be saved
 
         Returns
         -------
@@ -757,7 +759,7 @@ class VisualizeTrajectories(object):
             # set style for the axes
             _set_axis_style(ax1, clus_labels)
 
-            final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
+            final_save_path = os.path.join(dir_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
             fig.savefig(final_save_path + '.pdf', format='pdf')
             plt.close(fig)
 
@@ -770,7 +772,7 @@ class VisualizeTrajectories(object):
             # fig.savefig(final_save_path + '.pdf', format='pdf')
         return
 
-    def plot_violin_kd(self, par_idxs, save_path=''):
+    def plot_violin_kd(self, par_idxs, dir_path=''):
         """
         Creates a plot for each kd parameter. Then, makes violin plots for each cluster
 
@@ -779,8 +781,8 @@ class VisualizeTrajectories(object):
         par_idxs: list-like
             Tuples of parameters indices, where the first entry is the k_reverse and
             the second entry is the k_forward parameter.
-        save_path: str
-            Path to where the file is going to be saved
+        dir_path: str
+            Path to directory where the file is going to be saved
 
         Returns
         -------
@@ -825,7 +827,7 @@ class VisualizeTrajectories(object):
             # set style for the axes
             _set_axis_style(ax1, clus_labels)
 
-            final_save_path = os.path.join(save_path, 'violin_sp_{0}'.format(self.model.parameters[kd_pars[0]].name))
+            final_save_path = os.path.join(dir_path, 'violin_sp_{0}'.format(self.model.parameters[kd_pars[0]].name))
             fig.savefig(final_save_path + '.pdf', format='pdf')
             plt.close(fig)
 
@@ -837,7 +839,7 @@ class VisualizeTrajectories(object):
             # fig.savefig(final_save_path + '.pdf', format='pdf')
         return
 
-    def plot_sp_ic_overlap(self, par_idxs, save_path=''):
+    def plot_sp_ic_overlap(self, par_idxs, dir_path=''):
         """
         Creates a stacked histogram with the distributions of each of the
         clusters for each model parameter provided
@@ -846,7 +848,7 @@ class VisualizeTrajectories(object):
         ----------
         par_idxs: list
             Indices of the initial conditions in model.parameter to plot
-        save_path: str
+        dir_path: str
             Path to where the file is going to be saved
 
         Returns
@@ -881,12 +883,12 @@ class VisualizeTrajectories(object):
             ax.set(xlabel='Concentration', ylabel='Percentage', title=self.model.parameters[ic].name)
             ax.legend(loc=0)
 
-            final_save_path = os.path.join(save_path, 'plot_ic_overlap_{0}'.format(ic))
+            final_save_path = os.path.join(dir_path, 'plot_ic_overlap_{0}'.format(ic))
             fig.savefig(final_save_path + '.png', format='png', dpi=700)
             plt.close(fig)
         return
 
-    def scatter_plot_pars(self, par_idxs, cluster, save_path=''):
+    def scatter_plot_pars(self, par_idxs, cluster, dir_path=''):
         """
 
         Parameters
@@ -894,7 +896,7 @@ class VisualizeTrajectories(object):
         par_idxs: list
             Indices of the parameters to visualize
         cluster: list-like
-        save_path: str
+        dir_path: str
             Path to where the file is going to be saved
 
 
@@ -917,8 +919,8 @@ class VisualizeTrajectories(object):
         ic_name1 = self.model.parameters[par_idxs[1]].name
         plt.xlabel(ic_name0)
         plt.ylabel(ic_name1)
-        final_save_path = os.path.join(save_path, 'scatter_{0}_{1}_cluster_{2}'.format(ic_name0, ic_name1,
-                                                                                       cluster))
+        final_save_path = os.path.join(dir_path, 'scatter_{0}_{1}_cluster_{2}'.format(ic_name0, ic_name1,
+                                                                                      cluster))
         plt.savefig(final_save_path + '.png', format='png', dpi=700)
         plt.close()
 

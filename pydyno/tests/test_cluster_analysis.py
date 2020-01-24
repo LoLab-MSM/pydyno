@@ -20,67 +20,67 @@ def visualize():
 
 class TestClusteringAnalysis:
     def test_plot_dynamics_cluster_not_normed_types(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=[0], norm=False, save_path=data_files_dir)
+        visualize.plot_cluster_dynamics(species=[0], norm=False, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_normed_types(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=[0], norm=True, save_path=data_files_dir)
+        visualize.plot_cluster_dynamics(species=[0], norm=True, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_not_normed_expression(self, visualize, data_files_dir):
         exprs = model.reactions_bidirectional[0]['rate']
-        visualize.plot_cluster_dynamics(species=[exprs], norm=False, save_path=data_files_dir)
+        visualize.plot_cluster_dynamics(species=[exprs], norm=False, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_not_normed_observable(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=['E_free'], norm=False, save_path=data_files_dir)
+        visualize.plot_cluster_dynamics(species=['E_free'], norm=False, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_normed_expression(self, visualize, data_files_dir):
         exprs = model.reactions_bidirectional[0]['rate']
-        visualize.plot_cluster_dynamics(species=[exprs], norm=True, save_path=data_files_dir)
+        visualize.plot_cluster_dynamics(species=[exprs], norm=True, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_normed_observable(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=['E_free'], norm=True, save_path=data_files_dir)
+        visualize.plot_cluster_dynamics(species=['E_free'], norm=True, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_invalid_observable(self, visualize, data_files_dir):
         with pytest.raises(ValueError):
-            visualize.plot_cluster_dynamics(species=['bla'], norm=True, save_path=data_files_dir)
+            visualize.plot_cluster_dynamics(species=['bla'], norm=True, dir_path=data_files_dir)
 
     def test_hist_avg_sps_bar(self, visualize, data_files_dir):
         sp = model.species[0]
-        visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='bar', save_path=data_files_dir)
+        visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='bar', dir_path=data_files_dir)
 
     def test_hist_avg_sps_entropy(self, visualize, data_files_dir):
         sp = model.species[0]
-        visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='entropy', save_path=data_files_dir)
+        visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='entropy', dir_path=data_files_dir)
 
     def test_hist_avg_sps_invalid_visualization(self, visualize, data_files_dir):
         with pytest.raises(NotImplementedError):
             sp = model.species[0]
-            visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='bla', save_path=data_files_dir)
+            visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='bla', dir_path=data_files_dir)
 
     def test_hist_avg_rxn_bar(self, visualize, data_files_dir):
         sp = model.species[0]
-        visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='bar', save_path=data_files_dir)
+        visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='bar', dir_path=data_files_dir)
 
     def test_hist_avg_rxn_entropy(self, visualize, data_files_dir):
         sp = model.species[0]
-        visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='entropy', save_path=data_files_dir)
+        visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='entropy', dir_path=data_files_dir)
 
     def test_hist_avg_rxns_invalid_visualization(self, visualize, data_files_dir):
         with pytest.raises(NotImplementedError):
             sp = model.species[0]
-            visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='bla', save_path=data_files_dir)
+            visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='bla', dir_path=data_files_dir)
 
     def test_violin_plot_kd(self, visualize, data_files_dir):
         kd_pars = [(1, 0)]
-        visualize.plot_violin_kd(par_idxs=kd_pars, save_path=data_files_dir)
+        visualize.plot_violin_kd(par_idxs=kd_pars, dir_path=data_files_dir)
 
     def test_hist_plot_clusters(self, visualize, data_files_dir):
-        visualize.hist_clusters_parameters(par_idxs=[7], save_path=data_files_dir)
+        visualize.hist_clusters_parameters(par_idxs=[7], dir_path=data_files_dir)
 
     def test_violin_plot_sps(self, visualize, data_files_dir):
-        visualize.plot_violin_pars(par_idxs=[0], save_path=data_files_dir)
+        visualize.plot_violin_pars(par_idxs=[0], dir_path=data_files_dir)
 
     def test_plot_sp_ic_overlap(self, visualize, data_files_dir):
-        visualize.plot_sp_ic_overlap(par_idxs=[7], save_path=data_files_dir)
+        visualize.plot_sp_ic_overlap(par_idxs=[7], dir_path=data_files_dir)
 
     def test_scatter_plot_pars(self, visualize, data_files_dir):
-        visualize.scatter_plot_pars(par_idxs=[7, 8], cluster=0, save_path=data_files_dir)
+        visualize.scatter_plot_pars(par_idxs=[7, 8], cluster=0, dir_path=data_files_dir)
