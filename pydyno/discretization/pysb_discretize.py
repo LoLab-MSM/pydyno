@@ -171,10 +171,10 @@ class PysbDomPath(base.DomPath):
             dom_path_partial = partial(base._dominant_paths, network=network, tspan=self.tspan, target=target,
                                        type_analysis=type_analysis, depth=depth, dom_om=dom_om)
             all_reaction_flux_df = [self.get_reaction_flux_df(n) for n in nsims]
-            signatures_labels = list(executor.map(dom_path_partial, all_reaction_flux_df))
+            signatures_labels = executor.map(dom_path_partial, all_reaction_flux_df)
 
-        signatures = [0] * len(signatures_labels)
-        labels = [0] * len(signatures_labels)
+        signatures = [0] * len(nsims)
+        labels = [0] * len(nsims)
         for idx, sl in enumerate(signatures_labels):
             signatures[idx] = sl[0]
             labels[idx] = sl[1]
