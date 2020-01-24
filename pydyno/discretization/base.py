@@ -124,7 +124,7 @@ def _natural_sort(l):
     return sorted(l, key=alphanum_key)
 
 
-def _dominant_paths(network, reaction_flux_df, tspan,
+def _dominant_paths(reaction_flux_df, network, tspan,
                     target, type_analysis, depth, dom_om):
     """
     Traceback a dominant path from a user defined target
