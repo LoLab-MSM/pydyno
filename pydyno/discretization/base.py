@@ -25,9 +25,6 @@ class DomPath(ABC):
     ----------
     model: PySB model
         Model to analyze
-    simulations: PySB SimulationResult object or str
-        simulations used to perform the analysis. If str it should be the
-        path to a simulation result in hdf5 format
     """
     @abstractmethod
     def __init__(self, model):
@@ -41,9 +38,10 @@ class DomPath(ABC):
     def create_bipartite_graph(self):
         """
         Creates bipartite graph with species and reaction nodes of the pysb model
+
         Returns
         -------
-
+        nx.DiGraph
         """
 
         return None
@@ -55,7 +53,7 @@ class DomPath(ABC):
 
         Returns
         -------
-
+        pd.DataFrame
         """
 
         return None
@@ -85,7 +83,7 @@ class DomPath(ABC):
 
         Returns
         -------
-
+        pydyno.SeqAnalysis
         """
 
         return None
