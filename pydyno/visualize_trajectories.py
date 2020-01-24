@@ -34,6 +34,8 @@ class VisualizeTrajectories(object):
         analyse the sim_results as a single cluster.
     sim_results: SimulationResult or h5 file from PySB simulation
         SimulationResult object or h5 file with the dynamic solutions of the model for all the parameter sets
+    truncate_idx: int
+        Index at which the simulation is truncated
     """
 
     def __init__(self, model, sim_results, clusters, truncate_idx=None):

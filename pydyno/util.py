@@ -93,7 +93,12 @@ def get_simulations(simulations):
 
     Returns
     -------
-
+    tuple
+        A tuple where the first element corresponds to a np.array with the simulated
+        trajectories, the second element is a np.array with the param_values used
+        in the simulations, the third element is an int which  corresponds to the
+        number of simulations, and the last element is the tspan used in the
+        simulations.
     """
     if isinstance(simulations, str):
         if h5py is None:
