@@ -37,7 +37,9 @@ _VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
 def lcs_dist_same_length(seq1, seq2):
     """
-    Longest common subsequence metric
+    Longest common subsequence metric as defined by CESS H. ELZINGA in
+    'Sequence analysis: metric representations of categorical time series'
+
     Parameters
     ----------
     seq1 : array-like
