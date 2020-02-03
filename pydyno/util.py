@@ -104,47 +104,40 @@ def get_simulations(simulations):
         if h5py is None:
             raise Exception('please install the h5py package for this feature')
         if h5py.is_hdf5(simulations):
-            with h5py.File(simulations, 'r') as hdf:
-                group_name = next(iter(hdf))
-                grp = hdf[group_name]
-
-                datasets = list(grp.keys())
-                datasets.remove('_model')
-                dataset_name = datasets[0]
-
-                dset = grp[dataset_name]
-
-                parameters = dset['param_values'][:]
-                trajectories = dset['trajectories'][:]
-                sim_tout = dset['tout'][:]
-                if all_equal(sim_tout):
-                    tspan = sim_tout[0]
-                else:
-                    raise Exception('Analysis is not supported for simulations with different time spans')
+            sims = SimulationResult.load(simulations)
         else:
             raise TypeError('File format not supported')
 
     elif isinstance(simulations, SimulationResult):
-        if all_equal(simulations.tout):
-            tspan = simulations.tout[0]
-        else:
-            raise Exception('Analysis is not supported for simulations with different time spans')
-        parameters = simulations.param_values
-        # SimulationResult always return a list
-        trajectories = np.array(simulations.species)
-
-    elif isinstance(simulations, dict):
-        if isinstance(simulations['trajectories'], list):
-            trajectories = np.array(simulations['trajectories'])
-        elif isinstance(simulations['trajectories'], np.array):
-            trajectories = simulations['trajectories']
-        else:
-            raise TypeError('Simulation results should be in a numpy array or list format')
-        parameters = simulations['param_values']
-        tspan = simulations['tspan']
+        sims = simulations
 
     else:
         raise TypeError('format not supported')
+    return _get_data_from_sims(sims)
+
+
+def _get_data_from_sims(simulations):
+    """
+    Obtain species trajectories, parameters, nsims and tspan from
+    a pysb SimulationResult object
+
+    Parameters
+    ----------
+    simulations : SimulationResult
+        pysb simulations
+
+    Returns
+    -------
+    tuple
+        Tuple with the simulation trajectories, parameters, nsims, and tspan
+    """
+    if all_equal(simulations.tout):
+        tspan = simulations.tout[0]
+    else:
+        raise Exception('Analysis is not supported for simulations with different time spans')
+    parameters = simulations.param_values
+    # SimulationResult always return a list
+    trajectories = np.array(simulations.species)
     nsims = len(parameters)
     return trajectories, parameters, nsims, tspan
 
