@@ -122,11 +122,18 @@ class SbmlDomPath(base.DomPath):
 
         network = self.create_bipartite_graph()
 
-        with ProcessPoolExecutor(max_workers=num_processors) as executor:
+        with base.SerialExecutor() if num_processors == 1 else \
+                ProcessPoolExecutor(max_workers=num_processors) as executor:
             dom_path_partial = partial(base._dominant_paths, network=network, tspan=self.tspan, target=target,
                                        type_analysis=type_analysis, depth=depth, dom_om=dom_om)
-            all_reaction_flux_df = [self.get_reaction_flux_df(n) for n in nsims]
-            signatures_labels = executor.map(dom_path_partial, all_reaction_flux_df)
+
+            results = [executor.submit(dom_path_partial, self.get_reaction_flux_df(n))
+                       for n in nsims]
+            try:
+                signatures_labels = [r.result() for r in results]
+            finally:
+                for r in results:
+                    r.cancel()
 
         signatures = [0] * len(nsims)
         labels = [0] * len(nsims)

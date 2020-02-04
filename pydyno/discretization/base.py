@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from concurrent.futures import Executor, Future
 import re
 import json
 import hashlib
@@ -322,3 +323,17 @@ def _species_connected_to_node(network, r, type_edge, idx_r):
     sp_nodes = [n[idx_r] for n in in_edges]
     # Sort the incoming nodes to get the same results in each simulation
     return _natural_sort(sp_nodes)
+
+
+class SerialExecutor(Executor):
+    """ Execute tasks in serial (immediately on submission) """
+    def submit(self, fn, *args, **kwargs):
+        f = Future()
+        try:
+            result = fn(*args, **kwargs)
+        except BaseException as e:
+            f.set_exception(e)
+        else:
+            f.set_result(result)
+
+        return f
