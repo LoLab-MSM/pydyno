@@ -121,7 +121,7 @@ class VisualizeTrajectories(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_cluster_dynamics(self, species, dir_path='', fig_name='',
+    def plot_cluster_dynamics(self, species, dir_path='', fig_name='', plot_format=None,
                               species_ftn_fit=None, norm=False, norm_value=None,
                               **kwargs):
         """
@@ -135,10 +135,16 @@ class VisualizeTrajectories(object):
             Path to folder where the figure is going to be saved
         fig_name: str
             String used to give a name to the cluster figures
+        plot_format: str or None; default None
+            Format of saved figures: png, pdf, etc
         species_ftn_fit: dict, optional
             Dictionary of species with their respective function to fit their dynamics
         norm: boolean, optional
             Normalizes species by max value in simulation
+        norm_value: array-like
+            Array of values used to normalized species concentrations. Must have same order
+            as species
+
         kwargs: dict
             Arguments to pass to fitting function
 
@@ -156,20 +162,24 @@ class VisualizeTrajectories(object):
         if norm:
             if species_ftn_fit:
                 # checking if species_to_fit are present in the species that are going to be plotted
-                self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict, species=species,
-                                                                   species_ftn_fit=species_ftn_fit,
-                                                                   dir_path=dir_path, fig_label=fig_name,
-                                                                   **kwargs)
+                plot_data = self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict, species=species,
+                                                                               species_ftn_fit=species_ftn_fit,
+                                                                               **kwargs)
 
             else:
-                self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species,
-                                                       dir_path=dir_path, fig_label=fig_name, norm_value=norm_value)
+                plot_data = self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, species=species,
+                                                                   norm_value=norm_value)
 
         else:
-            self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species,
-                                              dir_path=dir_path, fig_label=fig_name)
+            plot_data = self._plot_dynamics_cluster_types(plots_dict=plots_dict, species=species)
 
-        return
+        if fig_name:
+            fig_name = '_' + fig_name
+        for name, plot in plot_data.items():
+            final_save_path = os.path.join(dir_path, name + fig_name)
+            plot[0].savefig(final_save_path, dpi=500, format=plot_format)
+
+        return plot_data
 
     def _calculate_expr_values(self, y, sp, clus):
         # Calculates the reaction rate values, observable values or species values
@@ -197,7 +207,7 @@ class VisualizeTrajectories(object):
             name = self.model.species[sp]
         return sp_trajectory, name
 
-    def _plot_dynamics_cluster_types(self, plots_dict, species, dir_path, fig_label):
+    def _plot_dynamics_cluster_types(self, plots_dict, species):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for sp in species:
@@ -230,19 +240,16 @@ class VisualizeTrajectories(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([sp_min_conc, sp_max_conc])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
-                final_save_path = os.path.join(dir_path, 'plot_sp{0}_cluster{1}_{2}'.format(sp, idx, fig_label))
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
-                                                                               format='png', dpi=700)
-                plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
+        return plots_dict
 
-    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, dir_path, fig_label, norm_value=None):
+    def _plot_dynamics_cluster_types_norm(self, plots_dict, species, norm_value=None):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
-            for sp in species:
+            for n, sp in enumerate(species):
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, sp, clus)
                 if norm_value:
-                    norm_trajectories = sp_trajectory/norm_value
+                    norm_trajectories = sp_trajectory / norm_value[n]
                 else:
                     norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
@@ -256,13 +263,9 @@ class VisualizeTrajectories(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
-                final_save_path = os.path.join(dir_path, 'plot_sp{0}_cluster{1}_normed_{2}'.format(sp, idx, fig_label))
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
-                                                                               format='png', dpi=700)
-                plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
+        return plots_dict
 
-    def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit,
-                                                      dir_path, fig_label, **kwargs):
+    def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, species, species_ftn_fit, **kwargs):
         sp_overlap = [ii for ii in species_ftn_fit if ii in species]
         if not sp_overlap:
             raise ValueError('species_to_fit must be in species list')
@@ -291,10 +294,7 @@ class VisualizeTrajectories(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].set_ylim([0, 1])
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                 format(name, idx))
-                final_save_path = os.path.join(dir_path, 'plot_sp{0}_cluster{1}_fitted_{2}'.format(sp, idx, fig_label))
-                plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0].savefig(final_save_path + '.png',
-                                                                               format='png', dpi=700)
-                plt.close(plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][0])
+        return plots_dict
 
     def _add_function_hist(self, plots_dict, idx, sp_overlap, ftn_result):
         for sp_dist in sp_overlap:
@@ -441,7 +441,7 @@ class VisualizeTrajectories(object):
 
             for sps, col in enumerate(colors):
                 sp_pctge = sps_avg[sps]
-                ax.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=self.tspan[2]-self.tspan[1])
+                ax.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=self.tspan[2] - self.tspan[1])
                 y_offset = y_offset + sp_pctge
 
             ax.set(xlabel='Time', ylabel='Percentage')
@@ -626,12 +626,12 @@ class VisualizeTrajectories(object):
 
             for prxn, pcol in zip(range(len(products_matched)), pcolors):
                 sp_pctge = products_avg[prxn]
-                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2]-self.tspan[1])
+                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2] - self.tspan[1])
                 y_poffset = y_poffset + sp_pctge
 
             for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
                 sp_pctge = reactants_avg[rrxn]
-                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2]-self.tspan[1])
+                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
                 y_roffset = y_roffset + sp_pctge
 
             ax1.set(title='Products reactions')
@@ -879,7 +879,7 @@ class VisualizeTrajectories(object):
             label = ['cluster_{0}, {1}%'.format(cl, (len(self.clusters[cl]) / number_pars) * 100)
                      for cl in self.clusters.keys()]
             ax.hist(cluster_ic_values, bins=bins, weights=cluster_ic_weights, stacked=True, label=label,
-                     histtype='bar', ec='black')
+                    histtype='bar', ec='black')
             ax.set(xlabel='Concentration', ylabel='Percentage', title=self.model.parameters[ic].name)
             ax.legend(loc=0)
 
