@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import editdistance
 from matplotlib.colors import ListedColormap, BoundaryNorm
-from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import pdist, squareform
 from sklearn import metrics
 import sklearn.cluster as cluster
 import pydyno.lcs as lcs
@@ -25,12 +25,29 @@ except ImportError:
     h5py = None
 
 # Valid metrics from scikit-learn
-_VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
-                  'braycurtis', 'canberra', 'chebyshev', 'correlation',
-                  'cosine', 'dice', 'hamming', 'jaccard', 'kulsinski',
-                  'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
-                  'russellrao', 'seuclidean', 'sokalmichener',
-                  'sokalsneath', 'sqeuclidean', 'yule', "wminkowski"]
+_VALID_METRICS = [
+    'braycurtis',
+    'canberra',
+    'chebyshev',
+    'cityblock',
+    'correlation',
+    'cosine',
+    'dice',
+    'euclidean',
+    'hamming',
+    'jaccard',
+    'kulsinski',
+    'mahalanobis',
+    'minkowski',
+    'rogerstanimoto',
+    'russellrao',
+    'seuclidean',
+    'sokalmichener',
+    'sokalsneath',
+    'sqeuclidean',
+    'wminkowski',
+    'yule'
+    ]
 
 _VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
@@ -181,7 +198,7 @@ class SeqAnalysis:
         data_seqs = self._sequences[self._sequences.columns.tolist()[:idx]]
         return SeqAnalysis(data_seqs, self.target)
 
-    def dissimilarity_matrix(self, metric='LCS', n_jobs=1):
+    def dissimilarity_matrix(self, metric='LCS'):
         """
         Get dissimilarity matrix using the passed metric
         Parameters
@@ -206,13 +223,13 @@ class SeqAnalysis:
         unique_sequences.set_index([list(range(len(unique_sequences))), 'count'], inplace=True)
 
         if metric in _VALID_METRICS:
-            diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+            diss = squareform(pdist(unique_sequences.values, metric=metric))
         elif metric == 'LCS':
-            diss = pairwise_distances(unique_sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
+            diss = squareform(pdist(unique_sequences.values, metric=lcs_dist_same_length))
         elif metric == 'levenshtein':
-            diss = pairwise_distances(unique_sequences.values, metric=levenshtein, n_jobs=n_jobs)
+            diss = squareform(pdist(unique_sequences.values, metric=levenshtein))
         elif callable(metric):
-            diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+            diss = squareform(pdist(unique_sequences.values, metric=metric))
         else:
             raise ValueError('metric not supported')
 
