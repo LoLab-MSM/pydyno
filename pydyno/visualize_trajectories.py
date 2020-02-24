@@ -136,7 +136,7 @@ class VisualizeTrajectories(object):
         fig_name: str
             String used to give a name to the cluster figures
         plot_format: str or None; default None
-            Format of saved figures: png, pdf, etc
+            Format used to save the figures: png, pdf, etc
         species_ftn_fit: dict, optional
             Dictionary of species with their respective function to fit their dynamics
         norm: boolean, optional
@@ -144,13 +144,14 @@ class VisualizeTrajectories(object):
         norm_value: array-like
             Array of values used to normalized species concentrations. Must have same order
             as species
-
         kwargs: dict
-            Arguments to pass to fitting function
+            Arguments to pass to the fitting function
 
         Returns
         -------
-
+        dict
+            A dictionary whose keys are the names of the clusters and the values are arrays with the
+            corresponding matplotlib Figure and Axes objects.
         """
 
         # creates a dictionary to store the different figures by cluster
@@ -349,22 +350,32 @@ class VisualizeTrajectories(object):
         obs_values = np.sum(y[:, :, sps], axis=2)
         return obs_values.T
 
-    def hist_clusters_parameters(self, par_idxs, dir_path=''):
+    def hist_clusters_parameters(self, par_idxs, ylabel='', plot_format=None, dir_path=''):
         """
-        Creates a plot for each cluster, and it has histograms of the parameters provided
+        Creates a Figure for each cluster. Each figure contains a histogram for each parameter provided.
+        The sum of each parameter histogram is normalized to 1
 
         Parameters
         ----------
         par_idxs: list-like
             Indices of the model parameters that would be visualized
+        ylabel: iterable or str
+            y-axis labels for each figure
         dir_path: str
             Path to directory where the file is going to be saved
-
+        plot_format: str or None; default None
+            Format used to save the figures: `png`, `pdf`, etc
         Returns
         -------
 
         """
-
+        from collections.abc import Iterable
+        if isinstance(ylabel, str):
+            ylabels = [ylabel] * len(self.clusters)
+        elif isinstance(ylabel, Iterable):
+            ylabels = ylabel
+        else:
+            raise TypeError('ylabel must be a string or an iterable of strings')
         colors = self._get_colors(len(par_idxs))
         plt.figure(1)
         for c_idx, clus in self.clusters.items():
@@ -379,31 +390,32 @@ class VisualizeTrajectories(object):
                 sp_weights_all[idx] = sp_ic_weights
                 labels[idx] = self.model.parameters[sp_ic].name
             plt.hist(sp_ic_all, weights=sp_weights_all, alpha=0.4, color=colors, label=labels)
-            plt.xlabel('Concentration')
+            plt.xlabel(ylabels[c_idx])
             plt.ylabel('Percentage')
             plt.legend(loc=0)
             final_save_path = os.path.join(dir_path, 'hist_ic_type{0}'.format(c_idx))
-            plt.savefig(final_save_path + '.png', format='png', dpi=700)
+            plt.savefig(final_save_path + '', format=plot_format, dpi=700)
             plt.clf()
             plt.close()
         return
 
-    def plot_pattern_sps_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), dir_path='', fig_name=''):
+    def plot_pattern_sps_distribution(self, pattern, type_fig='bar', dir_path='', fig_name=''):
         """
-        Creates a plot for each cluster. It has a stacked bar or entropy plot of the percentage
-        of the interactions of species at each time point
+        Creates a Figure for each cluster. First, it obtains all the species that match the pattern argument and
+        if type_fig is `bar` it creates a stacked bar at each time point of the simulation to represent the species
+        percentage with respect to the sum-total of the species concentrations. If type_fig `entropy` the entropy
+        is calculated from the distribution of the matched species at each time point of the simulation.
+
         Parameters
         ----------
         pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
         type_fig: str
             `bar` to get a stacked bar of the distribution of the species that match the provided pattern.
             `entropy` to get the entropy of the distributions of the species that match the provided pattern
-        y_lim: tuple
-            y-axis limits
-        dir_path: path to save the file
+        dir_path: str
+            Path to folder where the figure is going to be saved
         fig_name: str
-            Figure name
-
+            String used to give a name to the cluster figures
 
         Returns
         -------
@@ -482,14 +494,20 @@ class VisualizeTrajectories(object):
             plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
-    def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', y_lim=(0, 1), dir_path='', fig_name=''):
+    def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', dir_path='', fig_name=''):
         """
-        This function uses the given pattern to match it with reactions in which it is present
-        as a product and as a reactant. There are two types of visualization:
-        Bar: This visualization obtains all the reaction rates on which the pattern matches as a product
+        Creates a Figure for each cluster. First, it obtains the reactions in which the pattern matches the reactions
+        reactants plus the reactions in which the pattern matches the reactions products. There are two types
+        of visualizations: `bar`: This visualization obtains all the reaction rates on which the pattern matches as a product
         and as a reactant and then finds the percentage that each of reactions has compared with the total
         Entropy: This visualization uses the percentages of each of the reactions compared with the total
         and calculates the entropy as a proxy of variance in the number of states at a given time point
+
+        First, it obtains all the species that match the pattern argument and
+        if type_fig is `bar` it creates a stacked bar at each time point of the simulation to represent the species
+        percentage with respect to the sum-total of the species concentrations. If type_fig `entropy` the entropy
+        is calculated from the distribution of the matched species at each time point of the simulation.
+
         Parameters
         ----------
         pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
