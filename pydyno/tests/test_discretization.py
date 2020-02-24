@@ -3,8 +3,9 @@ from pydyno.discretize import Discretize
 import pydyno.discretization.pysb_discretize as dp
 import pydyno.discretization.sbml_discretize as ds
 import pydyno.discretization.base as base
-from pysb.examples.tyson_oscillator import model
-from pydyno.examples.double_enzymatic.mm_two_paths_model import model as model2
+from pysb.examples.tyson_oscillator import model as tyson_model
+from pysb.examples.expression_observables import model as expr_model
+from pydyno.examples.double_enzymatic.mm_two_paths_model import model as enzyme_model
 from pysb.simulator import ScipyOdeSimulator
 import pytest
 import tellurium as te
@@ -14,8 +15,8 @@ from pydyno.util_tellurium import SbmlModel, SbmlSimulation
 @pytest.fixture(scope="class")
 def discretize():
     time = np.linspace(0, 100, 100)
-    sim = ScipyOdeSimulator(model, tspan=time).run()
-    tro = Discretize(model, sim, 1)
+    sim = ScipyOdeSimulator(tyson_model, tspan=time).run()
+    tro = Discretize(tyson_model, sim, 1)
     return tro
 
 
@@ -45,9 +46,17 @@ class TestDiscretize:
 @pytest.fixture(scope="class")
 def pysb_dom_path():
     time = np.linspace(0, 100, 100)
-    sim = ScipyOdeSimulator(model2, tspan=time).run()
-    dom = dp.PysbDomPath(model=model2, simulations=sim)
+    sim = ScipyOdeSimulator(enzyme_model, tspan=time).run()
+    dom = dp.PysbDomPath(model=enzyme_model, simulations=sim)
     return dom
+
+
+@pytest.fixture(scope="class")
+def pysb_dom_expr_path():
+    time = np.linspace(0, 100, 100)
+    sim = ScipyOdeSimulator(expr_model, tspan=time).run()
+    dom = dp.PysbDomPath(model=expr_model, simulations=sim)
+    return sim, dom
 
 
 class TestPathPysbSingle:
@@ -85,6 +94,13 @@ class TestPathPysbSingle:
         graph = pysb_dom_path.create_bipartite_graph()
         sps = base._species_connected_to_node(graph, 'r1', 'out_edges', 1)
         assert sps == ['s4']
+
+    def test_expr_in_model(self, pysb_dom_expr_path):
+        expr = pysb_dom_expr_path[1].model.expressions[0]
+        tr = pysb_dom_expr_path[1].trajectories
+        param_dict = {p.name: p.value for p in pysb_dom_expr_path[1].model.parameters}
+        expr_sim = pysb_dom_expr_path[1]._calculate_expression(expr, tr, param_dict)
+        assert np.allclose(expr_sim, pysb_dom_expr_path[0].all[expr.name])
 
 
 @pytest.fixture(scope="class")

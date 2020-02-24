@@ -5,6 +5,7 @@ import pydyno.discretization.base as base
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
+from pysb import Parameter
 import pandas as pd
 import sympy
 import pydyno.util as hf
@@ -30,7 +31,7 @@ class PysbDomPath(base.DomPath):
         super().__init__(model)
         self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
         if self._nsims == 1:
-            self._trajectories = [self._trajectories]
+            self._trajectories = np.array([self._trajectories])
         self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
         generate_equations(self.model)
 
@@ -123,13 +124,33 @@ class PysbDomPath(base.DomPath):
                 if str(va).startswith('__'):
                     sp_idx = int(''.join(filter(str.isdigit, str(va))))
                     args[idx2] = trajectories[:, sp_idx]
-                else:
+                elif isinstance(va, Parameter):
                     args[idx2] = param_dict[va.name]
+                else:
+                    # Calculate expressions
+                    args[idx2] = self._calculate_expression(va, trajectories, param_dict)
+
             func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=np.lib.scimath.sqrt))
             react_rate = func(*args)
             rxns_df.loc['r{0}'.format(idx)] = react_rate
         rxns_df['Total'] = rxns_df.sum(axis=1)
         return rxns_df
+
+    @staticmethod
+    def _calculate_expression(expr, trajectories, param_dict):
+        expanded_expr = expr.expand_expr(expand_observables=True)
+        expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
+        args = [0] * len(expr_variables)
+        for idx2, va in enumerate(expr_variables):
+            # Getting species index
+            if str(va).startswith('__'):
+                sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                args[idx2] = trajectories[:, :, sp_idx]
+            else:
+                args[idx2] = param_dict[va.name]
+        func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
+        expr_value = func(*args)
+        return expr_value
 
     def get_path_signatures(self, target, type_analysis, depth, dom_om,
                             num_processors=1, sample_simulations=None):
