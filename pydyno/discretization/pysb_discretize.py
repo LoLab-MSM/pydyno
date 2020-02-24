@@ -145,7 +145,7 @@ class PysbDomPath(base.DomPath):
             # Getting species index
             if str(va).startswith('__'):
                 sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                args[idx2] = trajectories[:, :, sp_idx]
+                args[idx2] = trajectories[:, sp_idx]
             else:
                 args[idx2] = param_dict[va.name]
         func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
