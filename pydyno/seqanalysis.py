@@ -694,6 +694,7 @@ class SeqAnalysis:
                 dset.create_dataset('cluster_labels', data=self._labels,
                                     compression='gzip', shuffle=True)
                 dset.attrs['cluster_method'] = self._cluster_method
+                dset.attrs['target'] = self._target
 
     @classmethod
     def load(cls, filename):
@@ -719,6 +720,7 @@ class SeqAnalysis:
             dm = None
             cluster_method = None
             labels = None
+            target = ''
 
             if 'dissimilarity_matrix' in grp.keys():
                 dm = grp['dissimilarity_matrix'][:]
@@ -727,8 +729,9 @@ class SeqAnalysis:
                 cluster_dset = grp['clustering_information']
                 cluster_method = cluster_dset.attrs['cluster_method']
                 labels = cluster_dset['cluster_labels'][:]
+                target = cluster_dset.attrs['target']
 
-            seqRes = cls(sequences=pd.DataFrame.from_records(seqs, index=['seq_idx', 'count']))
+            seqRes = cls(sequences=pd.DataFrame.from_records(seqs, index=['seq_idx', 'count']), target=target)
             seqRes.cluster_method = cluster_method
             seqRes.labels = labels
             seqRes.diss = dm
