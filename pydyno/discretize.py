@@ -1,3 +1,5 @@
+from itertools import count
+from collections import defaultdict
 import pydyno.util as hf
 import numpy as np
 from sympy import Symbol, lambdify
@@ -6,6 +8,7 @@ from pysb import Parameter
 import itertools
 import time
 import pandas as pd
+import sympy
 
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
@@ -85,7 +88,7 @@ class Discretize:
         for ii, mon_type, mons_idx, ascending in zip(range_0_1, mons_types, mons_pos_neg, ascending_order):
             # If there are no positive (or negative) reaction rates, it returns -1
             if len(mons_idx) == 0:
-                largest_prod = -1
+                largest_prod = [-1]
             else:
                 # Creates dictionary whose key is the reaction rate index and the value is the log value
                 # of the reaction rate
@@ -97,10 +100,10 @@ class Discretize:
                 # reaction rates are equally dominant
                 if not rr_monomials:
                     mons_idx[::-1].sort()
-                    largest_prod = hf.uniquifier(mons_idx, biggest=len(array))
+                    largest_prod = mons_idx
                 else:
                     rr_monomials.sort(reverse=True)
-                    largest_prod = hf.uniquifier(rr_monomials, biggest=len(array))
+                    largest_prod = rr_monomials
 
             pos_neg_largest[ii] = largest_prod
         return pos_neg_largest
@@ -130,6 +133,82 @@ class Discretize:
             obs_names = [ob.name for ob in self.model.observables]
             idx = idx + obs_names
         return idx
+
+    def _calculate_expression(self, expr, trajectories, param_values):
+        expanded_expr = expr.expand_expr(expand_observables=True)
+        expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
+        args = [0] * len(expr_variables)
+        for idx2, va in enumerate(expr_variables):
+            # Getting species index
+            if str(va).startswith('__'):
+                sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                args[idx2] = trajectories[:, sp_idx]
+            else:
+                args[idx2] = param_values[self.par_name_idx[va.name]]
+        func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
+        expr_value = func(*args)
+        return expr_value
+
+    def __global_signature(self, y, param_values):
+        """
+        Dynamic signature of the dominant species
+
+        Parameters
+        ----------
+        diff_par: float
+            Magnitude to define when a reaction rate is dominat
+
+        Returns
+        -------
+
+        """
+
+        # Defining dtypes for the indexes of the signatures array
+        sp_names = ['global_p'.format(j) if i % 2 == 0 else 'global_c'.format(j)
+                    for i, j in enumerate(np.repeat(1, 2))]
+        sfull_dtype = list(zip(sp_names, itertools.repeat(np.int64)))
+        # Indexed numpy array that will contain the signature of each of the species to study
+        all_signatures = np.ndarray(len(self.tspan), sfull_dtype)
+
+        # obtaining all bidirectional reactions defined in the model
+        reaction_rate = [rxn['rate'] for rxn in self.model.reactions_bidirectional]
+
+        # Dictionary whose keys are the symbolic reaction rates and the values are the simulation results
+        rr_dict = OrderedDict()
+        for mon_p in reaction_rate:
+            mon_p_values = mon_p
+            if mon_p_values == 0:
+                rr_dict[mon_p] = [0] * len(self.tspan)
+            elif isinstance(mon_p_values, Parameter):
+                rr_dict[mon_p] = [mon_p_values.value] * len(self.tspan)
+            else:
+                var_prod = [atom for atom in mon_p_values.atoms(Symbol)]  # Variables of monomial
+                arg_prod = [0] * len(var_prod)
+                for idx, va in enumerate(var_prod):
+                    if str(va).startswith('__'):
+                        sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                        arg_prod[idx] = np.maximum(self.mach_eps, y[:, sp_idx])
+                    elif isinstance(va, Parameter):
+                        arg_prod[idx] = param_values[self.par_name_idx[va.name]]
+                    else:
+                        arg_prod[idx] = self._calculate_expression(va, y, param_values)
+                # arg_prod = [numpy.maximum(self.mach_eps, y[str(va)]) for va in var_prod]
+                f_prod = lambdify(var_prod, mon_p_values)
+                prod_values = f_prod(*arg_prod)
+                rr_dict[mon_p] = prod_values
+        mons_array = np.zeros((len(rr_dict.keys()), len(self.tspan)))
+        for idx, name in enumerate(rr_dict.keys()):
+            mons_array[idx] = rr_dict[name]
+
+        # This function takes a list of the reaction rates values and calculates the largest
+        # reaction rate at each time point
+        sign_pro = [0] * len(self.tspan)
+        sign_rea = [0] * len(self.tspan)
+        for t in range(len(self.tspan)):
+            rr_t = mons_array[:, t]
+            sign_pro[t], sign_rea[t] = self._choose_max_pos_neg(rr_t, self.diff_par)
+        all_signatures[['global_p', 'global_c']] = list(zip(*[hashing(sign_pro), hashing(sign_rea)]))
+        return all_signatures
 
     def __signature(self, y, param_values):
         """
@@ -226,14 +305,14 @@ class Discretize:
     def get_signatures(self, cpu_cores=1, verbose=False):
         if cpu_cores == 1:
             if self.nsims == 1:
-                signatures = self.__signature(self._trajectories, self.parameters)
+                signatures = self.__global_signature(self._trajectories, self.parameters)
                 signatures = signatures_to_dataframe(signatures, self.tspan, self.nsims)
                 signatures = signatures.transpose().stack(0)
                 return signatures
             else:
                 signatures = [0] * self.nsims
                 for idx in range(self.nsims):
-                    signatures[idx] = self.__signature(self._trajectories[idx], self.parameters[idx])
+                    signatures[idx] = self.__global_signature(self._trajectories[idx], self.parameters[idx])
                 signatures = signatures_to_dataframe(signatures, self.tspan, self.nsims)
                 signatures = signatures.transpose().stack(0)
                 return signatures
@@ -245,7 +324,7 @@ class Discretize:
                 self._parameters = [self._parameters]
 
             p = Pool(cpu_cores)
-            res = p.amap(self.__signature, self._trajectories, self.parameters)
+            res = p.amap(self.__global_signature, self._trajectories, self.parameters)
             if verbose:
                 while not res.ready():
                     print('We\'re not done yet, %s tasks to go!' % res._number_left)
@@ -264,3 +343,8 @@ def signatures_to_dataframe(signatures, tspan, nsims):
     if not isinstance(signatures, np.ndarray):
         signatures = np.concatenate(signatures)
     return pd.DataFrame(signatures, index=idx)
+
+
+def hashing(seq):
+    mapping = defaultdict(count().__next__)
+    return [mapping[tuple(el)] for el in seq]

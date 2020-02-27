@@ -86,6 +86,16 @@ def levenshtein(seq1, seq2):
     return d_1_2
 
 
+def multiprocessing_distance(data, metric_function, n_jobs):
+    import multiprocessing as mp
+    N, _ = data.shape
+    upper_triangle = [(i, j) for i in range(N) for j in range(i + 1, N)]
+    with mp.Pool(processes=n_jobs) as pool:
+        result = pool.starmap(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle])
+    dist_mat = squareform([item for item in result])
+    return dist_mat
+
+
 class SeqAnalysis:
     """
     Class to do analysis and visualizations of discretized trajectories
@@ -198,7 +208,7 @@ class SeqAnalysis:
         data_seqs = self._sequences[self._sequences.columns.tolist()[:idx]]
         return SeqAnalysis(data_seqs, self.target)
 
-    def dissimilarity_matrix(self, metric='LCS'):
+    def dissimilarity_matrix(self, metric='LCS', n_jobs=1):
         """
         Get dissimilarity matrix using the passed metric
         Parameters
@@ -222,16 +232,19 @@ class SeqAnalysis:
                                                sort=False).size().rename('count').reset_index()
         unique_sequences.set_index([list(range(len(unique_sequences))), 'count'], inplace=True)
 
-        if metric in _VALID_METRICS:
-            diss = squareform(pdist(unique_sequences.values, metric=metric))
-        elif metric == 'LCS':
-            diss = squareform(pdist(unique_sequences.values, metric=lcs_dist_same_length))
-        elif metric == 'levenshtein':
-            diss = squareform(pdist(unique_sequences.values, metric=levenshtein))
-        elif callable(metric):
-            diss = squareform(pdist(unique_sequences.values, metric=metric))
+        if n_jobs > 1 and callable(metric):
+            diss = multiprocessing_distance(unique_sequences.values, metric, n_jobs)
         else:
-            raise ValueError('metric not supported')
+            if metric in _VALID_METRICS:
+                diss = squareform(pdist(unique_sequences.values, metric=metric))
+            elif metric == 'LCS':
+                diss = squareform(pdist(unique_sequences.values, metric=lcs_dist_same_length))
+            elif metric == 'levenshtein':
+                diss = squareform(pdist(unique_sequences.values, metric=levenshtein))
+            elif callable(metric):
+                diss = squareform(pdist(unique_sequences.values, metric=metric))
+            else:
+                raise ValueError('metric not supported')
 
         count_seqs = unique_sequences.index.get_level_values(1).values
         seq_idxs = unique_sequences.index.get_level_values(0).values
