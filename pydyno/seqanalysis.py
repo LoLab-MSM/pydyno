@@ -93,7 +93,7 @@ def multiprocessing_distance(data, metric_function, n_jobs):
     with mp.Pool(processes=n_jobs) as pool:
         result = pool.starmap(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle])
     dist_mat = squareform([item for item in result])
-    return dist_mat
+    return dist_mat.astype('float64')
 
 
 class SeqAnalysis:
