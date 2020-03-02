@@ -141,7 +141,7 @@ class VisualizeTrajectories(object):
             Dictionary of species with their respective function to fit their dynamics
         norm: boolean, optional
             Normalizes species by max value in simulation
-        norm_value: array-like
+        norm_value: array-like or str
             Array of values used to normalized species concentrations. Must have same order
             as species
         kwargs: dict
@@ -249,8 +249,11 @@ class VisualizeTrajectories(object):
             for n, sp in enumerate(species):
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, sp, clus)
-                if norm_value:
+                if isinstance(norm_value, list):
                     norm_trajectories = sp_trajectory / norm_value[n]
+                elif norm_value == 'sum_total':
+                    sum_total = np.sum(y, axis=2).T
+                    norm_trajectories = np.divide(sp_trajectory, sum_total)
                 else:
                     norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
                 plots_dict['plot_sp{0}_cluster{1}'.format(sp, idx)][1].plot(self.tspan,
