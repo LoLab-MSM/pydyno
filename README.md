@@ -1,5 +1,5 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4dc49b4309bc4f05911eee43f932591b)](https://app.codacy.com/app/ortega2247/tropical?utm_source=github.com&utm_medium=referral&utm_content=LoLab-VU/tropical&utm_campaign=Badge_Grade_Dashboard)
-[![Build Status](https://travis-ci.org/LoLab-VU/tropical.svg?branch=master)](https://travis-ci.org/LoLab-VU/tropical)
+[![Build Status](https://travis-ci.org/LoLab-VU/pydyno.svg?branch=master)](https://travis-ci.org/LoLab-VU/pydyno)
 [![Coverage Status](https://coveralls.io/repos/github/LoLab-VU/tropical/badge.svg?branch=master)](https://coveralls.io/github/LoLab-VU/tropical?branch=master)
 [![Code Health](https://landscape.io/github/LoLab-VU/tropical/master/landscape.svg?style=flat)](https://landscape.io/github/LoLab-VU/tropical/master)
 
