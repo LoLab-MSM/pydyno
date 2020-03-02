@@ -1,7 +1,7 @@
 from pydyno.examples.double_enzymatic.mm_two_paths_model import model
 import numpy as np
 from pysb.simulator.scipyode import ScipyOdeSimulator
-from pydyno.visualize_trajectories import VisualizeTrajectories
+from pydyno.visualize_simulations import VisualizeSimulations
 import pytest
 
 
@@ -14,34 +14,34 @@ def visualize():
     tspan = np.linspace(0, 50, 101)
     labels = [1, 0]
     sims = ScipyOdeSimulator(model, tspan=tspan, param_values=pars).run()
-    clus = VisualizeTrajectories(model, clusters=labels, sim_results=sims)
+    clus = VisualizeSimulations(model, clusters=labels, sim_results=sims)
     return clus
 
 
 class TestClusteringAnalysis:
     def test_plot_dynamics_cluster_not_normed_types(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=[0], norm=False, dir_path=data_files_dir)
+        visualize.plot_cluster_dynamics(components=[0], norm=False, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_normed_types(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=[0], norm=True, dir_path=data_files_dir)
+        visualize.plot_cluster_dynamics(components=[0], norm=True, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_not_normed_expression(self, visualize, data_files_dir):
         exprs = model.reactions_bidirectional[0]['rate']
-        visualize.plot_cluster_dynamics(species=[exprs], norm=False, dir_path=data_files_dir)
+        visualize.plot_cluster_dynamics(components=[exprs], norm=False, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_not_normed_observable(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=['E_free'], norm=False, dir_path=data_files_dir)
+        visualize.plot_cluster_dynamics(components=['E_free'], norm=False, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_normed_expression(self, visualize, data_files_dir):
         exprs = model.reactions_bidirectional[0]['rate']
-        visualize.plot_cluster_dynamics(species=[exprs], norm=True, dir_path=data_files_dir)
+        visualize.plot_cluster_dynamics(components=[exprs], norm=True, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_normed_observable(self, visualize, data_files_dir):
-        visualize.plot_cluster_dynamics(species=['E_free'], norm=True, dir_path=data_files_dir)
+        visualize.plot_cluster_dynamics(components=['E_free'], norm=True, dir_path=data_files_dir)
 
     def test_plot_dynamics_cluster_invalid_observable(self, visualize, data_files_dir):
         with pytest.raises(ValueError):
-            visualize.plot_cluster_dynamics(species=['bla'], norm=True, dir_path=data_files_dir)
+            visualize.plot_cluster_dynamics(components=['bla'], norm=True, dir_path=data_files_dir)
 
     def test_hist_avg_sps_bar(self, visualize, data_files_dir):
         sp = model.species[0]
