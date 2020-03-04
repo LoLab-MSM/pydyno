@@ -48,18 +48,6 @@ class DomPath(ABC):
         return None
 
     @abstractmethod
-    def get_reaction_flux_df(self, simulation_idx):
-        """
-        Creates a data frame with the reaction rates values at each time point
-
-        Returns
-        -------
-        pd.DataFrame
-        """
-
-        return None
-
-    @abstractmethod
     def get_path_signatures(self, target, type_analysis, depth, dom_om,
                             num_processors=1, sample_simulations=None):
         """
