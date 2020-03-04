@@ -96,22 +96,6 @@ class PysbDomPath(base.DomPath):
         attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
-    @staticmethod
-    def _calculate_expression(expr, trajectories, param_dict):
-        expanded_expr = expr.expand_expr(expand_observables=True)
-        expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
-        args = [0] * len(expr_variables)
-        for idx2, va in enumerate(expr_variables):
-            # Getting species index
-            if str(va).startswith('__'):
-                sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                args[idx2] = trajectories[:, sp_idx]
-            else:
-                args[idx2] = param_dict[va.name]
-        func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
-        expr_value = func(*args)
-        return expr_value
-
     def get_path_signatures(self, target, type_analysis, depth, dom_om,
                             num_processors=1, sample_simulations=None):
         """
@@ -171,10 +155,27 @@ class PysbDomPath(base.DomPath):
         return SeqAnalysis(signatures_df, target), new_paths
 
 
-def dominant_paths_pysb(trajectories, parameters, model, tspan,
-                        type_analysis, network, target, depth, dom_om):
+def calculate_pysb_expression(expr, trajectories, param_dict):
+    expanded_expr = expr.expand_expr(expand_observables=True)
+    expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
+    args = [0] * len(expr_variables)
+    for idx2, va in enumerate(expr_variables):
+        # Getting species index
+        if str(va).startswith('__'):
+            sp_idx = int(''.join(filter(str.isdigit, str(va))))
+            args[idx2] = trajectories[:, sp_idx]
+        else:
+            args[idx2] = param_dict[va.name]
+    func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
+    expr_value = func(*args)
+    return expr_value
+
+
+def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
     """
     Creates a data frame with the reaction rates values at each time point
+    and obtains the dominant path for the passed trajectories and parameters
+
     Parameters
     ----------
     simulation_idx : int
@@ -202,13 +203,19 @@ def dominant_paths_pysb(trajectories, parameters, model, tspan,
                 args[idx2] = trajectories[:, sp_idx]
             elif isinstance(va, Parameter):
                 args[idx2] = param_dict[va.name]
-            # else:
-            #     # Calculate expressions
-            #     args[idx2] = self._calculate_expression(va, trajectories, param_dict)
+            else:
+                # Calculate expressions
+                args[idx2] = calculate_pysb_expression(va, trajectories, param_dict)
 
         func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=np.lib.scimath.sqrt))
         react_rate = func(*args)
         rxns_df.loc['r{0}'.format(idx)] = react_rate
     rxns_df['Total'] = rxns_df.sum(axis=1)
+    return rxns_df
+
+
+def dominant_paths_pysb(trajectories, parameters, model, tspan,
+                        type_analysis, network, target, depth, dom_om):
+    rxns_df = pysb_reaction_flux_df(trajectories, parameters, model, tspan)
     dom_paths = base._dominant_paths(rxns_df, network, tspan, target, type_analysis, depth, dom_om)
     return dom_paths

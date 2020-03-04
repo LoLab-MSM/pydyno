@@ -76,7 +76,11 @@ class TestPathPysbSingle:
 
     def test_dominant_connected_reactions(self, pysb_dom_path):
         graph = pysb_dom_path.create_bipartite_graph()
-        rxn_df = pysb_dom_path.get_reaction_flux_df(0)
+        traj_0 = pysb_dom_path.trajectories[0]
+        pars_0 = pysb_dom_path.parameters[0]
+        model = pysb_dom_path.model
+        tspan = pysb_dom_path.tspan
+        rxn_df = dp.pysb_reaction_flux_df(traj_0, pars_0, model, tspan)
         dom_rxns = base._dominant_connected_reactions(graph, 's0', 1.0101010101010102,
                                                       rxn_df, 1, 'out_edges', 1)
         assert dom_rxns == ['r0']
@@ -99,7 +103,7 @@ class TestPathPysbSingle:
         expr = pysb_dom_expr_path[1].model.expressions[0]
         tr = pysb_dom_expr_path[1].trajectories[0]
         param_dict = {p.name: p.value for p in pysb_dom_expr_path[1].model.parameters}
-        expr_sim = pysb_dom_expr_path[1]._calculate_expression(expr, tr, param_dict)
+        expr_sim = dp.calculate_pysb_expression(expr, tr, param_dict)
         assert np.allclose(expr_sim, pysb_dom_expr_path[0].all[expr.name])
 
 
@@ -136,7 +140,7 @@ class TestPathSbmlSingle:
 
     def test_dominant_connected_reactions(self, sbml_dom_path):
         graph = sbml_dom_path.create_bipartite_graph()
-        rxn_df = sbml_dom_path.get_reaction_flux_df(0)
+        rxn_df = sbml_dom_path.all_reaction_flux[0]
         dom_rxns = base._dominant_connected_reactions(graph, 's0', 1.0101010101010102,
                                                       rxn_df, 1, 'out_edges', 1)
         assert dom_rxns == ['r0']
