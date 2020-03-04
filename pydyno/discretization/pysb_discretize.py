@@ -96,46 +96,6 @@ class PysbDomPath(base.DomPath):
         attrs.setdefault('arrowhead', 'normal')
         graph.add_edge(*nodes, **attrs)
 
-    def get_reaction_flux_df(self, simulation_idx):
-        """
-        Creates a data frame with the reaction rates values at each time point
-        Parameters
-        ----------
-        simulation_idx : int
-            Index of the simulation used to obtain the reaction rates
-
-        Returns
-        -------
-
-        """
-        trajectories = self.trajectories[simulation_idx]
-        parameters = self.parameters[simulation_idx]
-        rxns_names = ['r{0}'.format(rxn) for rxn in range(len(self.model.reactions_bidirectional))]
-        rxns_df = pd.DataFrame(columns=self.tspan, index=rxns_names)
-        param_dict = dict((p.name, parameters[i]) for i, p in enumerate(self.model.parameters))
-
-        for idx, reac in enumerate(self.model.reactions_bidirectional):
-            rate_reac = reac['rate']
-            # Getting species and parameters from the reaction rate
-            variables = [atom for atom in rate_reac.atoms(sympy.Symbol)]
-            args = [0] * len(variables)  # arguments to put in the lambdify function
-            for idx2, va in enumerate(variables):
-                # Getting species index
-                if str(va).startswith('__'):
-                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                    args[idx2] = trajectories[:, sp_idx]
-                elif isinstance(va, Parameter):
-                    args[idx2] = param_dict[va.name]
-                else:
-                    # Calculate expressions
-                    args[idx2] = self._calculate_expression(va, trajectories, param_dict)
-
-            func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=np.lib.scimath.sqrt))
-            react_rate = func(*args)
-            rxns_df.loc['r{0}'.format(idx)] = react_rate
-        rxns_df['Total'] = rxns_df.sum(axis=1)
-        return rxns_df
-
     @staticmethod
     def _calculate_expression(expr, trajectories, param_dict):
         expanded_expr = expr.expand_expr(expand_observables=True)
@@ -190,11 +150,11 @@ class PysbDomPath(base.DomPath):
 
         with base.SerialExecutor() if num_processors == 1 else \
                 ProcessPoolExecutor(max_workers=num_processors) as executor:
-            dom_path_partial = partial(base._dominant_paths, network=network, tspan=self.tspan, target=target,
-                                       type_analysis=type_analysis, depth=depth, dom_om=dom_om)
+            dom_path_partial = partial(dominant_paths_pysb, model=self.model, tspan=self.tspan, network=network,
+                                       target=target, type_analysis=type_analysis, depth=depth, dom_om=dom_om)
 
-            results = [executor.submit(dom_path_partial, self.get_reaction_flux_df(n))
-                       for n in nsims]
+            results = [executor.submit(dom_path_partial, *args)
+                       for args in zip(self.trajectories, self.parameters)]
             try:
                 signatures_labels = [r.result() for r in results]
             finally:
@@ -209,3 +169,46 @@ class PysbDomPath(base.DomPath):
         signatures_df, new_paths = base._reencode_signatures_paths(signatures, labels, self.tspan)
         # signatures_labels = {'signatures': signatures, 'labels': all_labels}
         return SeqAnalysis(signatures_df, target), new_paths
+
+
+def dominant_paths_pysb(trajectories, parameters, model, tspan,
+                        type_analysis, network, target, depth, dom_om):
+    """
+    Creates a data frame with the reaction rates values at each time point
+    Parameters
+    ----------
+    simulation_idx : int
+        Index of the simulation used to obtain the reaction rates
+
+    Returns
+    -------
+
+    """
+    trajectories = trajectories
+    parameters = parameters
+    rxns_names = ['r{0}'.format(rxn) for rxn in range(len(model.reactions_bidirectional))]
+    rxns_df = pd.DataFrame(columns=tspan, index=rxns_names)
+    param_dict = dict((p.name, parameters[i]) for i, p in enumerate(model.parameters))
+
+    for idx, reac in enumerate(model.reactions_bidirectional):
+        rate_reac = reac['rate']
+        # Getting species and parameters from the reaction rate
+        variables = [atom for atom in rate_reac.atoms(sympy.Symbol)]
+        args = [0] * len(variables)  # arguments to put in the lambdify function
+        for idx2, va in enumerate(variables):
+            # Getting species index
+            if str(va).startswith('__'):
+                sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                args[idx2] = trajectories[:, sp_idx]
+            elif isinstance(va, Parameter):
+                args[idx2] = param_dict[va.name]
+            # else:
+            #     # Calculate expressions
+            #     args[idx2] = self._calculate_expression(va, trajectories, param_dict)
+
+        func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=np.lib.scimath.sqrt))
+        react_rate = func(*args)
+        rxns_df.loc['r{0}'.format(idx)] = react_rate
+    rxns_df['Total'] = rxns_df.sum(axis=1)
+    dom_paths = base._dominant_paths(rxns_df, network, tspan, target, type_analysis, depth, dom_om)
+    return dom_paths
