@@ -124,7 +124,7 @@ class SbmlDomPath(base.DomPath):
             dom_path_partial = partial(base._dominant_paths, network=network, tspan=self.tspan, target=target,
                                        type_analysis=type_analysis, depth=depth, dom_om=dom_om)
 
-            results = [executor.submit(dom_path_partial, self.all_reaction_flux(n))
+            results = [executor.submit(dom_path_partial, self.all_reaction_flux[n])
                        for n in nsims]
             try:
                 signatures_labels = [r.result() for r in results]
