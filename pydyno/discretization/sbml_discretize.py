@@ -2,20 +2,20 @@ import re
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor
 import networkx as nx
-import pydyno.discretization.base as base
+from pydyno.discretization.base import DomPath, SerialExecutor, _reencode_signatures_paths, _dominant_paths
 from pydyno.seqanalysis import SeqAnalysis
 
 
-class SbmlDomPath(base.DomPath):
+class SbmlDomPath(DomPath):
     """
     Class to discretize the simulated trajectory of a model species
+
     Parameters
     ----------
-    model: PySB model
-        Model to analyze
-    simulations: PySB SimulationResult object or str
-        simulations used to perform the analysis. If str it should be the
-        path to a simulation result in hdf5 format
+    model: SbmlModel object
+        Model to analyze.
+    simulations: SbmlSimulation object
+        simulations used to perform the analysis.
     """
 
     def __init__(self, model, simulations):
@@ -119,9 +119,9 @@ class SbmlDomPath(base.DomPath):
 
         network = self.create_bipartite_graph()
 
-        with base.SerialExecutor() if num_processors == 1 else \
+        with SerialExecutor() if num_processors == 1 else \
                 ProcessPoolExecutor(max_workers=num_processors) as executor:
-            dom_path_partial = partial(base._dominant_paths, network=network, tspan=self.tspan, target=target,
+            dom_path_partial = partial(_dominant_paths, network=network, tspan=self.tspan, target=target,
                                        type_analysis=type_analysis, depth=depth, dom_om=dom_om)
 
             results = [executor.submit(dom_path_partial, self.all_reaction_flux[n])
@@ -137,6 +137,6 @@ class SbmlDomPath(base.DomPath):
         for idx, sl in enumerate(signatures_labels):
             signatures[idx] = sl[0]
             labels[idx] = sl[1]
-        signatures_df, new_paths = base._reencode_signatures_paths(signatures, labels, self.tspan)
+        signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
         # signatures_labels = {'signatures': signatures, 'labels': all_labels}
         return SeqAnalysis(signatures_df, target), new_paths

@@ -1,7 +1,7 @@
 import re
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor
-import pydyno.discretization.base as base
+from pydyno.discretization.base import DomPath, _dominant_paths, SerialExecutor, _reencode_signatures_paths
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
@@ -12,7 +12,7 @@ import pydyno.util as hf
 from pydyno.seqanalysis import SeqAnalysis
 
 
-class PysbDomPath(base.DomPath):
+class PysbDomPath(DomPath):
     """
     Class to discretize simulated trajectories of a model species
 
@@ -25,6 +25,12 @@ class PysbDomPath(base.DomPath):
     simulations: PySB SimulationResult object or str
         simulations used to perform the analysis. If str it should be the
         path to a simulation result in hdf5 format
+
+    Examples
+    --------
+    Obtain the discretized trajectory of a double enzymatic reaction
+
+    >>> from pydyno.discretization.pysb_discretize
     """
 
     def __init__(self, model, simulations):
@@ -132,7 +138,7 @@ class PysbDomPath(base.DomPath):
 
         network = self.create_bipartite_graph()
 
-        with base.SerialExecutor() if num_processors == 1 else \
+        with SerialExecutor() if num_processors == 1 else \
                 ProcessPoolExecutor(max_workers=num_processors) as executor:
             dom_path_partial = partial(dominant_paths_pysb, model=self.model, tspan=self.tspan, network=network,
                                        target=target, type_analysis=type_analysis, depth=depth, dom_om=dom_om)
@@ -150,7 +156,8 @@ class PysbDomPath(base.DomPath):
         for idx, sl in enumerate(signatures_labels):
             signatures[idx] = sl[0]
             labels[idx] = sl[1]
-        signatures_df, new_paths = base._reencode_signatures_paths(signatures, labels, self.tspan)
+        print(signatures)
+        signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
         # signatures_labels = {'signatures': signatures, 'labels': all_labels}
         return SeqAnalysis(signatures_df, target), new_paths
 
@@ -217,5 +224,5 @@ def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
 def dominant_paths_pysb(trajectories, parameters, model, tspan,
                         type_analysis, network, target, depth, dom_om):
     rxns_df = pysb_reaction_flux_df(trajectories, parameters, model, tspan)
-    dom_paths = base._dominant_paths(rxns_df, network, tspan, target, type_analysis, depth, dom_om)
+    dom_paths = _dominant_paths(rxns_df, network, tspan, target, type_analysis, depth, dom_om)
     return dom_paths
