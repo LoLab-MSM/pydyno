@@ -215,33 +215,21 @@ class VisualizeSimulations(object):
             for comp in components:
                 # Obtain component values
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].plot(self.tspan, sp_trajectory,
-                                                                              color='blue',
-                                                                              alpha=0.2)
+                fig, ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)]
+                ax.plot(self.tspan, sp_trajectory,
+                        color='blue',
+                        alpha=0.2)
 
-                ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1]
-                divider = make_axes_locatable(ax)
-                # axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
-                axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
-                plt.setp(axHisty.get_yticklabels(), visible=False)
-                hist_data = sp_trajectory[-1, :]
-                axHisty.hist(hist_data, density=True, orientation='horizontal')
-                shape = np.std(hist_data)
-                scale = np.average(hist_data)
-
-                pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
-                anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=10))
-                axHisty.add_artist(anchored_text)
-                axHisty.ticklabel_format(axis='x', style='sci', scilimits=(-2, 2))
+                self._add_y_histogram(ax, sp_trajectory)
 
                 sp_max_conc = np.amax(sp_trajectory)
                 sp_min_conc = np.amin(sp_trajectory)
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_xlabel('Time')
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_ylabel('Concentration')
+                ax.set_xlabel('Time')
+                ax.set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_ylim([sp_min_conc, sp_max_conc])
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][0].suptitle('{0}, cluster {1}'.
-                                                                                  format(name, idx))
+                ax.set_ylim([sp_min_conc, sp_max_conc])
+                fig.suptitle('{0}, cluster {1}'.
+                            format(name, idx))
         return plots_dict
 
     def _plot_dynamics_cluster_types_norm(self, plots_dict, components, norm_value=None):
@@ -257,17 +245,20 @@ class VisualizeSimulations(object):
                     norm_trajectories = np.divide(sp_trajectory, sum_total)
                 else:
                     norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].plot(self.tspan,
-                                                                              norm_trajectories,
-                                                                              color='blue',
-                                                                              alpha=0.2)
 
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_xlabel('Time')
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_ylabel('Concentration')
+                fig, ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)]
+                ax.plot(self.tspan,
+                        norm_trajectories,
+                        color='blue',
+                        alpha=0.2)
+
+                self._add_y_histogram(ax, norm_trajectories)
+
+                ax.set_xlabel('Time')
+                ax.set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_ylim([0, 1])
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][0].suptitle('{0}, cluster {1}'.
-                                                                                  format(name, idx))
+                ax.set_ylim([0, 1])
+                fig.suptitle('{0}, cluster {1}'.format(name, idx))
         return plots_dict
 
     def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, components, species_ftn_fit, **kwargs):
@@ -282,10 +273,11 @@ class VisualizeSimulations(object):
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
                 norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=1))
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].plot(self.tspan,
-                                                                              norm_trajectories,
-                                                                              color='blue',
-                                                                              alpha=0.2)
+                ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1]
+                ax.plot(self.tspan,
+                        norm_trajectories,
+                        color='blue',
+                        alpha=0.2)
                 if comp in sp_overlap:
                     result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[comp], xdata=self.tspan,
                                                   ydata=sp_trajectory, **kwargs)
@@ -300,6 +292,22 @@ class VisualizeSimulations(object):
                 plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][0].suptitle('{0}, cluster {1}'.
                                                                                   format(name, idx))
         return plots_dict
+
+    @staticmethod
+    def _add_y_histogram(ax, sp_trajectory):
+        divider = make_axes_locatable(ax)
+        # axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
+        axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
+        plt.setp(axHisty.get_yticklabels(), visible=False)
+        hist_data = sp_trajectory[-1, :]
+        axHisty.hist(hist_data, density=True, orientation='horizontal')
+        shape = np.std(hist_data)
+        scale = np.average(hist_data)
+
+        pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
+        anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=10))
+        axHisty.add_artist(anchored_text)
+        axHisty.ticklabel_format(axis='x', style='sci', scilimits=(-2, 2))
 
     def _add_function_hist(self, plots_dict, idx, sp_overlap, ftn_result):
         for sp_dist in sp_overlap:
