@@ -113,8 +113,6 @@ class SeqAnalysis:
         if isinstance(sequences, str):
             if os.path.isfile(sequences):
                 data_seqs = pd.read_csv(sequences, header=0, index_col=0)
-                # convert column names into float numbers
-                data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
             else:
                 raise TypeError('String is not a file')
         elif isinstance(sequences, Iterable):
@@ -123,6 +121,10 @@ class SeqAnalysis:
             data_seqs = sequences
         else:
             raise TypeError('data type not valid')
+
+        # convert column names into float numbers
+        if data_seqs.columns.dtype != np.float32 or data_seqs.columns.dtype != np.float64:
+            data_seqs.columns = [np.float32(i) for i in data_seqs.columns.tolist()]
 
         # Rename index if seq_idx doesn't exist in the dataframe
         if 'seq_idx' not in data_seqs.index.names:
