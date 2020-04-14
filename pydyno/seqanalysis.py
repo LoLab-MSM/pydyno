@@ -234,8 +234,17 @@ class SeqAnalysis:
                                                sort=False).size().rename('count').reset_index()
         unique_sequences.set_index([list(range(len(unique_sequences))), 'count'], inplace=True)
 
-        if n_jobs > 1 and callable(metric):
-            diss = multiprocessing_distance(unique_sequences.values, metric, n_jobs)
+        if n_jobs > 1:
+            if metric == 'LCS':
+                print('here')
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length, n_jobs=n_jobs)
+            elif metric == 'levenshtein':
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein, n_jobs=n_jobs)
+            elif callable(metric):
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=metric, n_jobs=n_jobs)
+            else:
+                raise ValueError('Multiprocessing can only be used with `LCS`, `levenshtein` or a provided function')
+
         else:
             if metric in _VALID_METRICS:
                 diss = squareform(pdist(unique_sequences.values, metric=metric))
