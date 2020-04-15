@@ -170,11 +170,12 @@ def _dominant_paths(reaction_flux_df, network, tspan,
                         dom_sp_nodes = []
                         for reaction_nodes in dom_r_nodes:
                             sp_nodes = _species_connected_to_node(network, reaction_nodes, type_edge, node_from_edge)
-                            if sp_nodes not in dom_sp_nodes:
+                            if sp_nodes and sp_nodes not in dom_sp_nodes:
                                 dom_sp_nodes.append(sp_nodes)
 
                         # Get the species nodes from the reaction nodes to keep backtracking the pathway
-                        all_dom_nodes[node] = dom_sp_nodes
+                        if dom_sp_nodes:
+                            all_dom_nodes[node] = dom_sp_nodes
                         # all_rdom_nodes.append(dom_r_nodes)
 
                     dom_nodes = all_dom_nodes
