@@ -35,23 +35,37 @@ class VisualizeSimulations(object):
         a file that contains the cluster labels to which each parameter belongs to, or None if the user want to
         analyse the sim_results as a single cluster.
     truncate_idx: int
-        Index at which the simulation is truncated
+        Index at which the simulation is truncated. Only works when clusters is None. It cannot be used at the same
+         time with truncate_idx.
+    drop_sim_idx: array-like
+        Indices of simulation to drop. Only works when clusters is None. It cannot be used at the same time with
+        truncate_idx.
     """
 
-    def __init__(self, model, sim_results, clusters, truncate_idx=None):
+    def __init__(self, model, sim_results, clusters, truncate_idx=None, drop_sim_idx=None):
 
         self._model = model
         generate_equations(model)
         # Check simulation results
         self._all_simulations, self._all_parameters, self._nsims, self._tspan = hf.get_simulations(sim_results)
 
-        if truncate_idx is not None:
-            self._all_simulations = self._all_simulations[:truncate_idx, :]
-            self._tspan = self._tspan[:truncate_idx]
-
         if clusters is None:
-            no_clusters = {0: range(len(self.all_parameters))}
+            if truncate_idx is not None and drop_sim_idx is None:
+                self._all_simulations = self._all_simulations[:truncate_idx, :]
+                samples = range(len(self.all_parameters) - truncate_idx)
+            elif drop_sim_idx is not None and truncate_idx is None:
+                self._all_simulations = np.delete(self._all_simulations, drop_sim_idx, axis=0)
+                samples = range(len(self.all_parameters) - len(drop_sim_idx))
+            elif truncate_idx is None and drop_sim_idx is None:
+                samples = range(len(self.all_parameters))
+            else:
+                raise ValueError('both truncate_idx and drop_sim_idx cannot bet different than None '
+                                 'at the same time')
+            # remove cluster indices if drop_sim_idx is not None
+
+            no_clusters = {0: samples}
             self._clusters = no_clusters
+
         else:
             # Check clusters
             self._clusters = self.check_clusters_arg(clusters, self.nsims)
@@ -121,9 +135,9 @@ class VisualizeSimulations(object):
         else:
             raise TypeError('cluster data structure not supported')
 
-    def plot_cluster_dynamics(self, components, dir_path='', fig_name='', plot_format=None,
-                              species_ftn_fit=None, norm=False, norm_value=None,
-                              **kwargs):
+    def plot_cluster_dynamics(self, components, x_data=None, y_data=None, y_error=None, dir_path='',
+                              add_y_histogram=False, fig_name='', plot_format=None, species_ftn_fit=None,
+                              norm=False, norm_value=None, **kwargs):
         """
         Plots the dynamics of the species for each cluster
 
@@ -131,8 +145,19 @@ class VisualizeSimulations(object):
         ----------
         components: list-like
             Indices of PySB species that will be plotted, or observable names, or pysb expressions
+        x_data: dict
+            Dictionary where the keys must be the same as the components names. Dictionary values
+            correspond to the time points at which the experimental data was obtained
+        y_data: dict
+            Dictionary where the keys must be the same as the components names. Dictionary values
+            correspond to experimental concentration data
+        y_error: dict
+            Dictionary where the keys must be the same as the components names. Dictionary values
+            correspond to the experimental errors (e.g standard deviation)
         dir_path: str
             Path to folder where the figure is going to be saved
+        add_y_histogram: bool
+            Whether to add a histogram of the concentrations at the last time point of the simulation
         fig_name: str
             String used to give a name to the cluster figures
         plot_format: str or None; default None
@@ -153,12 +178,30 @@ class VisualizeSimulations(object):
             A dictionary whose keys are the names of the clusters and the values are arrays with the
             corresponding matplotlib Figure and Axes objects.
         """
-
-        # creates a dictionary to store the different figures by cluster
-        plots_dict = {}
-        for comp in components:
-            for clus in self.clusters:
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots()
+        # Plot experimental data if provided
+        if x_data is not None and y_data is not None:
+            # creates a dictionary to store the different figures by cluster
+            plots_dict = {}
+            for comp in components:
+                # access experimental data
+                x = x_data[comp]
+                y = y_data[comp]
+                for clus in self.clusters:
+                    fig, ax = plt.subplots()
+                    if y_error is not None:
+                        yerr = y_error[comp]
+                        ax.errorbar(x, y, yerr, color='r', alpha=1, zorder=10)
+                    else:
+                        ax.plot(x, y, color='r', alpha=1, zorder=10)
+                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = (fig, ax)
+        elif x_data is None and y_data is None:
+            # creates a dictionary to store the different figures by cluster
+            plots_dict = {}
+            for comp in components:
+                for clus in self.clusters:
+                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots()
+        else:
+            raise ValueError('both x_data and y_data must be passed to plot experimental data')
 
         if norm:
             if species_ftn_fit:
@@ -170,10 +213,12 @@ class VisualizeSimulations(object):
 
             else:
                 plot_data = self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, components=components,
-                                                                   norm_value=norm_value)
+                                                                   norm_value=norm_value,
+                                                                   add_y_histogram=add_y_histogram)
 
         else:
-            plot_data = self._plot_dynamics_cluster_types(plots_dict=plots_dict, components=components)
+            plot_data = self._plot_dynamics_cluster_types(plots_dict=plots_dict, components=components,
+                                                          add_y_histogram=add_y_histogram)
 
         if fig_name:
             fig_name = '_' + fig_name
@@ -209,7 +254,7 @@ class VisualizeSimulations(object):
             name = self.model.species[component]
         return sp_trajectory, name
 
-    def _plot_dynamics_cluster_types(self, plots_dict, components):
+    def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram=False):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for comp in components:
@@ -220,7 +265,8 @@ class VisualizeSimulations(object):
                         color='blue',
                         alpha=0.2)
 
-                self._add_y_histogram(ax, sp_trajectory)
+                if add_y_histogram:
+                    self._add_y_histogram(ax, sp_trajectory)
 
                 sp_max_conc = np.amax(sp_trajectory)
                 sp_min_conc = np.amin(sp_trajectory)
@@ -232,7 +278,7 @@ class VisualizeSimulations(object):
                             format(name, idx))
         return plots_dict
 
-    def _plot_dynamics_cluster_types_norm(self, plots_dict, components, norm_value=None):
+    def _plot_dynamics_cluster_types_norm(self, plots_dict, components, norm_value=None, add_y_histogram=False):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for n, comp in enumerate(components):
@@ -250,9 +296,10 @@ class VisualizeSimulations(object):
                 ax.plot(self.tspan,
                         norm_trajectories,
                         color='blue',
-                        alpha=0.2)
+                        alpha=0.05)
 
-                self._add_y_histogram(ax, norm_trajectories)
+                if add_y_histogram:
+                    self._add_y_histogram(ax, norm_trajectories)
 
                 ax.set_xlabel('Time')
                 ax.set_ylabel('Concentration')

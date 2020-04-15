@@ -1,8 +1,34 @@
 from pydyno.examples.double_enzymatic.mm_two_paths_model import model
 import numpy as np
-from pysb.simulator.scipyode import ScipyOdeSimulator
+from pysb.simulator import ScipyOdeSimulator
 from pydyno.visualize_simulations import VisualizeSimulations
 import pytest
+
+
+@pytest.fixture(scope='class')
+def simulation():
+    pars = [[3.42477815e-02, 3.52565624e+02, 1.04957728e+01, 6.35198054e-02, 3.14044789e+02,
+             5.28598128e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02],
+            [9.13676502e-03, 2.07253754e+00, 1.37740528e+02, 2.19960625e-01, 1.15007005e+04,
+             5.16232342e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02]]
+    tspan = np.linspace(0, 50, 101)
+    sims = ScipyOdeSimulator(model, tspan=tspan, param_values=pars).run()
+    return sims
+
+
+class TestVisualizationInitialization:
+    def test_clusters_none(self, simulation):
+        VisualizeSimulations(model, clusters=None, sim_results=simulation)
+
+    def test_truncate_idx(self, simulation):
+        VisualizeSimulations(model, clusters=None, sim_results=simulation, truncate_idx=0)
+
+    def test_drop_sim_idx(self, simulation):
+        VisualizeSimulations(model, clusters=None, sim_results=simulation, drop_sim_idx=[1])
+
+    def test_truncate_idx_drop_sim_idx(self, simulation):
+        with pytest.raises(ValueError):
+            VisualizeSimulations(model, clusters=None, sim_results=simulation, truncate_idx=0, drop_sim_idx=[1])
 
 
 @pytest.fixture(scope='class')
