@@ -28,9 +28,17 @@ class PysbDomPath(DomPath):
 
     Examples
     --------
-    Obtain the discretized trajectory of a double enzymatic reaction
+    Obtain the discretized trajectory of an apoptosis model
 
-    >>> from pydyno.discretization.pysb_discretize
+    >>> from pydyno.discretization.pysb_discretize import PysbDomPath
+    >>> from pydyno.examples.earm.earm2_flat import model
+    >>> from pysb.simulator import ScipyOdeSimulator
+    >>> import numpy as np
+    >>> tspan = np.linspace(0, 20000, 100)
+    >>> sim = ScipyOdeSimulator(model, tspan).run()
+    >>> dp = PysbDomPath(model=model, simulations=sim)
+    >>> signs, paths = dp.get_path_signatures(target='s37', type_analysis='consumption', depth=5, dom_om=1)
+
     """
 
     def __init__(self, model, simulations):
@@ -124,7 +132,8 @@ class PysbDomPath(DomPath):
 
         Returns
         -------
-
+        pydyno.SeqAnalysis
+            Sequences of the discretized signatures
         """
         if sample_simulations:
             if isinstance(sample_simulations, int):
@@ -162,6 +171,7 @@ class PysbDomPath(DomPath):
 
 
 def calculate_pysb_expression(expr, trajectories, param_dict):
+    """Obtains value of a pysb expression"""
     expanded_expr = expr.expand_expr(expand_observables=True)
     expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
     args = [0] * len(expr_variables)
@@ -184,12 +194,18 @@ def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
 
     Parameters
     ----------
-    simulation_idx : int
-        Index of the simulation used to obtain the reaction rates
-
+    trajectories : np.ndarray
+        Simulated trajectories
+    parameters : np.ndarray
+        Parameters used to obtain the simulations
+    model : pysb.Model
+        Model used to obtain the simulations
+    tspan :  np.ndarray
+        Time span used in the simulations
     Returns
     -------
-
+    pandas.DataFrame
+        Dataframe with the reaction rate values of the simulations
     """
     trajectories = trajectories
     parameters = parameters
