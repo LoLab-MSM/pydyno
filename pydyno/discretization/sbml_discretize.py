@@ -2,9 +2,9 @@ import re
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor
 import networkx as nx
-from pydyno.discretization.base import DomPath, SerialExecutor, _reencode_signatures_paths, _dominant_paths
+from pydyno.discretization.base import DomPath, _reencode_signatures_paths, _dominant_paths
 from pydyno.seqanalysis import SeqAnalysis
-
+from pysb.simulator.scipyode import SerialExecutor
 
 class SbmlDomPath(DomPath):
     """
