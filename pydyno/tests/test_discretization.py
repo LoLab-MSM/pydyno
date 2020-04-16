@@ -62,7 +62,7 @@ def pysb_dom_expr_path():
 class TestPathPysbSingle:
 
     def test_run_tropical(self, pysb_dom_path):
-        signatures, paths = pysb_dom_path.get_path_signatures(type_analysis='consumption',
+        signatures, _ = pysb_dom_path.get_path_signatures(type_analysis='consumption',
                                                          dom_om=1, target='s0', depth=2)
         assert np.array_equal(signatures.sequences.values,
                               np.array([[1, 1, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -126,7 +126,7 @@ def sbml_dom_path():
 class TestPathSbmlSingle:
 
     def test_run_tropical(self, sbml_dom_path):
-        signatures, paths = sbml_dom_path.get_path_signatures(type_analysis='consumption',
+        signatures, _ = sbml_dom_path.get_path_signatures(type_analysis='consumption',
                                                          dom_om=1, target='s0', depth=2)
         assert np.array_equal(signatures.sequences.values,
                               np.array([[1, 1, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

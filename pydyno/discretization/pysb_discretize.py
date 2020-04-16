@@ -1,11 +1,12 @@
 import re
 from functools import partial
 from concurrent.futures import ProcessPoolExecutor
-from pydyno.discretization.base import DomPath, _dominant_paths, SerialExecutor, _reencode_signatures_paths
+from pydyno.discretization.base import DomPath, _dominant_paths, _reencode_signatures_paths
 import numpy as np
 import networkx as nx
 from pysb.bng import generate_equations
 from pysb import Parameter
+from pysb.simulator.scipyode import SerialExecutor
 import pandas as pd
 import sympy
 import pydyno.util as hf

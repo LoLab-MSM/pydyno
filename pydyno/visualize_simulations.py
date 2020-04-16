@@ -929,7 +929,7 @@ class VisualizeSimulations(object):
 
         number_pars = self.nsims
 
-        if type(par_idxs) == int:
+        if isinstance(par_idxs, int):
             par_idxs = [par_idxs]
 
         for ic in par_idxs:

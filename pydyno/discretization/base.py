@@ -1,16 +1,13 @@
 from abc import ABC, abstractmethod
-from concurrent.futures import Executor, Future
 import re
 import json
 import hashlib
 from math import log10
 from collections import OrderedDict, ChainMap
 import numpy as np
-import networkx as nx
 import pandas as pd
 from anytree import Node, findall
 from anytree.exporter import DictExporter
-from pysb.simulator.scipyode import SerialExecutor
 
 # Types of analysis that have been implemented. For `production` the analysis consists in
 # finding the dominant path that is producing a species defined by the target parameter.
