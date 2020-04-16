@@ -10,6 +10,7 @@ import networkx as nx
 import pandas as pd
 from anytree import Node, findall
 from anytree.exporter import DictExporter
+from pysb.simulator.scipyode import SerialExecutor
 
 # Types of analysis that have been implemented. For `production` the analysis consists in
 # finding the dominant path that is producing a species defined by the target parameter.
@@ -73,6 +74,7 @@ class DomPath(ABC):
         Returns
         -------
         pydyno.SeqAnalysis
+            Sequences of the discretized signatures
         """
 
         return None
@@ -313,16 +315,3 @@ def _species_connected_to_node(network, r, type_edge, idx_r):
     # Sort the incoming nodes to get the same results in each simulation
     return _natural_sort(sp_nodes)
 
-
-class SerialExecutor(Executor):
-    """ Execute tasks in serial (immediately on submission) """
-    def submit(self, fn, *args, **kwargs):
-        f = Future()
-        try:
-            result = fn(*args, **kwargs)
-        except BaseException as e:
-            f.set_exception(e)
-        else:
-            f.set_result(result)
-
-        return f
