@@ -1,100 +1,112 @@
 from pydyno.examples.double_enzymatic.mm_two_paths_model import model
-# from nose.tools import *
 import numpy as np
-from pysb.testing import *
-import os
-from pysb.simulator.scipyode import ScipyOdeSimulator
-from pydyno.visualize_trajectories import VisualizeTrajectories
+from pysb.simulator import ScipyOdeSimulator
+from pydyno.visualize_simulations import VisualizeSimulations
+import pytest
 
 
-class TestClusteringAnalysisBase(object):
-    @classmethod
-    def tearDownClass(cls):
-        dir_name = os.path.dirname(os.path.abspath(__file__))
-        test = os.listdir(dir_name)
-        for item in test:
-            if item.endswith(".png") or item.endswith(".pdf"):
-                os.remove(os.path.join(dir_name, item))
-
-    def setUp(self):
-        pars = [[3.42477815e-02, 3.52565624e+02, 1.04957728e+01,6.35198054e-02, 3.14044789e+02,
-                5.28598128e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02],
-                [9.13676502e-03, 2.07253754e+00, 1.37740528e+02, 2.19960625e-01, 1.15007005e+04,
-                5.16232342e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02]]
-        tspan = np.linspace(0, 50, 101)
-        labels = [1, 0]
-        self.model = model
-        sims = ScipyOdeSimulator(self.model, tspan=tspan, param_values=pars).run()
-        self.clus = VisualizeTrajectories(self.model, clusters=labels, sim_results=sims)
-
-    def tearDown(self):
-        self.signatures = None
-        self.clus = None
+@pytest.fixture(scope='class')
+def simulation():
+    pars = [[3.42477815e-02, 3.52565624e+02, 1.04957728e+01, 6.35198054e-02, 3.14044789e+02,
+             5.28598128e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02],
+            [9.13676502e-03, 2.07253754e+00, 1.37740528e+02, 2.19960625e-01, 1.15007005e+04,
+             5.16232342e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02]]
+    tspan = np.linspace(0, 50, 101)
+    sims = ScipyOdeSimulator(model, tspan=tspan, param_values=pars).run()
+    return sims
 
 
-class TestClusteringAnalysisSingle(TestClusteringAnalysisBase):
-    def test_plot_dynamics_cluster_not_normed_types(self):
-        self.clus.plot_cluster_dynamics(species=[0], norm=False)
+class TestVisualizationInitialization:
+    def test_clusters_none(self, simulation):
+        VisualizeSimulations(model, clusters=None, sim_results=simulation)
 
-    def test_plot_dynamics_cluster_normed_types(self):
-        self.clus.plot_cluster_dynamics(species=[0], norm=True)
+    def test_truncate_idx(self, simulation):
+        VisualizeSimulations(model, clusters=None, sim_results=simulation, truncate_idx=0)
 
-    def test_plot_dynamics_cluster_not_normed_expression(self):
-        exprs = self.model.reactions_bidirectional[0]['rate']
-        self.clus.plot_cluster_dynamics(species=[exprs], norm=False)
+    def test_drop_sim_idx(self, simulation):
+        VisualizeSimulations(model, clusters=None, sim_results=simulation, drop_sim_idx=[1])
 
-    def test_plot_dynamics_cluster_not_normed_observable(self):
-        self.clus.plot_cluster_dynamics(species=['E_free'], norm=False)
+    def test_truncate_idx_drop_sim_idx(self, simulation):
+        with pytest.raises(ValueError):
+            VisualizeSimulations(model, clusters=None, sim_results=simulation, truncate_idx=0, drop_sim_idx=[1])
 
-    def test_plot_dynamics_cluster_normed_expression(self):
-        exprs = self.model.reactions_bidirectional[0]['rate']
-        self.clus.plot_cluster_dynamics(species=[exprs], norm=True)
 
-    def test_plot_dynamics_cluster_normed_observable(self):
-        self.clus.plot_cluster_dynamics(species=['E_free'], norm=True)
+@pytest.fixture(scope='class')
+def visualize():
+    pars = [[3.42477815e-02, 3.52565624e+02, 1.04957728e+01, 6.35198054e-02, 3.14044789e+02,
+             5.28598128e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02],
+            [9.13676502e-03, 2.07253754e+00, 1.37740528e+02, 2.19960625e-01, 1.15007005e+04,
+             5.16232342e+01, 1.00000000e+01, 1.00000000e+02, 1.00000000e+02]]
+    tspan = np.linspace(0, 50, 101)
+    labels = [1, 0]
+    sims = ScipyOdeSimulator(model, tspan=tspan, param_values=pars).run()
+    clus = VisualizeSimulations(model, clusters=labels, sim_results=sims)
+    return clus
 
-    @raises(ValueError)
-    def test_plot_dynamics_cluster_invalid_observable(self):
-        self.clus.plot_cluster_dynamics(species=['bla'], norm=True)
 
-    def test_hist_avg_sps_bar(self):
-        sp = self.model.species[0]
-        self.clus.plot_pattern_sps_distribution(pattern=sp, type_fig='bar')
+class TestClusteringAnalysis:
+    def test_plot_dynamics_cluster_not_normed_types(self, visualize, data_files_dir):
+        visualize.plot_cluster_dynamics(components=[0], norm=False, dir_path=data_files_dir)
 
-    def test_hist_avg_sps_entropy(self):
-        sp = self.model.species[0]
-        self.clus.plot_pattern_sps_distribution(pattern=sp, type_fig='entropy')
+    def test_plot_dynamics_cluster_normed_types(self, visualize, data_files_dir):
+        visualize.plot_cluster_dynamics(components=[0], norm=True, dir_path=data_files_dir)
 
-    @raises(NotImplementedError)
-    def test_hist_avg_sps_invalid_visualization(self):
-        sp = self.model.species[0]
-        self.clus.plot_pattern_sps_distribution(pattern=sp, type_fig='bla')
+    def test_plot_dynamics_cluster_not_normed_expression(self, visualize, data_files_dir):
+        exprs = model.reactions_bidirectional[0]['rate']
+        visualize.plot_cluster_dynamics(components=[exprs], norm=False, dir_path=data_files_dir)
 
-    def test_hist_avg_rxn_bar(self):
-        sp = self.model.species[0]
-        self.clus.plot_pattern_rxns_distribution(pattern=sp, type_fig='bar')
+    def test_plot_dynamics_cluster_not_normed_observable(self, visualize, data_files_dir):
+        visualize.plot_cluster_dynamics(components=['E_free'], norm=False, dir_path=data_files_dir)
 
-    def test_hist_avg_rxn_entropy(self):
-        sp = self.model.species[0]
-        self.clus.plot_pattern_rxns_distribution(pattern=sp, type_fig='entropy')
+    def test_plot_dynamics_cluster_normed_expression(self, visualize, data_files_dir):
+        exprs = model.reactions_bidirectional[0]['rate']
+        visualize.plot_cluster_dynamics(components=[exprs], norm=True, dir_path=data_files_dir)
 
-    @raises(NotImplementedError)
-    def test_hist_avg_rxns_invalid_visualization(self):
-        sp = self.model.species[0]
-        self.clus.plot_pattern_rxns_distribution(pattern=sp, type_fig='bla')
+    def test_plot_dynamics_cluster_normed_observable(self, visualize, data_files_dir):
+        visualize.plot_cluster_dynamics(components=['E_free'], norm=True, dir_path=data_files_dir)
 
-    def test_violin_plot_kd(self):
+    def test_plot_dynamics_cluster_invalid_observable(self, visualize, data_files_dir):
+        with pytest.raises(ValueError):
+            visualize.plot_cluster_dynamics(components=['bla'], norm=True, dir_path=data_files_dir)
+
+    def test_hist_avg_sps_bar(self, visualize, data_files_dir):
+        sp = model.species[0]
+        visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='bar', dir_path=data_files_dir)
+
+    def test_hist_avg_sps_entropy(self, visualize, data_files_dir):
+        sp = model.species[0]
+        visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='entropy', dir_path=data_files_dir)
+
+    def test_hist_avg_sps_invalid_visualization(self, visualize, data_files_dir):
+        with pytest.raises(NotImplementedError):
+            sp = model.species[0]
+            visualize.plot_pattern_sps_distribution(pattern=sp, type_fig='bla', dir_path=data_files_dir)
+
+    def test_hist_avg_rxn_bar(self, visualize, data_files_dir):
+        sp = model.species[0]
+        visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='bar', dir_path=data_files_dir)
+
+    def test_hist_avg_rxn_entropy(self, visualize, data_files_dir):
+        sp = model.species[0]
+        visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='entropy', dir_path=data_files_dir)
+
+    def test_hist_avg_rxns_invalid_visualization(self, visualize, data_files_dir):
+        with pytest.raises(NotImplementedError):
+            sp = model.species[0]
+            visualize.plot_pattern_rxns_distribution(pattern=sp, type_fig='bla', dir_path=data_files_dir)
+
+    def test_violin_plot_kd(self, visualize, data_files_dir):
         kd_pars = [(1, 0)]
-        self.clus.plot_violin_kd(par_idxs=kd_pars)
+        visualize.plot_violin_kd(par_idxs=kd_pars, dir_path=data_files_dir)
 
-    def test_hist_plot_clusters(self):
-        self.clus.hist_clusters_parameters(par_idxs=[7])
+    def test_hist_plot_clusters(self, visualize, data_files_dir):
+        visualize.hist_clusters_parameters(par_idxs=[7], dir_path=data_files_dir)
 
-    def test_violin_plot_sps(self):
-        self.clus.plot_violin_pars(par_idxs=[0])
+    def test_violin_plot_sps(self, visualize, data_files_dir):
+        visualize.plot_violin_pars(par_idxs=[0], dir_path=data_files_dir)
 
-    def test_plot_sp_ic_overlap(self):
-        self.clus.plot_sp_ic_overlap(par_idxs=[7])
+    def test_plot_sp_ic_overlap(self, visualize, data_files_dir):
+        visualize.plot_sp_ic_overlap(par_idxs=[7], dir_path=data_files_dir)
 
-    def test_scatter_plot_pars(self):
-        self.clus.scatter_plot_pars(par_idxs=[7, 8], cluster=0)
+    def test_scatter_plot_pars(self, visualize, data_files_dir):
+        visualize.scatter_plot_pars(par_idxs=[7, 8], cluster=0, dir_path=data_files_dir)

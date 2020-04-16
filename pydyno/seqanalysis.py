@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import editdistance
 from matplotlib.colors import ListedColormap, BoundaryNorm
-from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import pdist, squareform
 from sklearn import metrics
 import sklearn.cluster as cluster
 import pydyno.lcs as lcs
@@ -25,19 +25,38 @@ except ImportError:
     h5py = None
 
 # Valid metrics from scikit-learn
-_VALID_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock',
-                  'braycurtis', 'canberra', 'chebyshev', 'correlation',
-                  'cosine', 'dice', 'hamming', 'jaccard', 'kulsinski',
-                  'mahalanobis', 'matching', 'minkowski', 'rogerstanimoto',
-                  'russellrao', 'seuclidean', 'sokalmichener',
-                  'sokalsneath', 'sqeuclidean', 'yule', "wminkowski"]
+_VALID_METRICS = [
+    'braycurtis',
+    'canberra',
+    'chebyshev',
+    'cityblock',
+    'correlation',
+    'cosine',
+    'dice',
+    'euclidean',
+    'hamming',
+    'jaccard',
+    'kulsinski',
+    'mahalanobis',
+    'minkowski',
+    'rogerstanimoto',
+    'russellrao',
+    'seuclidean',
+    'sokalmichener',
+    'sokalsneath',
+    'sqeuclidean',
+    'wminkowski',
+    'yule'
+    ]
 
 _VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
 
 def lcs_dist_same_length(seq1, seq2):
     """
-    Longest common subsequence metric
+    Longest common subsequence metric as defined by CESS H. ELZINGA in
+    'Sequence analysis: metric representations of categorical time series'
+
     Parameters
     ----------
     seq1 : array-like
@@ -67,6 +86,16 @@ def levenshtein(seq1, seq2):
     return d_1_2
 
 
+def multiprocessing_distance(data, metric_function, n_jobs):
+    import multiprocessing as mp
+    N, _ = data.shape
+    upper_triangle = [(i, j) for i in range(N) for j in range(i + 1, N)]
+    with mp.Pool(processes=n_jobs) as pool:
+        result = pool.starmap(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle])
+    dist_mat = squareform([item for item in result])
+    return dist_mat.astype('float64')
+
+
 class SeqAnalysis:
     """
     Class to do analysis and visualizations of discretized trajectories
@@ -84,8 +113,6 @@ class SeqAnalysis:
         if isinstance(sequences, str):
             if os.path.isfile(sequences):
                 data_seqs = pd.read_csv(sequences, header=0, index_col=0)
-                # convert column names into float numbers
-                data_seqs.columns = [float(i) for i in data_seqs.columns.tolist()]
             else:
                 raise TypeError('String is not a file')
         elif isinstance(sequences, Iterable):
@@ -94,6 +121,10 @@ class SeqAnalysis:
             data_seqs = sequences
         else:
             raise TypeError('data type not valid')
+
+        # convert column names into float numbers
+        if data_seqs.columns.dtype != np.float32 or data_seqs.columns.dtype != np.float64:
+            data_seqs.columns = [np.float32(i) for i in data_seqs.columns.tolist()]
 
         # Rename index if seq_idx doesn't exist in the dataframe
         if 'seq_idx' not in data_seqs.index.names:
@@ -151,6 +182,7 @@ class SeqAnalysis:
         """
         Obtain the unique sequence in the dataframe of sequences. This adds a new
         column with the count of the repeated sequences
+
         Returns
         -------
         pd.DataFrame with the unique sequences
@@ -202,16 +234,27 @@ class SeqAnalysis:
                                                sort=False).size().rename('count').reset_index()
         unique_sequences.set_index([list(range(len(unique_sequences))), 'count'], inplace=True)
 
-        if metric in _VALID_METRICS:
-            diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
-        elif metric == 'LCS':
-            diss = pairwise_distances(unique_sequences.values, metric=lcs_dist_same_length, n_jobs=n_jobs)
-        elif metric == 'levenshtein':
-            diss = pairwise_distances(unique_sequences.values, metric=levenshtein, n_jobs=n_jobs)
-        elif callable(metric):
-            diss = pairwise_distances(unique_sequences.values, metric=metric, n_jobs=n_jobs)
+        if n_jobs > 1:
+            if metric == 'LCS':
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length, n_jobs=n_jobs)
+            elif metric == 'levenshtein':
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein, n_jobs=n_jobs)
+            elif callable(metric):
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=metric, n_jobs=n_jobs)
+            else:
+                raise ValueError('Multiprocessing can only be used with `LCS`, `levenshtein` or a provided function')
+
         else:
-            raise ValueError('metric not supported')
+            if metric in _VALID_METRICS:
+                diss = squareform(pdist(unique_sequences.values, metric=metric))
+            elif metric == 'LCS':
+                diss = squareform(pdist(unique_sequences.values, metric=lcs_dist_same_length))
+            elif metric == 'levenshtein':
+                diss = squareform(pdist(unique_sequences.values, metric=levenshtein))
+            elif callable(metric):
+                diss = squareform(pdist(unique_sequences.values, metric=metric))
+            else:
+                raise ValueError('metric not supported')
 
         count_seqs = unique_sequences.index.get_level_values(1).values
         seq_idxs = unique_sequences.index.get_level_values(0).values
@@ -449,7 +492,7 @@ class SeqAnalysis:
             rep = rep_method(**kwargs)
             return rep
 
-    def plot_sequences(self, type_fig='modal', plot_all=False, title='', filename='', sort_seq=None):
+    def plot_sequences(self, type_fig='modal', plot_all=False, title='', dir_path='', sort_seq=None):
         """
         Function to plot three different figures of the sequences.
         The modal figure takes the mode state at each time and plots
@@ -470,8 +513,8 @@ class SeqAnalysis:
             sequences in different subplots
         title: str
             Title of the figure
-        filename: str
-            Name of file
+        dir_path: str
+            Path to directory where plots are going to be saved
         sort_seq: str
             Method to sort sequences for a plot. Valid values are: `silhouette`.
              It is only available when the type of plot is `trajectories`
@@ -481,7 +524,7 @@ class SeqAnalysis:
 
         """
         ps = PlotSequences(self)
-        ps.plot_sequences(type_fig=type_fig, plot_all=plot_all, title=title, filename=filename, sort_seq=sort_seq)
+        ps.plot_sequences(type_fig=type_fig, plot_all=plot_all, title=title, dir_path=dir_path, sort_seq=sort_seq)
 
     # Clustering
 
@@ -661,6 +704,7 @@ class SeqAnalysis:
                 dset.create_dataset('cluster_labels', data=self._labels,
                                     compression='gzip', shuffle=True)
                 dset.attrs['cluster_method'] = self._cluster_method
+                dset.attrs['target'] = self._target
 
     @classmethod
     def load(cls, filename):
@@ -686,6 +730,7 @@ class SeqAnalysis:
             dm = None
             cluster_method = None
             labels = None
+            target = ''
 
             if 'dissimilarity_matrix' in grp.keys():
                 dm = grp['dissimilarity_matrix'][:]
@@ -694,8 +739,9 @@ class SeqAnalysis:
                 cluster_dset = grp['clustering_information']
                 cluster_method = cluster_dset.attrs['cluster_method']
                 labels = cluster_dset['cluster_labels'][:]
+                target = cluster_dset.attrs['target']
 
-            seqRes = cls(sequences=pd.DataFrame.from_records(seqs, index=['seq_idx', 'count']))
+            seqRes = cls(sequences=pd.DataFrame.from_records(seqs, index=['seq_idx', 'count']), target=target)
             seqRes.cluster_method = cluster_method
             seqRes.labels = labels
             seqRes.diss = dm

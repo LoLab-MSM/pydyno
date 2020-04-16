@@ -1,1 +1,2 @@
 recursive-include pydyno/lcs *.c *.h *.pxd *.pyx
+include pydyno/examples/sbml_example/double_enzymatic_sbml.xml
