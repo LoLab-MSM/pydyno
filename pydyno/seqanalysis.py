@@ -236,7 +236,6 @@ class SeqAnalysis:
 
         if n_jobs > 1:
             if metric == 'LCS':
-                print('here')
                 diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length, n_jobs=n_jobs)
             elif metric == 'levenshtein':
                 diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein, n_jobs=n_jobs)
