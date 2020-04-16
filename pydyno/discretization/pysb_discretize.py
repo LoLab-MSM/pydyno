@@ -156,7 +156,6 @@ class PysbDomPath(DomPath):
         for idx, sl in enumerate(signatures_labels):
             signatures[idx] = sl[0]
             labels[idx] = sl[1]
-        print(signatures)
         signatures_df, new_paths = _reencode_signatures_paths(signatures, labels, self.tspan)
         # signatures_labels = {'signatures': signatures, 'labels': all_labels}
         return SeqAnalysis(signatures_df, target), new_paths
