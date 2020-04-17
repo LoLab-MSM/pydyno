@@ -268,8 +268,8 @@ class VisualizeSimulations(object):
                 if add_y_histogram:
                     self._add_y_histogram(ax, sp_trajectory)
 
-                sp_max_conc = np.amax(sp_trajectory)
-                sp_min_conc = np.amin(sp_trajectory)
+                sp_max_conc = np.nanmax(sp_trajectory[sp_trajectory != np.inf])
+                sp_min_conc = np.nanmin(sp_trajectory[sp_trajectory != -np.inf])
                 ax.set_xlabel('Time')
                 ax.set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
