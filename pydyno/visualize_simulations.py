@@ -603,7 +603,7 @@ class VisualizeSimulations(object):
             self.__entropy__rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name)
 
         else:
-            raise NotImplementedError('Type of visualization not implements')
+            raise NotImplementedError('Type of visualization not implemented')
         return
 
     def __get_avgs(self, y, pars, products_matched, reactants_matched):
@@ -736,17 +736,17 @@ class VisualizeSimulations(object):
             ax3.set(xlabel="Time", ylabel='Percentage')
 
             final_save_path = os.path.join(dir_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
-            fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            fig.savefig(final_save_path + '.png', format='png', bbox_inches='tight')
             plt.close(fig)
 
             fig_plegend = plt.figure(figsize=(2, 1.25))
             fig_plegend.legend(plegend_patches, plabels, loc='center', frameon=False, ncol=4)
-            plt.savefig(final_save_path + 'plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.savefig(final_save_path + 'plegends_{0}.png'.format(fig_name), format='png', bbox_inches='tight')
             plt.close(fig_plegend)
 
             fig_rlegend = plt.figure(figsize=(2, 1.25))
             fig_rlegend.legend(rlegend_patches, rlabels, loc='center', frameon=False, ncol=4)
-            plt.savefig(final_save_path + 'rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.savefig(final_save_path + 'rlegends{0}.png'.format(fig_name), format='png', bbox_inches='tight')
             plt.close(fig_rlegend)
         return
 
