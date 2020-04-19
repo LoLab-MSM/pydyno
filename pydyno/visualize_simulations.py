@@ -580,6 +580,17 @@ class VisualizeSimulations(object):
         rpm = ReactionPatternMatcher(self.model)
         products_matched = rpm.match_products(pattern)
         reactants_matched = rpm.match_reactants(pattern)
+        rev_rxns_products = []
+        rev_rxns_reactants = []
+        # Add reversible reactions
+        for pm in products_matched:
+            if pm.reversible:
+                rev_rxns_products.append(pm)
+        for rm in reactants_matched:
+            if rm.reversible:
+                rev_rxns_reactants.append(rm)
+        products_matched = products_matched + rev_rxns_reactants
+        reactants_matched = reactants_matched + rev_rxns_products
 
         plots_dict = {}
         for clus in self.clusters:
@@ -615,8 +626,11 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
-        pcolors = distinct_colors(len(products_matched))
-        rcolors = distinct_colors(len(reactants_matched))
+        all_reactions = list(set(reactants_matched).union(products_matched))
+        colors = distinct_colors(len(all_reactions))
+        reaction_color = {reaction.rate: colors[idx] for idx, reaction in enumerate(all_reactions)}
+        pcolors = []
+        rcolors = []
         plegend_patches = []
         plabels = []
         rlegend_patches = []
@@ -638,16 +652,19 @@ class VisualizeSimulations(object):
             values = f(*arg)
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
-            values_avg[values_avg < 0] = 0
+            if rxn.reversible:
+                values_avg[values_avg < 0] = 0
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
             plabel = hf.rate_2_interactions(self.model, str(rate))
+            rxn_color = reaction_color[rate]
+            pcolors.append(rxn_color)
             plabels.append(plabel)
-            plegend_patches.append(mpatches.Patch(color=pcolors[rxn_idx], label=plabel))
+            plegend_patches.append(mpatches.Patch(color=rxn_color, label=plabel))
 
         ptotals = np.sum(products_avg, axis=0)
-        products_avg = products_avg / ptotals
+        products_avg = products_avg / (ptotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
@@ -663,16 +680,21 @@ class VisualizeSimulations(object):
             f = sympy.lambdify(var, rate)
             values = f(*arg)
             values_avg = np.average(values, axis=0)
-            values_avg[values_avg > 0] = 0
+            if rct.reversible:
+                values_avg[values_avg > 0] = 0
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
             rlabel = hf.rate_2_interactions(self.model, str(rate))
+            rxn_color = reaction_color[rate]
+            rcolors.append(rxn_color)
             rlabels.append(rlabel)
-            rlegend_patches.append(mpatches.Patch(color=rcolors[rct_idx], label=rlabel))
+            rlegend_patches.append(mpatches.Patch(color=rxn_color, label=rlabel))
 
+        reactants_avg = np.abs(reactants_avg)
         rtotals = np.sum(reactants_avg, axis=0)
-        reactants_avg = reactants_avg / rtotals
+        reactants_avg = reactants_avg / (rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
+
 
         plegend_info = (pcolors, plabels, plegend_patches)
         rlegend_info = (rcolors, rlabels, rlegend_patches)
