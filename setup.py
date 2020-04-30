@@ -5,7 +5,7 @@ import sys
 import os
 import platform
 from distutils.sysconfig import get_python_inc
-from setuptools.command.build_py import build_py
+import versioneer
 
 try:
     import numpy
@@ -53,7 +53,7 @@ else:
 py_inc = [get_python_inc()]
 
 #### cmdclass
-cmdclass = {'build_py': build_py}
+cmdclass = versioneer.get_cmdclass()
 
 #### Extension modules
 ext_modules = []
@@ -80,7 +80,7 @@ with open(os.path.join(this_directory, 'README.md'), 'r') as f:
     long_description = f.read()
 
 setup(name='pydyno',
-      version='0.1.1',
+      version=versioneer.get_version(),
       description='Dynamic analysis of systems biology models',
       long_description=long_description,
       long_description_content_type='text/markdown',
