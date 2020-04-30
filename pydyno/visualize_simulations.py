@@ -21,7 +21,7 @@ plt.ioff()
 
 class VisualizeSimulations(object):
     """
-    Class to visualize PySB simulations and parameter distributions in different clusters
+    Visualize PySB simulations and parameter distributions in different clusters
 
     Parameters
     ----------
@@ -40,6 +40,17 @@ class VisualizeSimulations(object):
     drop_sim_idx: array-like
         Indices of simulation to drop. Only works when clusters is None. It cannot be used at the same time with
         truncate_idx.
+
+    Examples
+    --------
+    Visualize the trajectory of a simulation:
+
+    >>> from pysb.examples.tyson_oscillator import model
+    >>> from pysb.simulator import ScipyOdeSimulator
+    >>> import numpy as np
+    >>> sim = ScipyOdeSimulator(model, tspan=np.linspace(0, 100, 100))
+    >>> vs = VisualizeSimulations(model, sim)
+    >>> vs.plot_cluster_dynamics([0, 1, 2])
     """
 
     def __init__(self, model, sim_results, clusters, truncate_idx=None, drop_sim_idx=None):
@@ -139,7 +150,7 @@ class VisualizeSimulations(object):
                               add_y_histogram=False, fig_name='', plot_format=None, species_ftn_fit=None,
                               norm=False, norm_value=None, **kwargs):
         """
-        Plots the dynamics of the species for each cluster
+        Plots the dynamics of species/observables/pysb expressions for each cluster
 
         Parameters
         ----------
