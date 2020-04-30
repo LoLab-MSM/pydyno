@@ -21,7 +21,7 @@ plt.ioff()
 
 class VisualizeSimulations(object):
     """
-    Class to visualize PySB simulations and parameter distributions in different clusters
+    Visualize PySB simulations and parameter distributions in different clusters
 
     Parameters
     ----------
@@ -40,6 +40,17 @@ class VisualizeSimulations(object):
     drop_sim_idx: array-like
         Indices of simulation to drop. Only works when clusters is None. It cannot be used at the same time with
         truncate_idx.
+
+    Examples
+    --------
+    Visualize the trajectory of a simulation:
+
+    >>> from pysb.examples.tyson_oscillator import model
+    >>> from pysb.simulator import ScipyOdeSimulator
+    >>> import numpy as np
+    >>> sim = ScipyOdeSimulator(model, tspan=np.linspace(0, 100, 100))
+    >>> vs = VisualizeSimulations(model, sim)
+    >>> vs.plot_cluster_dynamics([0, 1, 2])
     """
 
     def __init__(self, model, sim_results, clusters, truncate_idx=None, drop_sim_idx=None):
@@ -139,7 +150,7 @@ class VisualizeSimulations(object):
                               add_y_histogram=False, fig_name='', plot_format=None, species_ftn_fit=None,
                               norm=False, norm_value=None, **kwargs):
         """
-        Plots the dynamics of the species for each cluster
+        Plots the dynamics of species/observables/pysb expressions for each cluster
 
         Parameters
         ----------
@@ -268,8 +279,8 @@ class VisualizeSimulations(object):
                 if add_y_histogram:
                     self._add_y_histogram(ax, sp_trajectory)
 
-                sp_max_conc = np.amax(sp_trajectory)
-                sp_min_conc = np.amin(sp_trajectory)
+                sp_max_conc = np.nanmax(sp_trajectory[sp_trajectory != np.inf])
+                sp_min_conc = np.nanmin(sp_trajectory[sp_trajectory != -np.inf])
                 ax.set_xlabel('Time')
                 ax.set_ylabel('Concentration')
                 # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
@@ -580,6 +591,17 @@ class VisualizeSimulations(object):
         rpm = ReactionPatternMatcher(self.model)
         products_matched = rpm.match_products(pattern)
         reactants_matched = rpm.match_reactants(pattern)
+        rev_rxns_products = []
+        rev_rxns_reactants = []
+        # Add reversible reactions
+        for pm in products_matched:
+            if pm.reversible:
+                rev_rxns_products.append(pm)
+        for rm in reactants_matched:
+            if rm.reversible:
+                rev_rxns_reactants.append(rm)
+        products_matched = products_matched + rev_rxns_reactants
+        reactants_matched = reactants_matched + rev_rxns_products
 
         plots_dict = {}
         for clus in self.clusters:
@@ -592,7 +614,7 @@ class VisualizeSimulations(object):
             self.__entropy__rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name)
 
         else:
-            raise NotImplementedError('Type of visualization not implements')
+            raise NotImplementedError('Type of visualization not implemented')
         return
 
     def __get_avgs(self, y, pars, products_matched, reactants_matched):
@@ -615,8 +637,11 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
-        pcolors = distinct_colors(len(products_matched))
-        rcolors = distinct_colors(len(reactants_matched))
+        all_reactions = list(set(reactants_matched).union(products_matched))
+        colors = distinct_colors(len(all_reactions))
+        reaction_color = {reaction.rate: colors[idx] for idx, reaction in enumerate(all_reactions)}
+        pcolors = []
+        rcolors = []
         plegend_patches = []
         plabels = []
         rlegend_patches = []
@@ -638,16 +663,19 @@ class VisualizeSimulations(object):
             values = f(*arg)
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
-            values_avg[values_avg < 0] = 0
+            if rxn.reversible:
+                values_avg[values_avg < 0] = 0
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
             plabel = hf.rate_2_interactions(self.model, str(rate))
+            rxn_color = reaction_color[rate]
+            pcolors.append(rxn_color)
             plabels.append(plabel)
-            plegend_patches.append(mpatches.Patch(color=pcolors[rxn_idx], label=plabel))
+            plegend_patches.append(mpatches.Patch(color=rxn_color, label=plabel))
 
         ptotals = np.sum(products_avg, axis=0)
-        products_avg = products_avg / ptotals
+        products_avg = products_avg / (ptotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
@@ -663,16 +691,21 @@ class VisualizeSimulations(object):
             f = sympy.lambdify(var, rate)
             values = f(*arg)
             values_avg = np.average(values, axis=0)
-            values_avg[values_avg > 0] = 0
+            if rct.reversible:
+                values_avg[values_avg > 0] = 0
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
             rlabel = hf.rate_2_interactions(self.model, str(rate))
+            rxn_color = reaction_color[rate]
+            rcolors.append(rxn_color)
             rlabels.append(rlabel)
-            rlegend_patches.append(mpatches.Patch(color=rcolors[rct_idx], label=rlabel))
+            rlegend_patches.append(mpatches.Patch(color=rxn_color, label=rlabel))
 
+        reactants_avg = np.abs(reactants_avg)
         rtotals = np.sum(reactants_avg, axis=0)
-        reactants_avg = reactants_avg / rtotals
+        reactants_avg = reactants_avg / (rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
+
 
         plegend_info = (pcolors, plabels, plegend_patches)
         rlegend_info = (rcolors, rlabels, rlegend_patches)
@@ -714,17 +747,17 @@ class VisualizeSimulations(object):
             ax3.set(xlabel="Time", ylabel='Percentage')
 
             final_save_path = os.path.join(dir_path, 'hist_avg_rxn_clus{0}_{1}'.format(c_idx, fig_name))
-            fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            fig.savefig(final_save_path + '.png', format='png', bbox_inches='tight')
             plt.close(fig)
 
             fig_plegend = plt.figure(figsize=(2, 1.25))
             fig_plegend.legend(plegend_patches, plabels, loc='center', frameon=False, ncol=4)
-            plt.savefig(final_save_path + 'plegends_{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.savefig(final_save_path + 'plegends_{0}.png'.format(fig_name), format='png', bbox_inches='tight')
             plt.close(fig_plegend)
 
             fig_rlegend = plt.figure(figsize=(2, 1.25))
             fig_rlegend.legend(rlegend_patches, rlabels, loc='center', frameon=False, ncol=4)
-            plt.savefig(final_save_path + 'rlegends{0}.pdf'.format(fig_name), format='pdf', bbox_inches='tight')
+            plt.savefig(final_save_path + 'rlegends{0}.png'.format(fig_name), format='png', bbox_inches='tight')
             plt.close(fig_rlegend)
         return
 
