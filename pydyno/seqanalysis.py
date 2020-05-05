@@ -98,16 +98,18 @@ def multiprocessing_distance(data, metric_function, n_jobs):
 
 class SeqAnalysis:
     """
-    Class to do analysis and visualizations of discretized trajectories
+    Analyze and visualize discretized trajectories
+
     Parameters
     ----------
-    sequences: str, pd.DataFrame, np.ndarray, list
+    sequences : str, pd.DataFrame, np.ndarray, list
         Sequence data from the discretization of a PySB model. If str it must be a csv file
         with the sequences as rows and the first row must have the time points of the simulation.
-    target: str
+    target : str
         Species target. It has to be in a format `s1` where the number
         represents the species index
     """
+
     def __init__(self, sequences, target):
         # Checking seqdata
         if isinstance(sequences, str):
@@ -198,6 +200,7 @@ class SeqAnalysis:
     def truncate_sequences(self, idx):
         """
         Truncates the sequences at the index passed
+
         Parameters
         ----------
         idx: int
@@ -213,6 +216,7 @@ class SeqAnalysis:
     def dissimilarity_matrix(self, metric='LCS', n_jobs=1):
         """
         Get dissimilarity matrix using the passed metric
+
         Parameters
         ----------
         metric: str
@@ -224,6 +228,7 @@ class SeqAnalysis:
         -------
         dissimilarity matrix: np.ndarray
         """
+
         # Sort sequences
         sorted_seqs = self._sequences.sort_values(by=self._sequences.columns.tolist(), inplace=False)
         old_sorted_idxs = np.argsort(sorted_seqs.index)
@@ -379,6 +384,7 @@ class SeqAnalysis:
     def neighborhood_density(self, proportion, sequences_idx=None):
         """
         Representativeness using neighborhood density method
+
         Parameters
         ----------
         proportion : float
@@ -393,6 +399,7 @@ class SeqAnalysis:
             Representative sequence
 
         """
+
         seq_len = self._sequences.shape[1]
         ci = 1  # ci is the indel cost
         s = 2  # s is the substitution cost
@@ -420,6 +427,7 @@ class SeqAnalysis:
     def centrality(self, sequences_idx=None):
         """
         Representativeness using the centrality method
+
         Parameters
         ----------
         sequences_idx : list-like
@@ -444,6 +452,7 @@ class SeqAnalysis:
     def frequency(self, sequences_idx=None):
         """
         Representativeness using the frequency method
+
         Parameters
         ----------
         sequences_idx : list-like
@@ -596,8 +605,10 @@ class SeqAnalysis:
     def silhouette_score(self):
         """
 
-        Returns : Silhouette score to measure quality of the clustering
+        Returns
         -------
+        float
+            Silhouette score to measure quality of the clustering
 
         """
         if self._labels is None:
@@ -681,6 +692,7 @@ class SeqAnalysis:
     def save(self, filename):
         """
         Save a Sequence object to a HDF5 format file
+
         Parameters
         ----------
         filename: str
@@ -710,6 +722,7 @@ class SeqAnalysis:
     def load(cls, filename):
         """
         Load a sequence result from a HDF5 format file.
+
         Parameters
         ----------
         filename: str

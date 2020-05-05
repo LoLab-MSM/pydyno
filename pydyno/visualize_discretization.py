@@ -81,6 +81,7 @@ def visualization_sp(sim, sim_idx, sp_to_vis, all_signatures, plot_type):
 def visualization_path(model, path, type_analysis, filename, rankdir='TB'):
     """
     Visualize dominant path
+
     Parameters
     ----------
     model: pysb.Model
@@ -96,6 +97,7 @@ def visualization_path(model, path, type_analysis, filename, rankdir='TB'):
     -------
 
     """
+
     generate_equations(model)
 
     def find_numbers(dom_r_str):

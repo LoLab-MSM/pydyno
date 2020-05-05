@@ -13,6 +13,9 @@ N_ROW_FONTSIZE = {1: 'medium', 2: 'medium', 3: 'small', 4: 'small', 5: 'x-small'
 
 
 class PlotSequences:
+    """
+    Visualize discretized sequences
+    """
     def __init__(self, seq_analysis):
         self._seq_analysis = seq_analysis
 
