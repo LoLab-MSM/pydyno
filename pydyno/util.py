@@ -10,6 +10,7 @@ from networkx.drawing.nx_pydot import from_pydot
 from pydot import graph_from_dot_data
 from anytree.importer import DictImporter
 from anytree.exporter import DotExporter
+
 try:
     import h5py
 except ImportError:
@@ -53,7 +54,7 @@ def species_reaction_rates(model, species):
     counter2 = 0
     mons_ready = {}
     for sp in monomials.values():
-        if -1*sp in monomials.values():
+        if -1 * sp in monomials.values():
             continue
         else:
             mons_ready[counter2] = sp
@@ -135,9 +136,14 @@ def _get_data_from_sims(simulations):
     else:
         raise Exception('Analysis is not supported for simulations with different time spans')
     parameters = simulations.param_values
-    # SimulationResult always return a list
-    trajectories = np.array(simulations.species)
     nsims = len(parameters)
+
+    # SimulationResult returns an ndarray when it only runs 1 simulation
+    # and the squeeze attribute is set to True
+    if nsims == 1 and simulations.squeeze is True:
+        trajectories = np.array([simulations.species])
+    else:
+        trajectories = np.array(simulations.species)
     return trajectories, parameters, nsims, tspan
 
 
@@ -162,7 +168,7 @@ def parse_name(spec):
     parsed_name = ''
     for i in range(len(m)):
         tmp_1 = str(m[i]).partition('(')
-        tmp_2 = re.findall(r"['\"](.*?)['\"]", str(m[i])) # Matches strings between quotes
+        tmp_2 = re.findall(r"['\"](.*?)['\"]", str(m[i]))  # Matches strings between quotes
         tmp_2 = [s.lower() for s in tmp_2]
         # tmp_2 = re.findall(r"(?<=\').+(?=\')", str(m[i]))
         if not tmp_2:
@@ -200,7 +206,7 @@ def rate_2_interactions(model, rate):
     if len(species_idxs) == 1:
         interaction = parse_name(model.species[species_idxs[0]])
     else:
-        sp_monomers ={sp: model.species[sp].monomer_patterns for sp in species_idxs }
+        sp_monomers = {sp: model.species[sp].monomer_patterns for sp in species_idxs}
         sorted_intn = sorted(sp_monomers.items(), key=lambda value: len(value[1]))
         interaction = ", ".join(parse_name(model.species[mons[0]]) for mons in sorted_intn[:2])
     return interaction
@@ -443,10 +449,11 @@ def path_differences(model, paths_labels, type_analysis='production'):
 
     def edgeattrfunc(node, child):
         return 'dir="back"'
+
     for keys, values in paths_labels.items():
         root = importer.import_(values)
         dot = DotExporter(root, graph='strict digraph', options=["rankdir=RL;"], nodenamefunc=nodenamefunc,
-                    edgeattrfunc=edgeattrfunc)
+                          edgeattrfunc=edgeattrfunc)
         data = ''
         for line in dot:
             data += line
