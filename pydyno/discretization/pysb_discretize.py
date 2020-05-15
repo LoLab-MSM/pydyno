@@ -15,38 +15,43 @@ from pydyno.seqanalysis import SeqAnalysis
 
 class PysbDomPath(DomPath):
     """
-    Class to discretize simulated trajectories of a model species
-
-    Obtains dominant paths from models encoded in the PySB format.
+    Obtain dominant paths from models encoded in the PySB format.
 
     Parameters
     ----------
     model: PySB model
         Model to analyze
     simulations: PySB SimulationResult object or str
-        simulations used to perform the analysis. If str it should be the
-        path to a simulation result in hdf5 format
+        Simulations used to perform the analysis. If str it should be the
+        filepath to a pysb simulation result in hdf5 format
 
     Examples
     --------
-    Obtain the discretized trajectory of an apoptosis model
+    Obtain the discretized trajectory of the extrinsic apoptosis reaction model
 
     >>> from pydyno.discretization.pysb_discretize import PysbDomPath
     >>> from pydyno.examples.earm.earm2_flat import model
     >>> from pysb.simulator import ScipyOdeSimulator
     >>> import numpy as np
     >>> tspan = np.linspace(0, 20000, 100)
+    >>> # Simulate model
     >>> sim = ScipyOdeSimulator(model, tspan).run()
     >>> dp = PysbDomPath(model=model, simulations=sim)
     >>> signs, paths = dp.get_path_signatures(target='s37', type_analysis='consumption', depth=5, dom_om=1)
+    >>> print(signs.sequences.iloc[:, :5]) \
+        #doctest: +NORMALIZE_WHITESPACE
+		          202.020203  404.040405 606.060608 808.080811 1010.101013
+    seq_idx	count
+          0	    1	       8	       8	      8	         8	         8
 
+    For further information on retrieving sequences from the ``SeqAnalysis``
+    object returned by :func:`get_path_signatures`, see the examples under the
+    :class:`SeqAnalysis` class.
     """
 
     def __init__(self, model, simulations):
         super().__init__(model)
         self._trajectories, self._parameters, self._nsims, self._tspan = hf.get_simulations(simulations)
-        if self._nsims == 1:
-            self._trajectories = np.array([self._trajectories])
         self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
         generate_equations(self.model)
 
@@ -73,9 +78,11 @@ class PysbDomPath(DomPath):
     def create_bipartite_graph(self):
         """
         Creates bipartite graph with species and reaction nodes of the pysb model
+
         Returns
         -------
-
+        nx.DiGraph
+            a networkx directed graph
         """
         graph = nx.DiGraph(name=self.model.name)
         for i, cp in enumerate(self.model.species):
@@ -114,6 +121,7 @@ class PysbDomPath(DomPath):
     def get_path_signatures(self, target, type_analysis, depth, dom_om,
                             num_processors=1, sample_simulations=None):
         """
+        Obtain the dominant paths
 
         Parameters
         ----------
@@ -123,7 +131,7 @@ class PysbDomPath(DomPath):
         type_analysis: str
             Type of analysis to perform. It can be `production` or `consumption`
         depth: int
-            Depth of the traceback starting from target
+            Depth of the traceback starting from the target species
         dom_om: float
             Order of magnitude to consider dominancy
         num_processors : int
@@ -172,7 +180,7 @@ class PysbDomPath(DomPath):
 
 
 def calculate_pysb_expression(expr, trajectories, param_dict):
-    """Obtains value of a pysb expression"""
+    """Obtains simulated values of a pysb expression"""
     expanded_expr = expr.expand_expr(expand_observables=True)
     expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
     args = [0] * len(expr_variables)
@@ -203,11 +211,13 @@ def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
         Model used to obtain the simulations
     tspan :  np.ndarray
         Time span used in the simulations
+
     Returns
     -------
     pandas.DataFrame
         Dataframe with the reaction rate values of the simulations
     """
+
     trajectories = trajectories
     parameters = parameters
     rxns_names = ['r{0}'.format(rxn) for rxn in range(len(model.reactions_bidirectional))]
