@@ -1,4 +1,5 @@
 import os
+import json
 from collections import Iterable, OrderedDict
 from concurrent.futures import ProcessPoolExecutor
 from pysb.simulator.scipyode import SerialExecutor
@@ -689,7 +690,7 @@ class SeqAnalysis:
         score = metrics.calinski_harabaz_score(self.sequences, self._labels)
         return score
 
-    def save(self, filename):
+    def save(self, filename, dominant_paths=None):
         """
         Save a Sequence object to a HDF5 format file
 
@@ -697,6 +698,8 @@ class SeqAnalysis:
         ----------
         filename: str
             Filename to which the data will be saved
+        dominant_paths: dict
+            Dictionary of the dominant paths obtained after discretizing the simulations
 
         """
         if h5py is None:
@@ -711,6 +714,11 @@ class SeqAnalysis:
             if self._diss is not None:
                 grp.create_dataset('dissimilarity_matrix', data=self._diss,
                                    compression='gzip', shuffle=True)
+
+            if dominant_paths is not None:
+                dominant_paths_js = json.dumps(dominant_paths)
+                grp.create_dataset('dominant_paths', data=dominant_paths_js)
+
             if self._labels is not None:
                 dset = grp.create_group('clustering_information')
                 dset.create_dataset('cluster_labels', data=self._labels,
@@ -730,11 +738,12 @@ class SeqAnalysis:
 
         Returns
         -------
-        SeqAnalysis
-            Sequences obtained from doing a discretization analysis
+        SeqAnalysis, dominant_paths (if saved)
+            Sequences and dominant paths (if saved) obtained from doing a discretization analysis
         """
         if h5py is None:
             raise Exception('Please "pip install h5py" for this feature')
+        dominant_paths = None
 
         with h5py.File(filename, 'r') as hdf:
             grp = hdf['discretization_result']
@@ -759,7 +768,12 @@ class SeqAnalysis:
             seqRes.labels = labels
             seqRes.diss = dm
 
-        return seqRes
+            if 'dominant_paths' in grp.keys():
+                dominant_paths = json.loads(grp['dominant_paths'][()])
+        if dominant_paths is not None:
+            return seqRes, dominant_paths
+        else:
+            return seqRes
 
 
 def _agg_cluster_score(diss, num_clusters, linkage='average', **kwargs):

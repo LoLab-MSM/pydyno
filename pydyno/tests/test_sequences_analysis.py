@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from pydyno.seqanalysis import SeqAnalysis
 import pytest
@@ -86,3 +87,26 @@ class TestClustering:
     def test_modal(self, signatures, data_files_dir):
         signatures.dissimilarity_matrix(metric='LCS')
         signatures.plot_sequences(type_fig='modal', plot_all=True, dir_path=data_files_dir)
+
+    def test_save_load(self, signatures, data_files_dir):
+        path_dict = {'0': {'order': 0, 'name': 's3'}}
+        signatures.dissimilarity_matrix(metric='LCS')
+        path_signature1 = os.path.join(data_files_dir, 'test_signature1.h5')
+        path_signature2 = os.path.join(data_files_dir, 'test_signature2.h5')
+
+        # Try to save and reload when file contains only the sequences
+        signatures.save(path_signature1)
+        loaded_signatures1 = SeqAnalysis.load(path_signature1)
+
+        # Try to save and reload when file contains sequences and dominant paths
+        signatures.save(path_signature2, path_dict)
+        loaded_signatures2, dom_paths = SeqAnalysis.load(path_signature2)
+
+        # Trying to overwrite an existing dataset gives a ValueError
+        with pytest.raises(IOError):
+            signatures.save(path_signature1)
+
+        # Check sequences and dom path dictionaries are the same
+        loaded_signatures1.sequences.equals(signatures.sequences)
+        loaded_signatures2.sequences.equals(signatures.sequences)
+        assert dom_paths == path_dict
