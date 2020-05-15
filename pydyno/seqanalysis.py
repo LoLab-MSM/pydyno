@@ -86,11 +86,11 @@ def levenshtein(seq1, seq2):
     return d_1_2
 
 
-def multiprocessing_distance(data, metric_function, n_jobs):
+def multiprocessing_distance(data, metric_function, num_processors):
     import multiprocessing as mp
     N, _ = data.shape
     upper_triangle = [(i, j) for i in range(N) for j in range(i + 1, N)]
-    with mp.Pool(processes=n_jobs) as pool:
+    with mp.Pool(processes=num_processors) as pool:
         result = pool.starmap(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle])
     dist_mat = squareform([item for item in result])
     return dist_mat.astype('float64')
@@ -213,7 +213,7 @@ class SeqAnalysis:
         data_seqs = self._sequences[self._sequences.columns.tolist()[:idx]]
         return SeqAnalysis(data_seqs, self.target)
 
-    def dissimilarity_matrix(self, metric='LCS', n_jobs=1):
+    def dissimilarity_matrix(self, metric='LCS', num_processors=1):
         """
         Get dissimilarity matrix using the passed metric
 
@@ -221,7 +221,7 @@ class SeqAnalysis:
         ----------
         metric: str
             One of the metrics defined in _VALID_METRICS
-        n_jobs: int
+        num_processors: int
             Number of processors used to calculate the dissimilarity matrix
 
         Returns
@@ -239,13 +239,13 @@ class SeqAnalysis:
                                                sort=False).size().rename('count').reset_index()
         unique_sequences.set_index([list(range(len(unique_sequences))), 'count'], inplace=True)
 
-        if n_jobs > 1:
+        if num_processors > 1:
             if metric == 'LCS':
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length, n_jobs=n_jobs)
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length, num_processors=num_processors)
             elif metric == 'levenshtein':
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein, n_jobs=n_jobs)
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein, num_processors=num_processors)
             elif callable(metric):
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=metric, n_jobs=n_jobs)
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=metric, num_processors=num_processors)
             else:
                 raise ValueError('Multiprocessing can only be used with `LCS`, `levenshtein` or a provided function')
 
@@ -594,11 +594,11 @@ class SeqAnalysis:
         self._cluster_method = 'agglomerative'
         return
 
-    def spectral_clustering(self, n_clusters, random_state=None, n_jobs=1, **kwargs):
+    def spectral_clustering(self, n_clusters, random_state=None, num_processors=1, **kwargs):
         gamma = 1. / len(self.diss[0])
         kernel = np.exp(-self.diss * gamma)
         sc = cluster.SpectralClustering(n_clusters=n_clusters, random_state=random_state,
-                                        affinity='precomputed', n_jobs=n_jobs, **kwargs).fit(kernel)
+                                        affinity='precomputed', n_jobs=num_processors, **kwargs).fit(kernel)
         self._labels = sc.labels_
         self._cluster_method = 'spectral'
 
@@ -624,7 +624,7 @@ class SeqAnalysis:
             score = metrics.silhouette_score(self.diss, self._labels, metric='precomputed')
             return score
 
-    def silhouette_score_spectral_range(self, cluster_range, n_jobs=1, random_state=None, **kwargs):
+    def silhouette_score_spectral_range(self, cluster_range, num_processors=1, random_state=None, **kwargs):
         if isinstance(cluster_range, int):
             cluster_range = list(range(2, cluster_range + 1))  # +1 to cluster up to cluster_range
         elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
@@ -636,7 +636,7 @@ class SeqAnalysis:
         kernel = np.exp(-self.diss * gamma)
         cluster_silhouette = []
         for num_clusters in cluster_range:
-            clusters = cluster.SpectralClustering(num_clusters, n_jobs=n_jobs, affinity='precomputed',
+            clusters = cluster.SpectralClustering(num_clusters, n_jobs=num_processors, affinity='precomputed',
                                                   random_state=random_state, **kwargs).fit(kernel)
             score = metrics.silhouette_score(self.diss, clusters.labels_, metric='precomputed')
             cluster_silhouette.append(score)
