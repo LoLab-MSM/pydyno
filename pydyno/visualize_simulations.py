@@ -45,12 +45,17 @@ class VisualizeSimulations(object):
     --------
     Visualize the trajectory of a simulation:
 
+    >>> from pydyno.visualize_simulations import VisualizeSimulations
     >>> from pysb.examples.tyson_oscillator import model
     >>> from pysb.simulator import ScipyOdeSimulator
     >>> import numpy as np
-    >>> sim = ScipyOdeSimulator(model, tspan=np.linspace(0, 100, 100))
-    >>> vs = VisualizeSimulations(model, sim)
-    >>> vs.plot_cluster_dynamics([0, 1, 2])
+    >>> sim = ScipyOdeSimulator(model, tspan=np.linspace(0, 100, 100)).run()
+    >>> vs = VisualizeSimulations(model, sim, clusters=None)
+    >>> vs.plot_cluster_dynamics([0, 1, 2]) \
+        #doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+    {'plot_sp0_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>),
+    'plot_sp1_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>),
+    'plot_sp2_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>)}
     """
 
     def __init__(self, model, sim_results, clusters, truncate_idx=None, drop_sim_idx=None):
