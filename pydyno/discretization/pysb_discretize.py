@@ -83,7 +83,7 @@ class PysbDomPath(DomPath):
         Returns
         -------
         nx.DiGraph
-            a networkx directed graph
+            a NetworkX directed graph
         """
         graph = nx.DiGraph(name=self.model.name)
         for i, cp in enumerate(self.model.species):
@@ -135,9 +135,9 @@ class PysbDomPath(DomPath):
             Depth of the traceback starting from the target species
         dom_om: float
             Order of magnitude to consider dominancy
-        num_processors : int
+        num_processors: int
             Number of cores to use in the function
-        sample_simulations : int
+        sample_simulations: int
             Number of simulations to use for the analysis
 
         Returns
@@ -203,13 +203,13 @@ def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
 
     Parameters
     ----------
-    trajectories : np.ndarray
+    trajectories: np.ndarray
         Simulated trajectories
-    parameters : np.ndarray
+    parameters: np.ndarray
         Parameters used to obtain the simulations
-    model : pysb.Model
+    model: pysb.Model
         Model used to obtain the simulations
-    tspan :  np.ndarray
+    tspan:  np.ndarray
         Time span used in the simulations
 
     Returns
