@@ -103,7 +103,7 @@ class TestPathPysbSingle:
         expr = pysb_dom_expr_path[1].model.expressions[0]
         tr = pysb_dom_expr_path[1].trajectories[0]
         param_dict = {p.name: p.value for p in pysb_dom_expr_path[1].model.parameters}
-        expr_sim = dp.calculate_pysb_expression(expr, tr, param_dict)
+        expr_sim = dp._calculate_pysb_expression(expr, tr, param_dict)
         assert np.allclose(expr_sim, pysb_dom_expr_path[0].all[expr.name])
 
 
@@ -118,7 +118,6 @@ def sbml_dom_path():
     r.selections = ['time', '__s0', '__s1', '__s2', '__s3', '__s4', '__s5', 'r0', 'r1', 'r2', 'r3']
     r.simulate(0, 100, 100)
     sim.add_simulation(r)
-    sim.tspan = r.getSimulationData()['time']
     dom = ds.SbmlDomPath(model, sim)
     return dom
 

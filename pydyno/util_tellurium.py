@@ -34,7 +34,7 @@ class SbmlModel:
         else:
             raise Exception('SBML Input is not valid')
         self._name = 'sbml_model'
-        self._sp_idx_dict = {sp.getId(): idx for idx, sp in enumerate(self.model.species)}
+        self._sp_idx_dict = {sp.getId(): idx for idx, sp in enumerate(self.model.getListOfSpecies())}
 
     @property
     def model(self):
@@ -52,9 +52,9 @@ class SbmlModel:
     @property
     def reactions_bidirectional(self):
         rxns = []
-        for rxn in self.model.reactions:
-            reactants = tuple(self._sp_idx_dict[r.getSpecies()] for r in rxn.reactants)
-            products = tuple(self._sp_idx_dict[p.getSpecies()] for p in rxn.products)
+        for rxn in self.model.getListOfReactions():
+            reactants = tuple(self._sp_idx_dict[r.getSpecies()] for r in rxn.getListOfReactants())
+            products = tuple(self._sp_idx_dict[p.getSpecies()] for p in rxn.getListOfProducts())
             reversible = (rxn.getReversible())
             rate = rxn.getKineticLaw().getFormula()
             rxn_data = {'reactants': reactants, 'products': products, 'rate': rate, 'reversible': reversible}
@@ -92,10 +92,6 @@ class SbmlSimulation:
     def tspan(self):
         return np.array(self._tspan)
 
-    @tspan.setter
-    def tspan(self, time):
-        self._tspan = time
-
     def add_simulation(self, sim):
         species = sim.model.getFloatingSpeciesIds()
         reactions = sim.model.getReactionIds()
@@ -124,4 +120,7 @@ class SbmlSimulation:
 
         pars = sim.getGlobalParameterValues()
         self._parameters.append(pars)
+
+        # Simulation time
+        self._tspan.append(simulation['time'])
 
