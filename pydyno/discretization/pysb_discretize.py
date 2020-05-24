@@ -29,13 +29,14 @@ class PysbDomPath(DomPath):
     --------
     Obtain the discretized trajectory of the extrinsic apoptosis reaction model
 
-    >>> from pydyno.discretization.pysb_discretize import PysbDomPath
+    >>> from pydyno.discretization import PysbDomPath
     >>> from pydyno.examples.earm.earm2_flat import model
     >>> from pysb.simulator import ScipyOdeSimulator
     >>> import numpy as np
     >>> tspan = np.linspace(0, 20000, 100)
     >>> # Simulate model
     >>> sim = ScipyOdeSimulator(model, tspan).run()
+    >>> # Obtain dominant paths that consume species 37
     >>> dp = PysbDomPath(model=model, simulations=sim)
     >>> signs, paths = dp.get_path_signatures(target='s37', type_analysis='consumption', depth=5, dom_om=1)
     >>> print(signs.sequences.iloc[:, :5]) \
@@ -46,7 +47,7 @@ class PysbDomPath(DomPath):
 
     For further information on retrieving sequences from the ``SeqAnalysis``
     object returned by :func:`get_path_signatures`, see the examples under the
-    :class:`SeqAnalysis` class.
+    :class:`pydyno.seqanalysis.SeqAnalysis` class.
     """
 
     def __init__(self, model, simulations):
@@ -77,7 +78,7 @@ class PysbDomPath(DomPath):
 
     def create_bipartite_graph(self):
         """
-        Creates bipartite graph with species and reaction nodes of the pysb model
+        Create bipartite graph with species and reaction nodes of the pysb model
 
         Returns
         -------
@@ -179,7 +180,7 @@ class PysbDomPath(DomPath):
         return SeqAnalysis(signatures_df, target), new_paths
 
 
-def calculate_pysb_expression(expr, trajectories, param_dict):
+def _calculate_pysb_expression(expr, trajectories, param_dict):
     """Obtains simulated values of a pysb expression"""
     expanded_expr = expr.expand_expr(expand_observables=True)
     expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
@@ -198,8 +199,7 @@ def calculate_pysb_expression(expr, trajectories, param_dict):
 
 def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
     """
-    Creates a data frame with the reaction rates values at each time point
-    and obtains the dominant path for the passed trajectories and parameters
+    Create a pandas DataFrame with the reaction rates values at each time point
 
     Parameters
     ----------
@@ -238,7 +238,7 @@ def pysb_reaction_flux_df(trajectories, parameters, model, tspan):
                 args[idx2] = param_dict[va.name]
             else:
                 # Calculate expressions
-                args[idx2] = calculate_pysb_expression(va, trajectories, param_dict)
+                args[idx2] = _calculate_pysb_expression(va, trajectories, param_dict)
 
         func = sympy.lambdify(variables, rate_reac, modules=dict(sqrt=np.lib.scimath.sqrt))
         react_rate = func(*args)
