@@ -369,6 +369,7 @@ class VisualizeSimulations(object):
 
         pdf_pars = r'$\sigma$ =' + str(round(shape, 2)) + '\n' r'$\mu$ =' + str(round(scale, 2))
         anchored_text = AnchoredText(pdf_pars, loc=1, prop=dict(size=10))
+        anchored_text.patch.set_alpha(0.5)
         axHisty.add_artist(anchored_text)
         axHisty.ticklabel_format(axis='x', style='sci', scilimits=(-2, 2))
 
