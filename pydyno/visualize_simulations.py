@@ -14,6 +14,7 @@ from pysb.bng import generate_equations
 from pysb.pattern import SpeciesPatternMatcher, ReactionPatternMatcher
 import sympy
 from pydyno.distinct_colors import distinct_colors
+from pydyno.discretization.pysb_discretize import calculate_reaction_rate
 import matplotlib.patches as mpatches
 
 plt.ioff()
@@ -64,6 +65,7 @@ class VisualizeSimulations(object):
         generate_equations(model)
         # Check simulation results
         self._all_simulations, self._all_parameters, self._nsims, self._tspan = hf.get_simulations(sim_results)
+        self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
 
         if clusters is None:
             if truncate_idx is not None and drop_sim_idx is None:
@@ -113,6 +115,10 @@ class VisualizeSimulations(object):
     @property
     def tspan(self):
         return self._tspan
+
+    @property
+    def par_name_idx(self):
+        return self._par_name_idx
 
     @staticmethod
     def check_clusters_arg(clusters, nsims):  # check clusters
@@ -312,7 +318,7 @@ class VisualizeSimulations(object):
                 ax.plot(self.tspan,
                         norm_trajectories,
                         color='blue',
-                        alpha=0.05)
+                        alpha=0.01)
 
                 if add_y_histogram:
                     self._add_y_histogram(ax, norm_trajectories)
@@ -656,17 +662,8 @@ class VisualizeSimulations(object):
         # Obtaining reaction rates values
         for rxn_idx, rxn in enumerate(products_matched):
             rate = rxn.rate
-            var = [atom for atom in rate.atoms(sympy.Symbol)]
-            arg = [0] * len(var)
-            for idx, va in enumerate(var):
-                if str(va).startswith('__'):
-                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                    arg[idx] = y[:, :, sp_idx]
-                else:
-                    arg[idx] = pars[:, self.model.parameters.index(va)][0]
-                    # print (pars[:, self.model.parameters.index(va)])
-            f = sympy.lambdify(var, rate)
-            values = f(*arg)
+            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx)
+
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
             if rxn.reversible:
@@ -685,17 +682,8 @@ class VisualizeSimulations(object):
 
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
-            var = [atom for atom in rate.atoms(sympy.Symbol)]
-            arg = [0] * len(var)
-            for idx, va in enumerate(var):
-                if str(va).startswith('__'):
-                    sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                    arg[idx] = y[:, :, sp_idx]
-                else:
-                    arg[idx] = pars[:, self.model.parameters.index(va)][0]
+            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx)
 
-            f = sympy.lambdify(var, rate)
-            values = f(*arg)
             values_avg = np.average(values, axis=0)
             if rct.reversible:
                 values_avg[values_avg > 0] = 0

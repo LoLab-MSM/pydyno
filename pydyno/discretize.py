@@ -199,7 +199,7 @@ class Discretize:
                     for idx, va in enumerate(var_prod):
                         if str(va).startswith('__'):
                             sp_idx = int(''.join(filter(str.isdigit, str(va))))
-                            arg_prod[idx] = np.maximum(self.mach_eps, y[:, sp_idx])
+                            arg_prod[idx] = np.maximum(self.mach_eps, y[:, :, sp_idx])
                         else:
                             # print (param_values)
                             # print (self.par_name_idx[va.name])

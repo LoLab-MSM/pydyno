@@ -687,7 +687,7 @@ class SeqAnalysis:
     def calinski_harabaz_score(self):
         if self._labels is None:
             raise Exception('you must cluster the signatures first')
-        score = metrics.calinski_harabaz_score(self.sequences, self._labels)
+        score = metrics.calinski_harabasz_score(self.sequences, self._labels)
         return score
 
     def save(self, filename, dominant_paths=None):
