@@ -221,7 +221,11 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
             args[idx2] = trajectories[..., sp_idx]
         elif isinstance(va, Parameter):
-            args[idx2] = parameters[..., param_idx_dict[va.name]].reshape(len(parameters), 1)
+            par_values = parameters[..., param_idx_dict[va.name]]
+            if par_values.ndim > 0:
+                args[idx2] = par_values.reshape(len(par_values), 1)
+            else:
+                args[idx2] = par_values
         else:
             # Calculate expressions
             args[idx2] = _calculate_pysb_expression(va, trajectories, parameters, param_idx_dict)
