@@ -80,7 +80,8 @@ class TestPathPysbSingle:
         pars_0 = pysb_dom_path.parameters[0]
         model = pysb_dom_path.model
         tspan = pysb_dom_path.tspan
-        rxn_df = dp.pysb_reaction_flux_df(traj_0, pars_0, model, tspan)
+        param_idx = pysb_dom_path.par_name_idx
+        rxn_df = dp.pysb_reaction_flux_df(model.reactions_bidirectional, traj_0, pars_0, param_idx, tspan)
         dom_rxns = base._dominant_connected_reactions(graph, 's0', 1.0101010101010102,
                                                       rxn_df, 1, 'out_edges', 1)
         assert dom_rxns == ['r0']
