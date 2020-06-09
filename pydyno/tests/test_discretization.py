@@ -103,8 +103,12 @@ class TestPathPysbSingle:
     def test_expr_in_model(self, pysb_dom_expr_path):
         expr = pysb_dom_expr_path[1].model.expressions[0]
         tr = pysb_dom_expr_path[1].trajectories[0]
-        param_dict = {p.name: p.value for p in pysb_dom_expr_path[1].model.parameters}
-        expr_sim = dp._calculate_pysb_expression(expr, tr, param_dict)
+        param_dict = {}
+        parameters = []
+        for idx, p in enumerate(pysb_dom_expr_path[1].model.parameters):
+            param_dict[p.name] = idx
+            parameters.append(p.value)
+        expr_sim = dp._calculate_pysb_expression(expr, tr, parameters, param_dict)
         assert np.allclose(expr_sim, pysb_dom_expr_path[0].all[expr.name])
 
 
