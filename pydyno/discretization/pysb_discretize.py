@@ -193,7 +193,7 @@ def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict):
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
             args[idx2] = trajectories[..., sp_idx]
         else:
-            args[idx2] = parameters[..., param_idx_dict[va.name]]
+            args[idx2] = parameters[..., param_idx_dict[va.name]].reshape(len(parameters), 1)
     func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
     expr_value = func(*args)
     return expr_value
@@ -221,7 +221,7 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
             args[idx2] = trajectories[..., sp_idx]
         elif isinstance(va, Parameter):
-            args[idx2] = parameters[..., param_idx_dict[va.name]]
+            args[idx2] = parameters[..., param_idx_dict[va.name]].reshape(len(parameters), 1)
         else:
             # Calculate expressions
             args[idx2] = _calculate_pysb_expression(va, trajectories, parameters, param_idx_dict)
