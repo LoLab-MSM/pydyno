@@ -108,6 +108,7 @@ class TestPathPysbSingle:
         for idx, p in enumerate(pysb_dom_expr_path[1].model.parameters):
             param_dict[p.name] = idx
             parameters.append(p.value)
+        parameters = np.array(parameters)
         expr_sim = dp._calculate_pysb_expression(expr, tr, parameters, param_dict)
         assert np.allclose(expr_sim, pysb_dom_expr_path[0].all[expr.name])
 
