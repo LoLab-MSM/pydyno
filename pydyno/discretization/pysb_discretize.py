@@ -193,7 +193,12 @@ def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict):
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
             args[idx2] = trajectories[..., sp_idx]
         else:
-            args[idx2] = parameters[..., param_idx_dict[va.name]].reshape(len(parameters), 1)
+            par_values = parameters[..., param_idx_dict[va.name]]
+            if par_values.ndim > 0:
+                args[idx2] = par_values.reshape(len(par_values), 1)
+            else:
+                args[idx2] = par_values
+
     func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
     expr_value = func(*args)
     return expr_value
