@@ -7,62 +7,35 @@ from pysb.integrate import ScipyOdeSimulator
 
 
 # CHANGES IN PARAMETER VALUE AT CERTAIN TIME POINT
-def change_parameter_in_time(model, tspan, time_change, specie, parameters_to_change, fold_change, param_values=None):
+def change_parameter_in_time(model, tspan, time_change, previous_parameters, new_parameters):
     """
 
     Parameters
     ----------
-    model : pysb.Model
+    model: pysb.Model
         PySB model to use
-    tspan : vector-like
+    tspan: vector-like
         Time values over which to simulate.
-    time_change : int
-        Index in tspan at which the paramater is going to be changed
-    specie : int
-        Index of species that is going to be plotted
-    parameters_to_change : str
-        Name of the parameter whose value is going to be changed
-    fold_change : float
-        Fold change of the parameter values
-    param_values : vector-like, optional
-        Values to use for every parameter in the model. Ordering is
-        determined by the order of model.parameters.
-        If not specified, parameter values will be taken directly from
-        model.parameters.
+    time_change: int
+        Index in tspan at which the parameter is going to be changed
+    previous_parameters: np.ndarray
+        Parameter used before the time_change
+    new_parameters: np.ndarray
+        Parameters used after time_change
 
     Returns
     -------
 
     """
-    if param_values is not None:
-        # accept vector of parameter values as an argument
-        if len(param_values) != len(model.parameters):
-            raise Exception("param_values must be the same length as model.parameters")
-        if not isinstance(param_values, np.ndarray):
-            param_values = np.array(param_values)
-    else:
-        # create parameter vector from the values in the model
-        param_values = np.array([p.value for p in model.parameters])
+    before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]).\
+        run(param_values=previous_parameters)
+    species_before_change = np.array(before_change_simulation.species)
+    concentrations_time_change = species_before_change[:, time_change-1, :]
 
-    new_pars = dict((p.name, param_values[i]) for i, p in enumerate(model.parameters))
-    solver = ScipyOdeSimulator(model=model, tspan=tspan)
+    after_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]).\
+        run(initials=concentrations_time_change, param_values=new_parameters)
 
-    for idx, par in enumerate(parameters_to_change):
-        plt.figure()
-        y = solver.run(param_values=new_pars).species
-        nummol = np.copy(y[time_change:time_change+1])#.T.reshape(len(model.species)))
-        sp_before = y[:, specie]
-        plt.plot(tspan, sp_before, 'o-', label='before')
-        for i in np.linspace(0.1, fold_change, len(model.species)):
-            params = {**new_pars}
-            params[par] *= i
-            y1 = solver.run(initials=nummol, param_values=params).species
-            sp_after = y1[:-time_change, specie]
-            plt.plot(tspan[time_change:], sp_after, 'x-', label=str(i))
-            plt.legend(loc=0)
-            plt.tight_layout()
-            plt.title(par + ' ' + 'time' + str(time_change))
-    plt.show()
+    return after_change_simulation
 
 
 def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=None, file_path=''):
