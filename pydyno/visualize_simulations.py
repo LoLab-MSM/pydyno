@@ -736,7 +736,8 @@ class VisualizeSimulations(object):
             ax2.set(title='Reactants reactions')
             ax3 = fig.add_subplot(111, frameon=False)
             # hide tick and tick label of the big axes
-            ax3.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+            ax3.tick_params(axis='both', which='both',  labelcolor='none', top=False,
+                            bottom=False, left=False, right=False)
             ax3.grid(False)
             ax3.set(xlabel="Time", ylabel='Percentage')
 
