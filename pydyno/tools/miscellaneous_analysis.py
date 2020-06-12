@@ -47,15 +47,13 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
     # SimulationResult object.
 
     full_trajectories = np.concatenate((species_before_change[:, :time_change, :],
-                                        species_after_change[:, :-time_change, :]),
-                                       axis=1)
-    full_touts = np.concatenate((before_change_simulation.tout,
-                                 after_change_simulation.tout), axis=1)
+                                        species_after_change[:, :-time_change, :]), axis=1)
+
 
     if drop_na_sim:
         sim_with_nan = np.isnan(full_trajectories).any(axis=(1, 2))
         full_trajectories_nan_dropped = full_trajectories[~sim_with_nan]
-        full_touts_nan_dropped = full_touts[~sim_with_nan]
+        full_touts_nan_dropped = before_change_simulation.tout[~sim_with_nan]
         pars_nan_dropped = previous_parameters[~sim_with_nan]
         initials_nan_dropped = concentrations_time_change[~sim_with_nan]
         full_simulation = SimulationResult(simulator=None, tout=full_touts_nan_dropped,
@@ -64,7 +62,7 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
                                            initials=initials_nan_dropped,
                                            model=model)
     else:
-        full_simulation = SimulationResult(simulator=None, tout=full_touts,
+        full_simulation = SimulationResult(simulator=None, tout=before_change_simulation.tout,
                                            trajectories=full_trajectories,
                                            param_values=previous_parameters,
                                            initials=concentrations_time_change,
