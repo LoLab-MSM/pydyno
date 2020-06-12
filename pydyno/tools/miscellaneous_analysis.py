@@ -55,8 +55,8 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
         sim_with_nan = np.isnan(full_trajectories).any(axis=(1, 2))
         full_trajectories_nan_dropped = full_trajectories[~sim_with_nan]
         full_touts_nan_dropped = full_touts[~sim_with_nan]
-        pars_nan_dropped = previous_parameters[~previous_parameters]
-        initials_nan_dropped = concentrations_time_change[~previous_parameters]
+        pars_nan_dropped = previous_parameters[~sim_with_nan]
+        initials_nan_dropped = concentrations_time_change[~sim_with_nan]
         full_simulation = SimulationResult(simulator=None, tout=full_touts_nan_dropped,
                                            trajectories=full_trajectories_nan_dropped,
                                            param_values=pars_nan_dropped,
