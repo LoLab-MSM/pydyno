@@ -33,27 +33,28 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
     SimulationResult
         Simulation
     """
-    solver = ScipyOdeSimulator(model=model, tspan=tspan)
-    before_change_simulation = solver.run(param_values=previous_parameters, num_processors=num_processors)
+    before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]). \
+        run(param_values=previous_parameters, num_processors=num_processors)
     species_before_change = np.array(before_change_simulation.species)
-    concentrations_time_change = species_before_change[:, time_change, :]
+    concentrations_time_change = species_before_change[:, time_change - 1, :]
 
-    after_change_simulation = solver.run(initials=concentrations_time_change, param_values=new_parameters,
-                                         num_processors=num_processors)
-    species_after_change = np.array(after_change_simulation.species)
+    after_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]). \
+        run(initials=concentrations_time_change, param_values=new_parameters,
+            num_processors=num_processors)
 
     # This is a hack, because different parameter sets are used to obtain the
     # trajectories. I did this because the visualization module requires a
     # SimulationResult object.
 
-    full_trajectories = np.concatenate((species_before_change[:, :time_change, :],
-                                        species_after_change[:, :-time_change, :]), axis=1)
-
+    full_trajectories = np.concatenate((species_before_change, after_change_simulation.species),
+                                       axis=1)
+    full_touts = np.concatenate((before_change_simulation.tout,
+                                 after_change_simulation.tout), axis=1)
 
     if drop_na_sim:
         sim_with_nan = np.isnan(full_trajectories).any(axis=(1, 2))
         full_trajectories_nan_dropped = full_trajectories[~sim_with_nan]
-        full_touts_nan_dropped = before_change_simulation.tout[~sim_with_nan]
+        full_touts_nan_dropped = full_touts[~sim_with_nan]
         pars_nan_dropped = previous_parameters[~sim_with_nan]
         initials_nan_dropped = concentrations_time_change[~sim_with_nan]
         full_simulation = SimulationResult(simulator=None, tout=full_touts_nan_dropped,
@@ -62,7 +63,7 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
                                            initials=initials_nan_dropped,
                                            model=model)
     else:
-        full_simulation = SimulationResult(simulator=None, tout=before_change_simulation.tout,
+        full_simulation = SimulationResult(simulator=None, tout=full_touts,
                                            trajectories=full_trajectories,
                                            param_values=previous_parameters,
                                            initials=concentrations_time_change,
