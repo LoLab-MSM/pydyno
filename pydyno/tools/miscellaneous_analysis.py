@@ -33,20 +33,21 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
     SimulationResult
         Simulation
     """
-    before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]). \
-        run(param_values=previous_parameters, num_processors=num_processors)
+    solver = ScipyOdeSimulator(model=model, tspan=tspan)
+    before_change_simulation = solver.run(param_values=previous_parameters, num_processors=num_processors)
     species_before_change = np.array(before_change_simulation.species)
-    concentrations_time_change = species_before_change[:, time_change - 1, :]
+    concentrations_time_change = species_before_change[:, time_change, :]
 
-    after_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]). \
-        run(initials=concentrations_time_change, param_values=new_parameters,
-            num_processors=num_processors)
+    after_change_simulation = solver.run(initials=concentrations_time_change, param_values=new_parameters,
+                                         num_processors=num_processors)
+    species_after_change = np.array(after_change_simulation.species)
 
     # This is a hack, because different parameter sets are used to obtain the
     # trajectories. I did this because the visualization module requires a
     # SimulationResult object.
 
-    full_trajectories = np.concatenate((species_before_change, after_change_simulation.species),
+    full_trajectories = np.concatenate((species_before_change[:, :time_change, :],
+                                        species_after_change[:, :-time_change, :]),
                                        axis=1)
     full_touts = np.concatenate((before_change_simulation.tout,
                                  after_change_simulation.tout), axis=1)
