@@ -1,13 +1,13 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pydyno.util as hf
 import pandas as pd
 from pydyno.discretize import Discretize
-from pysb.integrate import ScipyOdeSimulator
+from pysb.simulator import ScipyOdeSimulator, SimulationResult
 
 
 # CHANGES IN PARAMETER VALUE AT CERTAIN TIME POINT
-def change_parameter_in_time(model, tspan, time_change, previous_parameters, new_parameters):
+def change_parameter_in_time(model, tspan, time_change, previous_parameters, new_parameters,
+                             drop_na_sim=False, num_processors=1):
     """
 
     Parameters
@@ -22,20 +22,81 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
         Parameter used before the time_change
     new_parameters: np.ndarray
         Parameters used after time_change
+    drop_na_sim: bool
+        Whether to drop simulations that have nan in the trajectory of
+        any of the species
+    num_processors: int
+        Number of processors to use in the simulations
 
     Returns
     -------
-
+    SimulationResult
+        Simulation
     """
-    before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]).\
-        run(param_values=previous_parameters)
+    before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]). \
+        run(param_values=previous_parameters, num_processors=num_processors)
     species_before_change = np.array(before_change_simulation.species)
-    concentrations_time_change = species_before_change[:, time_change-1, :]
+    concentrations_time_change = species_before_change[:, time_change - 1, :]
 
-    after_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]).\
-        run(initials=concentrations_time_change, param_values=new_parameters)
+    after_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]). \
+        run(initials=concentrations_time_change, param_values=new_parameters,
+            num_processors=num_processors)
 
-    return after_change_simulation
+    # This is a hack, because different parameter sets are used to obtain the
+    # trajectories. I did this because the visualization module requires a
+    # SimulationResult object.
+
+    full_trajectories = np.concatenate((species_before_change, after_change_simulation.species),
+                                       axis=1)
+    full_touts = np.concatenate((before_change_simulation.tout,
+                                 after_change_simulation.tout), axis=1)
+
+    if drop_na_sim:
+        sim_with_nan = np.isnan(full_trajectories).any(axis=(1, 2))
+        full_trajectories_nan_dropped = full_trajectories[~sim_with_nan]
+        full_touts_nan_dropped = full_touts[~sim_with_nan]
+        pars_nan_dropped = previous_parameters[~previous_parameters]
+        initials_nan_dropped = concentrations_time_change[~previous_parameters]
+        full_simulation = SimulationResult(simulator=None, tout=full_touts_nan_dropped,
+                                           trajectories=full_trajectories_nan_dropped,
+                                           param_values=pars_nan_dropped,
+                                           initials=initials_nan_dropped,
+                                           model=model)
+    else:
+        full_simulation = SimulationResult(simulator=None, tout=full_touts,
+                                           trajectories=full_trajectories,
+                                           param_values=previous_parameters,
+                                           initials=concentrations_time_change,
+                                           model=model)
+
+    return full_simulation
+
+
+def simulations_from_cluster(simulation, cluster_indices):
+    """
+    Create new SimulationResult object only using the cluster_indices argument
+
+    Parameters
+    ----------
+    simulation: SimulationResult
+        PySB simulation
+    cluster_indices: list-like
+        List of indices of the simulations used to create the SimulationResult object
+
+    Returns
+    -------
+    SimulationResult
+        Simulations from the cluster
+    """
+    trajectories = np.array(simulation.species)
+    cluster_trajectories = trajectories[cluster_indices, :, :]
+    cluster_parameters = simulation.param_values[cluster_indices, :]
+    cluster_tout = simulation.tout[cluster_indices, :]
+    cluster_simulation = SimulationResult(simulator=None, tout=cluster_tout,
+                                          trajectories=cluster_trajectories,
+                                          param_values=cluster_parameters,
+                                          model=simulation._model)
+    return cluster_simulation
 
 
 def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=None, file_path=''):
@@ -73,8 +134,8 @@ def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=No
     signatures = disc.get_signatures()
     # FIXME: This is not working. The signature data structure now uses pandas
     for sp in sp_to_analyze:
-        y[hf.parse_name(model.species[sp])+'_truncated'] = signatures[sp][0]
-    y.to_csv(file_path+'tr_sig.txt')
+        y[hf.parse_name(model.species[sp]) + '_truncated'] = signatures[sp][0]
+    y.to_csv(file_path + 'tr_sig.txt')
 
     if parameters is not None:
         initials = np.zeros([1, len(model.species)])
@@ -86,6 +147,5 @@ def trajectories_signature_2_txt(model, tspan, sp_to_analyze=None, parameters=No
                 ic_name = hf.parse_name(model.initial_conditions[idx][0])
                 ic_value = parameters[i]
                 initials_df[ic_name] = ic_value
-        initials_df.to_csv(file_path+'initials.txt', index=False)
+        initials_df.to_csv(file_path + 'initials.txt', index=False)
     return
-
