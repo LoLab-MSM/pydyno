@@ -182,7 +182,7 @@ class PysbDomPath(DomPath):
         return SeqAnalysis(signatures_df, target), new_paths
 
 
-def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict, time_change=None):
+def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict):
     """Obtains simulated values of a pysb expression"""
     expanded_expr = expr.expand_expr(expand_observables=True)
     expr_variables = [atom for atom in expanded_expr.atoms(sympy.Symbol)]
@@ -191,7 +191,7 @@ def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict, t
         # Getting species index
         if str(va).startswith('__'):
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
-            args[idx2] = trajectories[:, :time_change, sp_idx]
+            args[idx2] = trajectories[:, :, sp_idx]
         else:
             par_values = parameters[:, param_idx_dict[va.name]]
             args[idx2] = par_values.reshape((len(par_values), 1))
@@ -230,7 +230,7 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
             args[idx2] = par_values.reshape((len(par_values), 1))
         else:
             # Calculate expressions
-            args[idx2] = _calculate_pysb_expression(va, trajectories, parameters, param_idx_dict, time_change)
+            args[idx2] = _calculate_pysb_expression(va, trajectories[:, :time_change, :], parameters, param_idx_dict)
 
     func = sympy.lambdify(variables, rate_react, modules=dict(sqrt=np.lib.scimath.sqrt))
     react_rate = func(*args)
@@ -247,12 +247,12 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
                 args[idx2] = par_values.reshape((len(par_values), 1))
             else:
                 # Calculate expressions
-                args[idx2] = _calculate_pysb_expression(va, trajectories, changed_parameters,
-                                                        param_idx_dict, time_change)
+                args[idx2] = _calculate_pysb_expression(va, trajectories[:, time_change:, :], changed_parameters,
+                                                        param_idx_dict)
 
         func = sympy.lambdify(variables, rate_react, modules=dict(sqrt=np.lib.scimath.sqrt))
         react_rate2 = func(*args)
-        react_rate = np.concatenate((react_rate, react_rate2), axis=0)
+        react_rate = np.concatenate((react_rate, react_rate2), axis=1)
 
     return react_rate
 

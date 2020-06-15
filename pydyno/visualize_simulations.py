@@ -700,7 +700,7 @@ class VisualizeSimulations(object):
 
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
-            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx)
+            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters, self.time_change)
 
             values_avg = np.average(values, axis=0)
             if rct.reversible:
