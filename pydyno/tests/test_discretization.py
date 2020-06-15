@@ -76,8 +76,8 @@ class TestPathPysbSingle:
 
     def test_dominant_connected_reactions(self, pysb_dom_path):
         graph = pysb_dom_path.create_bipartite_graph()
-        traj_0 = pysb_dom_path.trajectories[0]
-        pars_0 = pysb_dom_path.parameters[0]
+        traj_0 = pysb_dom_path.trajectories
+        pars_0 = pysb_dom_path.parameters
         model = pysb_dom_path.model
         tspan = pysb_dom_path.tspan
         param_idx = pysb_dom_path.par_name_idx
@@ -102,13 +102,13 @@ class TestPathPysbSingle:
 
     def test_expr_in_model(self, pysb_dom_expr_path):
         expr = pysb_dom_expr_path[1].model.expressions[0]
-        tr = pysb_dom_expr_path[1].trajectories[0]
+        tr = pysb_dom_expr_path[1].trajectories
         param_dict = {}
         parameters = []
         for idx, p in enumerate(pysb_dom_expr_path[1].model.parameters):
             param_dict[p.name] = idx
             parameters.append(p.value)
-        parameters = np.array(parameters)
+        parameters = np.array(parameters).reshape(1, len(parameters))
         expr_sim = dp._calculate_pysb_expression(expr, tr, parameters, param_dict)
         assert np.allclose(expr_sim, pysb_dom_expr_path[0].all[expr.name])
 

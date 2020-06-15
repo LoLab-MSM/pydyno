@@ -68,7 +68,8 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
                                            param_values=previous_parameters,
                                            initials=concentrations_time_change,
                                            model=model)
-
+    full_simulation.changed_parameters = new_parameters
+    full_simulation.time_change = time_change
     return full_simulation
 
 

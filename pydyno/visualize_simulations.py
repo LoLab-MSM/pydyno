@@ -65,6 +65,15 @@ class VisualizeSimulations(object):
         generate_equations(model)
         # Check simulation results
         self._all_simulations, self._all_parameters, self._nsims, self._tspan = hf.get_simulations(sim_results)
+        try:
+            changed_parameters = sim_results.changed_parameters
+            time_change = sim_results.time_change
+        except AttributeError:
+            changed_parameters = None
+            time_change = None
+        self._changed_parameters = changed_parameters
+        self._time_change = time_change
+
         self._par_name_idx = {j.name: i for i, j in enumerate(self.model.parameters)}
 
         if clusters is None:
@@ -119,6 +128,14 @@ class VisualizeSimulations(object):
     @property
     def par_name_idx(self):
         return self._par_name_idx
+
+    @property
+    def changed_parameters(self):
+        return self._changed_parameters
+
+    @property
+    def time_change(self):
+        return self._time_change
 
     @staticmethod
     def check_clusters_arg(clusters, nsims):  # check clusters
@@ -662,7 +679,8 @@ class VisualizeSimulations(object):
         # Obtaining reaction rates values
         for rxn_idx, rxn in enumerate(products_matched):
             rate = rxn.rate
-            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx)
+            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters,
+                                             self.time_change)
 
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
