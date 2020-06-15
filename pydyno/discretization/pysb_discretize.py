@@ -194,10 +194,7 @@ def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict, t
             args[idx2] = trajectories[:, :time_change, sp_idx]
         else:
             par_values = parameters[:, param_idx_dict[va.name]]
-            if par_values.ndim > 0:
-                args[idx2] = par_values.reshape(len(par_values), 1)
-            else:
-                args[idx2] = par_values
+            args[idx2] = par_values.reshape((len(par_values), 1))
 
     func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
     expr_value = func(*args)
@@ -230,7 +227,7 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
             args[idx2] = trajectories[:, :time_change, sp_idx]
         elif isinstance(va, Parameter):
             par_values = parameters[:, param_idx_dict[va.name]]
-            args[idx2] = par_values
+            args[idx2] = par_values.reshape((len(par_values), 1))
         else:
             # Calculate expressions
             args[idx2] = _calculate_pysb_expression(va, trajectories, parameters, param_idx_dict, time_change)
@@ -247,7 +244,7 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
                 args[idx2] = trajectories[:, time_change:, sp_idx]
             elif isinstance(va, Parameter):
                 par_values = changed_parameters[:, param_idx_dict[va.name]]
-                args[idx2] = par_values
+                args[idx2] = par_values.reshape((len(par_values), 1))
             else:
                 # Calculate expressions
                 args[idx2] = _calculate_pysb_expression(va, trajectories, changed_parameters,
