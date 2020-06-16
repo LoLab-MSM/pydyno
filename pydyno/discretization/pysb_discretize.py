@@ -191,20 +191,19 @@ def _calculate_pysb_expression(expr, trajectories, parameters, param_idx_dict):
         # Getting species index
         if str(va).startswith('__'):
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
-            args[idx2] = trajectories[..., sp_idx]
+            args[idx2] = trajectories[:, :, sp_idx]
         else:
-            par_values = parameters[..., param_idx_dict[va.name]]
-            if par_values.ndim > 0:
-                args[idx2] = par_values.reshape(len(par_values), 1)
-            else:
-                args[idx2] = par_values
+            par_values = parameters[:, param_idx_dict[va.name]]
+            args[idx2] = par_values.reshape((len(par_values), 1))
 
     func = sympy.lambdify(expr_variables, expanded_expr, modules='numpy')
     expr_value = func(*args)
+
     return expr_value
 
 
-def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict):
+def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict,
+                            changed_parameters=None, time_change=None):
     """
     Get reaction rate values from simulated trajectories
 
@@ -213,6 +212,7 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
     rate_react
     trajectories
     parameters
+    param_idx_dict
 
     Returns
     -------
@@ -224,19 +224,36 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
         # Getting species index
         if str(va).startswith('__'):
             sp_idx = int(''.join(filter(str.isdigit, str(va))))
-            args[idx2] = trajectories[..., sp_idx]
+            args[idx2] = trajectories[:, :time_change, sp_idx]
         elif isinstance(va, Parameter):
-            par_values = parameters[..., param_idx_dict[va.name]]
-            if par_values.ndim > 0:
-                args[idx2] = par_values.reshape(len(par_values), 1)
-            else:
-                args[idx2] = par_values
+            par_values = parameters[:, param_idx_dict[va.name]]
+            args[idx2] = par_values.reshape((len(par_values), 1))
         else:
             # Calculate expressions
-            args[idx2] = _calculate_pysb_expression(va, trajectories, parameters, param_idx_dict)
+            args[idx2] = _calculate_pysb_expression(va, trajectories[:, :time_change, :], parameters, param_idx_dict)
 
     func = sympy.lambdify(variables, rate_react, modules=dict(sqrt=np.lib.scimath.sqrt))
     react_rate = func(*args)
+
+    if changed_parameters is not None and time_change is not None:
+        args = [0] * len(variables)  # arguments to put in the lambdify function
+        for idx2, va in enumerate(variables):
+            # Getting species index
+            if str(va).startswith('__'):
+                sp_idx = int(''.join(filter(str.isdigit, str(va))))
+                args[idx2] = trajectories[:, time_change:, sp_idx]
+            elif isinstance(va, Parameter):
+                par_values = changed_parameters[:, param_idx_dict[va.name]]
+                args[idx2] = par_values.reshape((len(par_values), 1))
+            else:
+                # Calculate expressions
+                args[idx2] = _calculate_pysb_expression(va, trajectories[:, time_change:, :], changed_parameters,
+                                                        param_idx_dict)
+
+        func = sympy.lambdify(variables, rate_react, modules=dict(sqrt=np.lib.scimath.sqrt))
+        react_rate2 = func(*args)
+        react_rate = np.concatenate((react_rate, react_rate2), axis=1)
+
     return react_rate
 
 
@@ -273,6 +290,7 @@ def pysb_reaction_flux_df(reactions_bidirectional, trajectories, parameters, par
 
 def dominant_paths_pysb(trajectories, parameters,  param_idx_dict, reactions_bidirectional, tspan,
                         type_analysis, network, target, depth, dom_om):
-    rxns_df = pysb_reaction_flux_df(reactions_bidirectional, trajectories, parameters, param_idx_dict, tspan)
+    rxns_df = pysb_reaction_flux_df(reactions_bidirectional, trajectories[np.newaxis, :, :], parameters[np.newaxis, :],
+                                    param_idx_dict, tspan)
     dom_paths = _dominant_paths(rxns_df, network, tspan, target, type_analysis, depth, dom_om)
     return dom_paths
