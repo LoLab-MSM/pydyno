@@ -6,8 +6,8 @@ from pysb.simulator import ScipyOdeSimulator, SimulationResult
 
 
 # CHANGES IN PARAMETER VALUE AT CERTAIN TIME POINT
-def change_parameter_in_time(model, tspan, time_change, previous_parameters, new_parameters,
-                             drop_na_sim=False, num_processors=1):
+def simulate_changing_parameter_in_time(model, tspan, time_change, previous_parameters, new_parameters,
+                                        drop_na_sim=False, num_processors=1):
     """
 
     Parameters
@@ -31,8 +31,15 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
     Returns
     -------
     SimulationResult
-        Simulation
+        Simulation obtained with `previous_parameters` before the time change and using
+        `new_parameters` after time change
+
+    .. warning::
+        This SimulationResult object is used only to store the species trajectories, the
+        previous and new parameter sets and the time change index. This SimulationResult
+        object should only be used for the visualize_simulations module.
     """
+
     before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]). \
         run(param_values=previous_parameters, num_processors=num_processors)
     species_before_change = np.array(before_change_simulation.species)
