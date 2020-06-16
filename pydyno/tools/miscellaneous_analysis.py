@@ -63,15 +63,18 @@ def change_parameter_in_time(model, tspan, time_change, previous_parameters, new
                                            param_values=pars_nan_dropped,
                                            initials=initials_nan_dropped,
                                            model=model)
+        full_simulation.changed_parameters = new_parameters
+        full_simulation.time_change = time_change
+        return full_simulation, np.argwhere(sim_with_nan)
     else:
         full_simulation = SimulationResult(simulator=None, tout=full_touts,
                                            trajectories=full_trajectories,
                                            param_values=previous_parameters,
                                            initials=concentrations_time_change,
                                            model=model)
-    full_simulation.changed_parameters = new_parameters
-    full_simulation.time_change = time_change
-    return full_simulation
+        full_simulation.changed_parameters = new_parameters
+        full_simulation.time_change = time_change
+        return full_simulation
 
 
 def simulations_from_cluster(simulation, cluster_indices):
