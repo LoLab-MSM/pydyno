@@ -40,30 +40,40 @@ def simulate_changing_parameter_in_time(model, tspan, time_change, previous_para
         object should only be used for the visualize_simulations module.
     """
 
-    before_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]). \
+    simulation_before_change = ScipyOdeSimulator(model=model, tspan=tspan[:time_change]). \
         run(param_values=previous_parameters, num_processors=num_processors)
-    species_before_change = np.array(before_change_simulation.species)
+
+    if simulation_before_change.nsims == 1 and simulation_before_change.squeeze is True:
+        species_before_change = np.array([simulation_before_change.species])
+    else:
+        species_before_change = np.array(simulation_before_change.species)
+
     concentrations_time_change = species_before_change[:, time_change - 1, :]
 
-    after_change_simulation = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]). \
+    simulation_after_change = ScipyOdeSimulator(model=model, tspan=tspan[time_change:]). \
         run(initials=concentrations_time_change, param_values=new_parameters,
             num_processors=num_processors)
+
+    if simulation_after_change.nsims == 1 and simulation_after_change.squeeze is True:
+        species_after_change = np.array([simulation_after_change.species])
+    else:
+        species_after_change = np.array(simulation_after_change.species)
 
     # This is a hack, because different parameter sets are used to obtain the
     # trajectories. I did this because the visualization module requires a
     # SimulationResult object.
 
-    full_trajectories = np.concatenate((species_before_change, after_change_simulation.species),
+    full_trajectories = np.concatenate((species_before_change, species_after_change),
                                        axis=1)
-    full_touts = np.concatenate((before_change_simulation.tout,
-                                 after_change_simulation.tout), axis=1)
+    full_touts = np.concatenate((simulation_before_change.tout,
+                                 simulation_after_change.tout), axis=1)
 
     if drop_na_sim:
         sim_with_nan = np.isnan(full_trajectories).any(axis=(1, 2))
         full_trajectories_nan_dropped = full_trajectories[~sim_with_nan]
         full_touts_nan_dropped = full_touts[~sim_with_nan]
-        pars_nan_dropped = previous_parameters[~sim_with_nan]
-        new_parameters = new_parameters[~sim_with_nan]
+        pars_nan_dropped = simulation_before_change.param_values[~sim_with_nan]
+        new_parameters = simulation_after_change.param_values[~sim_with_nan]
         initials_nan_dropped = concentrations_time_change[~sim_with_nan]
         full_simulation = SimulationResult(simulator=None, tout=full_touts_nan_dropped,
                                            trajectories=full_trajectories_nan_dropped,
@@ -76,7 +86,7 @@ def simulate_changing_parameter_in_time(model, tspan, time_change, previous_para
     else:
         full_simulation = SimulationResult(simulator=None, tout=full_touts,
                                            trajectories=full_trajectories,
-                                           param_values=previous_parameters,
+                                           param_values=simulation_before_change.param_values,
                                            initials=concentrations_time_change,
                                            model=model)
         full_simulation.changed_parameters = new_parameters
