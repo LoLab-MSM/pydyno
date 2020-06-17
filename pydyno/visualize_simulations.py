@@ -3,6 +3,7 @@ import colorsys
 import csv
 import numbers
 import os
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -625,10 +626,14 @@ class VisualizeSimulations(object):
         # Add reversible reactions
         for pm in products_matched:
             if pm.reversible:
-                rev_rxns_products.append(pm)
+                pm_rev = copy.deepcopy(pm)
+                pm_rev._rxn_dict['rev'] = True
+                rev_rxns_products.append(pm_rev)
         for rm in reactants_matched:
             if rm.reversible:
-                rev_rxns_reactants.append(rm)
+                rm_rev = copy.deepcopy(rm)
+                rm_rev._rxn_dict['rev'] = True
+                rev_rxns_reactants.append(rm_rev)
         products_matched = products_matched + rev_rxns_reactants
         reactants_matched = reactants_matched + rev_rxns_products
 
@@ -684,8 +689,14 @@ class VisualizeSimulations(object):
 
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
+
             if rxn.reversible:
-                values_avg[values_avg < 0] = 0
+                if 'rev' in rxn._rxn_dict.keys():
+                    values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
+                    values_avg[values_avg > 0] = 0
+                else:
+                    values_avg[values_avg < 0] = 0
+
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
@@ -706,6 +717,13 @@ class VisualizeSimulations(object):
             if rct.reversible:
                 values_avg[values_avg > 0] = 0
             reactants_avg[rct_idx] = values_avg
+
+            if rct.reversible:
+                if 'rev' in rct._rxn_dict.keys():
+                    values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
+                    values_avg[values_avg > 0] = 0
+                else:
+                    values_avg[values_avg < 0] = 0
 
             # Creating labels
             rlabel = hf.rate_2_interactions(self.model, str(rate))
