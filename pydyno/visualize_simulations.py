@@ -712,11 +712,7 @@ class VisualizeSimulations(object):
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
             values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters, self.time_change)
-
             values_avg = np.average(values, axis=0)
-            if rct.reversible:
-                values_avg[values_avg > 0] = 0
-            reactants_avg[rct_idx] = values_avg
 
             if rct.reversible:
                 if 'rev' in rct._rxn_dict.keys():
@@ -724,6 +720,8 @@ class VisualizeSimulations(object):
                     values_avg[values_avg > 0] = 0
                 else:
                     values_avg[values_avg < 0] = 0
+
+            reactants_avg[rct_idx] = values_avg
 
             # Creating labels
             rlabel = hf.rate_2_interactions(self.model, str(rate))
