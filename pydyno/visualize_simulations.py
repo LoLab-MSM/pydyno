@@ -359,7 +359,7 @@ class VisualizeSimulations(object):
             for comp in components:
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
-                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=1))
+                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
                 ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1]
                 ax.plot(self.tspan,
                         norm_trajectories,
