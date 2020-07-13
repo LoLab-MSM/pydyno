@@ -367,7 +367,7 @@ class VisualizeSimulations(object):
                         alpha=0.2)
                 if comp in sp_overlap:
                     result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[comp], xdata=self.tspan,
-                                                  ydata=sp_trajectory, **kwargs)
+                                                  ydata=sp_trajectory.T, **kwargs)
                     ftn_result[comp] = result_fit
             self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
 
