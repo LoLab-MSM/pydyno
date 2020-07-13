@@ -700,7 +700,9 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
-        all_reactions = list(set(reactants_matched).union(products_matched))
+        unique_products = list(dict.fromkeys(products_matched))
+        unique_reactants = list(dict.fromkeys(reactants_matched))
+        all_reactions = unique_products + unique_reactants
         colors = distinct_colors(len(all_reactions))
         reaction_color = {reaction.rate: colors[idx] for idx, reaction in enumerate(all_reactions)}
         pcolors = []
