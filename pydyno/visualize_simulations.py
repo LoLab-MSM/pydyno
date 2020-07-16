@@ -13,6 +13,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pydyno.util as hf
 from pysb.bng import generate_equations
 from pysb.pattern import SpeciesPatternMatcher, ReactionPatternMatcher
+from pysb import Monomer, MonomerPattern, ComplexPattern
 import sympy
 from pydyno.distinct_colors import distinct_colors
 from pydyno.discretization.pysb_discretize import calculate_reaction_rate
@@ -289,9 +290,17 @@ class VisualizeSimulations(object):
         elif isinstance(component, str):
             sp_trajectory = self._get_observable(component, y)
             name = component
-        else:
+        elif isinstance(component, int):
             sp_trajectory = y[:, :, component].T
             name = self.model.species[component]
+        elif isinstance(component, (Monomer, MonomerPattern, ComplexPattern)):
+            spm = SpeciesPatternMatcher(self.model)
+            sps_matched = spm.match(component, index=True)
+            sps_values = np.sum(y[:, :, sps_matched], axis=2)
+            sp_trajectory = sps_values.T
+            name = str(component)
+        else:
+            raise TypeError('Type of model component not valid for visualization')
         return sp_trajectory, name
 
     def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram=False):
@@ -800,8 +809,8 @@ class VisualizeSimulations(object):
                 ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
                 y_roffset = y_roffset + sp_pctge
 
-            ax1.set(title='Products reactions')
-            ax2.set(title='Reactants reactions')
+            ax1.set(title='Producing reactions')
+            ax2.set(title='Consuming reactions')
             ax3 = fig.add_subplot(111, frameon=False)
             # hide tick and tick label of the big axes
             ax3.tick_params(axis='both', which='both',  labelcolor='none', top=False,
