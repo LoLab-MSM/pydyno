@@ -3,6 +3,7 @@ import colorsys
 import csv
 import numbers
 import os
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +13,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pydyno.util as hf
 from pysb.bng import generate_equations
 from pysb.pattern import SpeciesPatternMatcher, ReactionPatternMatcher
+from pysb import Monomer, MonomerPattern, ComplexPattern
 import sympy
 from pydyno.distinct_colors import distinct_colors
 from pydyno.discretization.pysb_discretize import calculate_reaction_rate
@@ -288,9 +290,17 @@ class VisualizeSimulations(object):
         elif isinstance(component, str):
             sp_trajectory = self._get_observable(component, y)
             name = component
-        else:
+        elif isinstance(component, int):
             sp_trajectory = y[:, :, component].T
             name = self.model.species[component]
+        elif isinstance(component, (Monomer, MonomerPattern, ComplexPattern)):
+            spm = SpeciesPatternMatcher(self.model)
+            sps_matched = spm.match(component, index=True)
+            sps_values = np.sum(y[:, :, sps_matched], axis=2)
+            sp_trajectory = sps_values.T
+            name = str(component)
+        else:
+            raise TypeError('Type of model component not valid for visualization')
         return sp_trajectory, name
 
     def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram=False):
@@ -358,7 +368,7 @@ class VisualizeSimulations(object):
             for comp in components:
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
-                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=1))
+                norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
                 ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1]
                 ax.plot(self.tspan,
                         norm_trajectories,
@@ -366,7 +376,7 @@ class VisualizeSimulations(object):
                         alpha=0.2)
                 if comp in sp_overlap:
                     result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[comp], xdata=self.tspan,
-                                                  ydata=sp_trajectory, **kwargs)
+                                                  ydata=sp_trajectory.T, **kwargs)
                     ftn_result[comp] = result_fit
             self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
 
@@ -593,7 +603,8 @@ class VisualizeSimulations(object):
             plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
-    def plot_pattern_rxns_distribution(self, pattern, type_fig='bar', dir_path='', fig_name=''):
+    def plot_pattern_rxns_distribution(self, pattern, exclude_rxns=None, normalize=False,
+                                       type_fig='bar', dir_path='', fig_name=''):
         """
         Creates a Figure for each cluster. First, it obtains the reactions in which the pattern matches the reactions
         reactants plus the reactions in which the pattern matches the reactions products. There are two types of
@@ -607,6 +618,13 @@ class VisualizeSimulations(object):
         ----------
         pattern: pysb.Monomer or pysb.MonomerPattern or pysb.ComplexPattern
             Pattern used to obtain distributions
+        exclude_rxns: list-like
+            A list of reactions (sympy expressions) to exclude from the visualization.
+        normalize: bool
+            Whether to normalize reaction rates by their sum-total
+        type_fig: str
+            `bar` to get a stacked bar of the distribution of the species that match the provided pattern.
+            `entropy` to get the entropy of the distributions of the species that match the provided pattern
         dir_path: str
             Path to directory where the plots are going to be saved
         fig_name: str
@@ -620,15 +638,40 @@ class VisualizeSimulations(object):
         rpm = ReactionPatternMatcher(self.model)
         products_matched = rpm.match_products(pattern)
         reactants_matched = rpm.match_reactants(pattern)
+
+        if exclude_rxns is not None:
+            from sympy import simplify
+            product_idxs_to_remove = []
+            reactants_idxs_to_remove = []
+            for ir in exclude_rxns:
+                for idx, rxn in enumerate(products_matched):
+                    if simplify(rxn.rate - ir) == 0:
+                        product_idxs_to_remove.append(idx)
+                        break
+
+                for idx, rxn in enumerate(reactants_matched):
+                    if simplify(rxn.rate - ir) == 0:
+                        reactants_idxs_to_remove.append(idx)
+                        break
+
+            products_matched = [rxn for idx, rxn in enumerate(products_matched)
+                                if idx not in product_idxs_to_remove]
+            reactants_matched = [rxn for idx, rxn in enumerate(reactants_matched)
+                                 if idx not in reactants_idxs_to_remove]
+
         rev_rxns_products = []
         rev_rxns_reactants = []
         # Add reversible reactions
         for pm in products_matched:
             if pm.reversible:
-                rev_rxns_products.append(pm)
+                pm_rev = copy.deepcopy(pm)
+                pm_rev._rxn_dict['rev'] = True
+                rev_rxns_products.append(pm_rev)
         for rm in reactants_matched:
             if rm.reversible:
-                rev_rxns_reactants.append(rm)
+                rm_rev = copy.deepcopy(rm)
+                rm_rev._rxn_dict['rev'] = True
+                rev_rxns_reactants.append(rm_rev)
         products_matched = products_matched + rev_rxns_reactants
         reactants_matched = reactants_matched + rev_rxns_products
 
@@ -637,20 +680,20 @@ class VisualizeSimulations(object):
             plots_dict['plot_cluster{0}'.format(clus)] = plt.subplots(2, sharex=True)
 
         if type_fig == 'bar':
-            self.__bar_rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name)
+            self.__bar_rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name, normalize)
 
         elif type_fig == 'entropy':
-            self.__entropy__rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name)
+            self.__entropy__rxns(products_matched, reactants_matched, plots_dict, dir_path, fig_name, normalize)
 
         else:
             raise NotImplementedError('Type of visualization not implemented')
         return
 
-    def __get_avgs(self, y, pars, products_matched, reactants_matched):
+    def __get_avgs(self, y, pars, products_matched, reactants_matched, normalize):
         """
         This function uses the simulated trajectories from each cluster and obtains the reaction
         rates of the matched product reactions and reactant reactions. After obtaining the
-        reaction rates values it normalizes the reaction rates by the sum of the reaction rates
+        reaction rates values it normalizes the reaction rates by the sum of the reaction rates at
         each time point. It also generates the labels to know what color represent each reaction
         in the bar graph.
         Parameters
@@ -666,7 +709,9 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
-        all_reactions = list(set(reactants_matched).union(products_matched))
+        unique_products = list(dict.fromkeys(products_matched))
+        unique_reactants = list(dict.fromkeys(reactants_matched))
+        all_reactions = unique_products + unique_reactants
         colors = distinct_colors(len(all_reactions))
         reaction_color = {reaction.rate: colors[idx] for idx, reaction in enumerate(all_reactions)}
         pcolors = []
@@ -684,8 +729,14 @@ class VisualizeSimulations(object):
 
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
+
             if rxn.reversible:
-                values_avg[values_avg < 0] = 0
+                if 'rev' in rxn._rxn_dict.keys():
+                    values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
+                    values_avg[values_avg > 0] = 0
+                else:
+                    values_avg[values_avg < 0] = 0
+
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
@@ -695,16 +746,22 @@ class VisualizeSimulations(object):
             plabels.append(plabel)
             plegend_patches.append(mpatches.Patch(color=rxn_color, label=plabel))
 
-        ptotals = np.sum(products_avg, axis=0)
-        products_avg = products_avg / (ptotals + np.finfo(float).eps)  # Add small number to avoid division by zero
+        if normalize:
+            ptotals = np.sum(products_avg, axis=0)
+            products_avg = products_avg / (ptotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
             values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters, self.time_change)
-
             values_avg = np.average(values, axis=0)
+
             if rct.reversible:
-                values_avg[values_avg > 0] = 0
+                if 'rev' in rct._rxn_dict.keys():
+                    values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
+                    values_avg[values_avg > 0] = 0
+                else:
+                    values_avg[values_avg < 0] = 0
+
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
@@ -715,16 +772,17 @@ class VisualizeSimulations(object):
             rlegend_patches.append(mpatches.Patch(color=rxn_color, label=rlabel))
 
         reactants_avg = np.abs(reactants_avg)
-        rtotals = np.sum(reactants_avg, axis=0)
-        reactants_avg = reactants_avg / (rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
+        if normalize:
+            rtotals = np.sum(reactants_avg, axis=0)
+            reactants_avg = reactants_avg / (rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
         plegend_info = (pcolors, plabels, plegend_patches)
         rlegend_info = (rcolors, rlabels, rlegend_patches)
 
         return products_avg, reactants_avg, plegend_info, rlegend_info
 
-    def __bar_rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name):
+    def __bar_rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name, normalize):
         for c_idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             pars = self.all_parameters[clus]
@@ -733,7 +791,8 @@ class VisualizeSimulations(object):
 
             products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
                                                                                       products_matched,
-                                                                                      reactants_matched)
+                                                                                      reactants_matched,
+                                                                                      normalize)
             pcolors, plabels, plegend_patches = plegend_info
             rcolors, rlabels, rlegend_patches = rlegend_info
 
@@ -750,8 +809,8 @@ class VisualizeSimulations(object):
                 ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
                 y_roffset = y_roffset + sp_pctge
 
-            ax1.set(title='Products reactions')
-            ax2.set(title='Reactants reactions')
+            ax1.set(title='Producing reactions')
+            ax2.set(title='Consuming reactions')
             ax3 = fig.add_subplot(111, frameon=False)
             # hide tick and tick label of the big axes
             ax3.tick_params(axis='both', which='both',  labelcolor='none', top=False,
@@ -774,7 +833,7 @@ class VisualizeSimulations(object):
             plt.close(fig_rlegend)
         return
 
-    def __entropy__rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name):
+    def __entropy__rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name, normalize):
         pmax_entropy = 0
         rmax_entropy = 0
         for c_idx, clus in self.clusters.items():
@@ -782,7 +841,8 @@ class VisualizeSimulations(object):
             pars = self.all_parameters[clus]
             products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
                                                                                       products_matched,
-                                                                                      reactants_matched)
+                                                                                      reactants_matched,
+                                                                                      normalize)
 
             fig = plots['plot_cluster{0}'.format(c_idx)][0]
             ax1, ax2 = plots['plot_cluster{0}'.format(c_idx)][1]
