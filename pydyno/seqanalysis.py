@@ -446,7 +446,7 @@ class SeqAnalysis:
 
         # Sorting candidates by score
         if decreasing:
-            sorted_score = np.argsot(score)[::-1]
+            sorted_score = np.argsort(score)[::-1]
         else:
             sorted_score = np.argsort(score)
         sorted_dist = diss[sorted_score][:, sorted_score]
