@@ -475,6 +475,7 @@ class SeqAnalysis:
                 if idx == 0 or all(sorted_dist[idx, idxrep] > pradius):
                     idxrep.append(idx)
                     repcount += 1
+                    idx += 1
 
         # TODO: Add quality measures from: https://github.com/cran/TraMineR/blob/master/R/dissrep.R
 
