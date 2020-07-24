@@ -381,9 +381,6 @@ class SeqAnalysis:
     def states_colors(self):
         return self._states_colors
 
-    _assign = lambda d, k: lambda f: d.setdefault(k, f)
-    representativeness = {}
-
     def cluster_representativeness(self, method='frequency', dmax=None, pradius=0.1,
                                    coverage=0.25, nrep=None):
 
@@ -466,7 +463,7 @@ class SeqAnalysis:
                     nbnear = np.sum((np.sum(tempm < pradius, axis=1) > 0) * weights[sorted_score])
                     pctrep = nbnear / weights_sum
 
-                    idx += 1
+                idx += 1
 
         else:
             repcount = 0
@@ -475,7 +472,7 @@ class SeqAnalysis:
                 if idx == 0 or all(sorted_dist[idx, idxrep] > pradius):
                     idxrep.append(idx)
                     repcount += 1
-                    idx += 1
+                idx += 1
 
         # TODO: Add quality measures from: https://github.com/cran/TraMineR/blob/master/R/dissrep.R
 
