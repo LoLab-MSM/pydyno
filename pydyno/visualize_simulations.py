@@ -61,7 +61,7 @@ class VisualizeSimulations(object):
     'plot_sp2_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>)}
     """
 
-    def __init__(self, model, sim_results, clusters, truncate_idx=None, 
+    def __init__(self, model, sim_results, clusters, truncate_idx=None,
                  truncate_time=None, drop_sim_idx=None):
 
         self._model = model
@@ -269,7 +269,7 @@ class VisualizeSimulations(object):
             fig_name = '_' + fig_name
         for name, plot in plot_data.items():
             final_save_path = os.path.join(dir_path, name + fig_name)
-            plot[0].savefig(final_save_path+f'.{plot_format}', dpi=500)
+            plot[0].savefig(final_save_path + f'.{plot_format}', dpi=500)
 
         return plot_data
 
@@ -328,7 +328,7 @@ class VisualizeSimulations(object):
                 # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
                 ax.set_ylim([sp_min_conc, sp_max_conc])
                 fig.suptitle('{0}, cluster {1}'.
-                            format(name, idx))
+                             format(name, idx))
         return plots_dict
 
     def _plot_dynamics_cluster_types_norm(self, plots_dict, components, norm_value=None, add_y_histogram=False):
@@ -713,6 +713,8 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
+        all_products_ci = np.zeros((len(products_matched) * 2, len(self.tspan)))
+        all_reactants_ci = np.zeros((len(reactants_matched) * 2, len(self.tspan)))
         unique_products = list(dict.fromkeys(products_matched))
         unique_reactants = list(dict.fromkeys(reactants_matched))
         all_reactions = unique_products + unique_reactants
@@ -725,6 +727,7 @@ class VisualizeSimulations(object):
         rlegend_patches = []
         rlabels = []
 
+        ci_counter = 0
         # Obtaining reaction rates values
         for rxn_idx, rxn in enumerate(products_matched):
             rate = rxn.rate
@@ -733,14 +736,23 @@ class VisualizeSimulations(object):
 
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
+            products_ci = np.empty((2, values.shape[1]))
+            for t in range(values.shape[1]):
+                data = values[:, t]
+                ci = bootci(data)
+                products_ci[:, t] = ci
 
             if rxn.reversible:
                 if 'rev' in rxn._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
+                    products_ci[:, values_avg < 0] = products_ci[:, values_avg < 0][[1, 0]]
+                    products_ci[:, values_avg > 0] = 0
                 else:
+                    products_ci[:, values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
-
+            all_products_ci[[ci_counter, ci_counter + 1], :] = products_ci
+            ci_counter += 2
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
@@ -754,18 +766,31 @@ class VisualizeSimulations(object):
             ptotals = np.sum(products_avg, axis=0)
             products_avg = products_avg / (ptotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
+        ci_counter = 0
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
-            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters, self.time_change)
+            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters,
+                                             self.time_change)
+
             values_avg = np.average(values, axis=0)
+            reactants_ci = np.empty((2, values.shape[1]))
+            for t in range(values.shape[1]):
+                data = values[:, t]
+                ci = bootci(data)
+                reactants_ci[:, t] = ci
 
             if rct.reversible:
                 if 'rev' in rct._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
+                    reactants_ci[:, values_avg < 0] = reactants_ci[:, values_avg < 0][[1, 0]]
+                    reactants_ci[:, values_avg > 0] = 0
                 else:
+                    reactants_ci[:, values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
 
+            all_reactants_ci[[ci_counter, ci_counter + 1], :] = reactants_ci
+            ci_counter += 2
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
@@ -779,12 +804,13 @@ class VisualizeSimulations(object):
 
         if normalize:
             rtotals = np.sum(reactants_avg, axis=0)
-            reactants_avg = reactants_avg / (rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
+            reactants_avg = reactants_avg / (
+                        rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
         plegend_info = (pcolors, plabels, plegend_patches)
         rlegend_info = (rcolors, rlabels, rlegend_patches)
 
-        return products_avg, reactants_avg, plegend_info, rlegend_info
+        return products_avg, all_products_ci, reactants_avg, all_reactants_ci, plegend_info, rlegend_info
 
     def __bar_rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name, normalize):
         for c_idx, clus in self.clusters.items():
@@ -793,10 +819,13 @@ class VisualizeSimulations(object):
             y_poffset = np.zeros(len(self.tspan))
             y_roffset = np.zeros(len(self.tspan))
 
-            products_avg, reactants_avg, plegend_info, rlegend_info = self._get_avgs(y, pars,
-                                                                                     products_matched,
-                                                                                     reactants_matched,
-                                                                                     normalize)
+            products_avg, all_products_ci, reactants_avg, all_reactants_ci, plegend_info, rlegend_info = \
+                self._get_avgs(
+                    y, pars,
+                    products_matched,
+                    reactants_matched,
+                    normalize)
+
             pcolors, plabels, plegend_patches = plegend_info
             rcolors, rlabels, rlegend_patches = rlegend_info
 
@@ -824,7 +853,7 @@ class VisualizeSimulations(object):
             ax2.set(title='Consuming reactions')
             ax3 = fig.add_subplot(111, frameon=False)
             # hide tick and tick label of the big axes
-            ax3.tick_params(axis='both', which='both',  labelcolor='none', top=False,
+            ax3.tick_params(axis='both', which='both', labelcolor='none', top=False,
                             bottom=False, left=False, right=False)
             ax3.grid(False)
             ax3.set(xlabel="Time", ylabel='Percentage')
@@ -850,10 +879,13 @@ class VisualizeSimulations(object):
         for c_idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             pars = self.all_parameters[clus]
-            products_avg, reactants_avg, plegend_info, rlegend_info = self._get_avgs(y, pars,
-                                                                                     products_matched,
-                                                                                     reactants_matched,
-                                                                                     normalize)
+
+            products_avg, all_products_ci, reactants_avg, all_reactants_ci, plegend_info, rlegend_info = \
+                self._get_avgs(
+                    y, pars,
+                    products_matched,
+                    reactants_matched,
+                    normalize)
 
             fig = plots['plot_cluster{0}'.format(c_idx)][0]
             ax1, ax2 = plots['plot_cluster{0}'.format(c_idx)][1]
@@ -1139,3 +1171,61 @@ def _set_axis_style(ax, labels):
     ax.set_xticklabels(labels)
     ax.set_xlim(0.25, len(labels) + 0.75)
     ax.set_xlabel('Clusters')
+
+
+def bootstrap(data, nboot=10000, replacement=True):
+    """
+        Generate n=nboot bootstrap samples of the data with/without replacement,
+        and return a 2D numpy array of them.
+        Input:    data (anything numpy can handle as a numpy array)
+        Output:   2D numpy array of size (nboot x length of data)
+    """
+
+    # Ensure that our data is a 1D array.
+    data = np.ravel(data)
+
+    # Create a 2D array of bootstrap samples indexes
+    if replacement == True:  # with replacement (note: 50x-ish faster than without)
+        idx = np.random.randint(data.size, size=(nboot, data.size))
+    elif replacement == False:  # without replacement
+        idx = np.vstack([np.random.permutation(data.size) for x in np.arange(nboot)])
+
+    return data[idx]
+
+
+###################################################
+def bootci(data, stat=np.mean, nboot=10000, replacement=True, alpha=0.05, method='pi',
+           keepboot=False):
+    """
+        Compute the (1-alpha) confidence interval of a statistic (i.e.: mean, median, etc)
+        of the data using bootstrap resampling.
+
+        Arguments:
+            stat:        statistics we want the confidence interval for (must be a function)
+            nboot:       number of bootstrap samples to generate
+            replacement: resampling done with (True) or without (False) replacement
+            alpha:       level of confidence interval
+            method:      type of bootstrap we want to perform
+            keepboot:    if True, return the nboot bootstrap statistics from which
+                         the confidence intervals are extracted
+
+        Methods available:
+            - 'pi' = Percentile Interval
+            - 'bca' = Bias-Corrected Accelerated Interval (available soon)
+    """
+
+    # apply bootstrap to data
+    boot = bootstrap(data, nboot=nboot, replacement=replacement)
+
+    # calculate the statistics for each bootstrap sample and sort them
+    sorted_stat = np.sort(stat(boot, axis=1))
+
+    # Percentile Interval method (for the moment the only one available)
+    if method == 'pi':
+        ci = (sorted_stat[np.round(nboot * alpha / 2).astype(int)],
+              sorted_stat[np.round(nboot * (1 - alpha / 2)).astype(int)])
+
+    if keepboot == True:
+        return ci, sorted_stat
+    else:
+        return ci
