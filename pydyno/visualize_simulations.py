@@ -693,7 +693,7 @@ class VisualizeSimulations(object):
             raise NotImplementedError('Type of visualization not implemented')
         return
 
-    def __get_avgs(self, y, pars, products_matched, reactants_matched, normalize):
+    def _get_avgs(self, y, pars, products_matched, reactants_matched, normalize):
         """
         This function uses the simulated trajectories from each cluster and obtains the reaction
         rates of the matched product reactions and reactant reactions. After obtaining the
@@ -793,10 +793,10 @@ class VisualizeSimulations(object):
             y_poffset = np.zeros(len(self.tspan))
             y_roffset = np.zeros(len(self.tspan))
 
-            products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
-                                                                                      products_matched,
-                                                                                      reactants_matched,
-                                                                                      normalize)
+            products_avg, reactants_avg, plegend_info, rlegend_info = self._get_avgs(y, pars,
+                                                                                     products_matched,
+                                                                                     reactants_matched,
+                                                                                     normalize)
             pcolors, plabels, plegend_patches = plegend_info
             rcolors, rlabels, rlegend_patches = rlegend_info
 
@@ -850,10 +850,10 @@ class VisualizeSimulations(object):
         for c_idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             pars = self.all_parameters[clus]
-            products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
-                                                                                      products_matched,
-                                                                                      reactants_matched,
-                                                                                      normalize)
+            products_avg, reactants_avg, plegend_info, rlegend_info = self._get_avgs(y, pars,
+                                                                                     products_matched,
+                                                                                     reactants_matched,
+                                                                                     normalize)
 
             fig = plots['plot_cluster{0}'.format(c_idx)][0]
             ax1, ax2 = plots['plot_cluster{0}'.format(c_idx)][1]
