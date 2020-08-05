@@ -61,7 +61,8 @@ class VisualizeSimulations(object):
     'plot_sp2_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>)}
     """
 
-    def __init__(self, model, sim_results, clusters, truncate_idx=None, drop_sim_idx=None):
+    def __init__(self, model, sim_results, clusters, truncate_idx=None, 
+                 truncate_time=None, drop_sim_idx=None):
 
         self._model = model
         generate_equations(model)
@@ -96,6 +97,9 @@ class VisualizeSimulations(object):
             self._clusters = no_clusters
 
         else:
+            if truncate_time is not None:
+                self._all_simulations = self._all_simulations[:, :truncate_time, :]
+                self._tspan = self._tspan[:truncate_time]
             # Check clusters
             self._clusters = self.check_clusters_arg(clusters, self.nsims)
 
@@ -178,7 +182,7 @@ class VisualizeSimulations(object):
 
     def plot_cluster_dynamics(self, components, x_data=None, y_data=None, y_error=None, dir_path='',
                               add_y_histogram=False, fig_name='', plot_format=None, species_ftn_fit=None,
-                              norm=False, norm_value=None, **kwargs):
+                              norm=False, norm_value=None, fit_options={}, figure_options={}):
         """
         Plots the dynamics of species/observables/pysb expressions for each cluster
 
@@ -228,7 +232,7 @@ class VisualizeSimulations(object):
                 x = x_data[comp]
                 y = y_data[comp]
                 for clus in self.clusters:
-                    fig, ax = plt.subplots()
+                    fig, ax = plt.subplots(**figure_options)
                     if y_error is not None:
                         yerr = y_error[comp]
                         ax.errorbar(x, y, yerr, color='r', alpha=1, zorder=10)
@@ -240,7 +244,7 @@ class VisualizeSimulations(object):
             plots_dict = {}
             for comp in components:
                 for clus in self.clusters:
-                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots()
+                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots(**figure_options)
         else:
             raise ValueError('both x_data and y_data must be passed to plot experimental data')
 
@@ -250,7 +254,7 @@ class VisualizeSimulations(object):
                 plot_data = self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict,
                                                                                components=components,
                                                                                species_ftn_fit=species_ftn_fit,
-                                                                               **kwargs)
+                                                                               **fit_options)
 
             else:
                 plot_data = self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, components=components,
@@ -265,7 +269,7 @@ class VisualizeSimulations(object):
             fig_name = '_' + fig_name
         for name, plot in plot_data.items():
             final_save_path = os.path.join(dir_path, name + fig_name)
-            plot[0].savefig(final_save_path, dpi=500, format=plot_format)
+            plot[0].savefig(final_save_path+f'.{plot_format}', dpi=500)
 
         return plot_data
 
@@ -740,7 +744,7 @@ class VisualizeSimulations(object):
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
-            plabel = hf.rate_2_interactions(self.model, str(rate))
+            plabel = str(rate)
             rxn_color = reaction_color[rate]
             pcolors.append(rxn_color)
             plabels.append(plabel)
@@ -765,7 +769,7 @@ class VisualizeSimulations(object):
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
-            rlabel = hf.rate_2_interactions(self.model, str(rate))
+            rlabel = str(rate)
             rxn_color = reaction_color[rate]
             rcolors.append(rxn_color)
             rlabels.append(rlabel)
@@ -801,12 +805,19 @@ class VisualizeSimulations(object):
 
             for prxn, pcol in zip(range(len(products_matched)), pcolors):
                 sp_pctge = products_avg[prxn]
-                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2] - self.tspan[1])
-                y_poffset = y_poffset + sp_pctge
+                if not normalize:
+                    ax1.plot(self.tspan, sp_pctge, color=pcol)
+
+                else:
+                    ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2] - self.tspan[1])
+                    y_poffset = y_poffset + sp_pctge
 
             for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
                 sp_pctge = reactants_avg[rrxn]
-                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
+                if not normalize:
+                    ax2.plot(self.tspan, sp_pctge, color=rcol)
+                else:
+                    ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
                 y_roffset = y_roffset + sp_pctge
 
             ax1.set(title='Producing reactions')
