@@ -181,8 +181,8 @@ class VisualizeSimulations(object):
             raise TypeError('cluster data structure not supported')
 
     def plot_cluster_dynamics(self, components, x_data=None, y_data=None, y_error=None, dir_path='',
-                              add_y_histogram=False, fig_name='', plot_format=None, species_ftn_fit=None,
-                              norm=False, norm_value=None, fit_options={}, figure_options={}):
+                              type_fig='trajectories', add_y_histogram=False, fig_name='', plot_format=None,
+                              species_ftn_fit=None, norm=False, norm_value=None, fit_options={}, figure_options={}):
         """
         Plots the dynamics of species/observables/pysb expressions for each cluster
 
@@ -201,6 +201,9 @@ class VisualizeSimulations(object):
             correspond to the experimental errors (e.g standard deviation)
         dir_path: str
             Path to folder where the figure is going to be saved
+        type_fig: str
+            Type of figure to plot. It can be `trajectories` to plot all the simulated trajectories or `mean_std`
+            to plot the mean and standard deviation
         add_y_histogram: bool
             Whether to add a histogram of the concentrations at the last time point of the simulation
         fig_name: str
@@ -263,7 +266,8 @@ class VisualizeSimulations(object):
 
         else:
             plot_data = self._plot_dynamics_cluster_types(plots_dict=plots_dict, components=components,
-                                                          add_y_histogram=add_y_histogram)
+                                                          add_y_histogram=add_y_histogram,
+                                                          type_fig=type_fig)
 
         if fig_name:
             fig_name = '_' + fig_name
@@ -307,16 +311,21 @@ class VisualizeSimulations(object):
             raise TypeError('Type of model component not valid for visualization')
         return sp_trajectory, name
 
-    def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram=False):
+    def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram, type_fig):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for comp in components:
                 # Obtain component values
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
                 fig, ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)]
-                ax.plot(self.tspan, sp_trajectory,
-                        color='blue',
-                        alpha=0.2)
+                if type_fig == 'trajectories':
+                    ax.plot(self.tspan, sp_trajectory,
+                            color='blue',
+                            alpha=0.2)
+                elif type_fig == 'mean_std':
+                    mean = np.mean(sp_trajectory, axis=1)
+                    std = np.std(sp_trajectory, axis=1)
+                    ax.errorbar(self.tspan, mean, yerr=std, color='blue')
 
                 if add_y_histogram:
                     self._add_y_histogram(ax, sp_trajectory)
