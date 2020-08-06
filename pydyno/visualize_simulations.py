@@ -772,9 +772,9 @@ class VisualizeSimulations(object):
                 if 'rev' in rct._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
-                    reactants_std[:, values_avg > 0] = 0
+                    reactants_std[values_avg > 0] = 0
                 else:
-                    reactants_std[:, values_avg < 0] = 0
+                    reactants_std[values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
 
             all_reactants_std[rct_idx] = reactants_std
