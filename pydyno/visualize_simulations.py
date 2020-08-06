@@ -713,8 +713,8 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
-        all_products_ci = np.zeros((len(products_matched) * 2, len(self.tspan)))
-        all_reactants_ci = np.zeros((len(reactants_matched) * 2, len(self.tspan)))
+        all_products_std = np.zeros((len(products_matched), len(self.tspan)))
+        all_reactants_std = np.zeros((len(reactants_matched), len(self.tspan)))
         unique_products = list(dict.fromkeys(products_matched))
         unique_reactants = list(dict.fromkeys(reactants_matched))
         all_reactions = unique_products + unique_reactants
@@ -727,7 +727,6 @@ class VisualizeSimulations(object):
         rlegend_patches = []
         rlabels = []
 
-        ci_counter = 0
         # Obtaining reaction rates values
         for rxn_idx, rxn in enumerate(products_matched):
             rate = rxn.rate
@@ -736,23 +735,18 @@ class VisualizeSimulations(object):
 
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
-            products_ci = np.empty((2, values.shape[1]))
-            for t in range(values.shape[1]):
-                data = values[:, t]
-                ci = bootci(data)
-                products_ci[:, t] = ci
+            products_std = np.std(values, axis=0)
 
             if rxn.reversible:
                 if 'rev' in rxn._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
-                    products_ci[:, values_avg < 0] = products_ci[:, values_avg < 0][[1, 0]]
-                    products_ci[:, values_avg > 0] = 0
+                    products_std[values_avg > 0] = 0
                 else:
-                    products_ci[:, values_avg < 0] = 0
+                    products_std[:, values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
-            all_products_ci[[ci_counter, ci_counter + 1], :] = products_ci
-            ci_counter += 2
+
+            all_products_std[rxn_idx] = products_std
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
@@ -766,31 +760,24 @@ class VisualizeSimulations(object):
             ptotals = np.sum(products_avg, axis=0)
             products_avg = products_avg / (ptotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
-        ci_counter = 0
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
             values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters,
                                              self.time_change)
 
             values_avg = np.average(values, axis=0)
-            reactants_ci = np.empty((2, values.shape[1]))
-            for t in range(values.shape[1]):
-                data = values[:, t]
-                ci = bootci(data)
-                reactants_ci[:, t] = ci
+            reactants_std = np.std(values, axis=0)
 
             if rct.reversible:
                 if 'rev' in rct._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
-                    reactants_ci[:, values_avg < 0] = reactants_ci[:, values_avg < 0][[1, 0]]
-                    reactants_ci[:, values_avg > 0] = 0
+                    reactants_std[:, values_avg > 0] = 0
                 else:
-                    reactants_ci[:, values_avg < 0] = 0
+                    reactants_std[:, values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
 
-            all_reactants_ci[[ci_counter, ci_counter + 1], :] = reactants_ci
-            ci_counter += 2
+            all_reactants_std[rct_idx] = reactants_std
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
@@ -810,7 +797,7 @@ class VisualizeSimulations(object):
         plegend_info = (pcolors, plabels, plegend_patches)
         rlegend_info = (rcolors, rlabels, rlegend_patches)
 
-        return products_avg, all_products_ci, reactants_avg, all_reactants_ci, plegend_info, rlegend_info
+        return products_avg, all_products_std, reactants_avg, all_reactants_std, plegend_info, rlegend_info
 
     def __bar_rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name, normalize):
         for c_idx, clus in self.clusters.items():
