@@ -63,7 +63,7 @@ class TestClustering:
     def test_frequency(self, signatures):
         diss = signatures.dissimilarity_matrix(metric='LCS')
         rep0 = signatures.seq_representativeness(diss=diss, method='freq')
-        np.testing.assert_allclose(signatures.sequences.iloc[rep0[0]], np.array([6, 7, 8, 12, 11]))
+        np.testing.assert_allclose(signatures.sequences.iloc[rep0[0]], np.array([1, 2, 3, 4, 5]))
 
     # def test_cluster_percentage_color(self):
     #     self.clus.diss_matrix(metric='LCS')
