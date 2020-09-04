@@ -181,7 +181,7 @@ class VisualizeSimulations(object):
             raise TypeError('cluster data structure not supported')
 
     def plot_cluster_dynamics(self, components, x_data=None, y_data=None, y_error=None, dir_path='',
-                              type_fig='trajectories', add_y_histogram=False, fig_name='', plot_format=None,
+                              type_fig='trajectories', add_y_histogram=False, fig_name='', plot_format='png',
                               species_ftn_fit=None, norm=False, norm_value=None, fit_options={}, figure_options={}):
         """
         Plots the dynamics of species/observables/pysb expressions for each cluster
@@ -208,7 +208,7 @@ class VisualizeSimulations(object):
             Whether to add a histogram of the concentrations at the last time point of the simulation
         fig_name: str
             String used to give a name to the cluster figures
-        plot_format: str or None; default None
+        plot_format: str; default `png`
             Format used to save the figures: png, pdf, etc
         species_ftn_fit: dict, optional
             Dictionary of species with their respective function to fit their dynamics
@@ -472,7 +472,7 @@ class VisualizeSimulations(object):
         obs_values = np.sum(y[:, :, sps], axis=2)
         return obs_values.T
 
-    def hist_clusters_parameters(self, par_idxs, ylabel='', plot_format=None, dir_path=''):
+    def hist_clusters_parameters(self, par_idxs, ylabel='', plot_format='png', dir_path=''):
         """
         Creates a Figure for each cluster. Each figure contains a histogram for each parameter provided.
         The sum of each parameter histogram is normalized to 1
@@ -485,7 +485,7 @@ class VisualizeSimulations(object):
             y-axis labels for each figure
         dir_path: str
             Path to directory where the file is going to be saved
-        plot_format: str or None; default None
+        plot_format: str; default `png`
             Format used to save the figures: `png`, `pdf`, etc
         Returns
         -------
