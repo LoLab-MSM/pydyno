@@ -976,7 +976,7 @@ class VisualizeSimulations(object):
             _set_axis_style(ax1, clus_labels)
 
             final_save_path = os.path.join(dir_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
-            fig.savefig(final_save_path + '.pdf', format='pdf')
+            fig.savefig(final_save_path + '.png', format='png', bbox_inches='tight')
             plt.close(fig)
 
             ### Code to plot violinplots with seaborn
