@@ -51,19 +51,19 @@ class TestClustering:
             signatures.dissimilarity_matrix(metric='bla')
 
     def test_neighborhood_density(self, signatures):
-        signatures.dissimilarity_matrix(metric='LCS')
-        rep0 = signatures.neighborhood_density(proportion=0.5, sequences_idx=None)
-        np.testing.assert_allclose(rep0, np.array([1, 2, 3, 4, 5]))
+        diss = signatures.dissimilarity_matrix(metric='LCS')
+        rep0 = signatures.seq_representativeness(diss=diss, method='density')
+        np.testing.assert_allclose(signatures.sequences.iloc[rep0[0]], np.array([1, 2, 3, 4, 5]))
 
-    def test_centrality(self, signatures):
-        signatures.dissimilarity_matrix(metric='LCS')
-        rep0 = signatures.centrality(sequences_idx=None)
-        np.testing.assert_allclose(rep0[1], np.array([11, 12, 13, 14, 15]))
+    def test_dist(self, signatures):
+        diss = signatures.dissimilarity_matrix(metric='LCS')
+        rep0 = signatures.seq_representativeness(diss=diss, method='dist')
+        np.testing.assert_allclose(signatures.sequences.iloc[rep0[0]], np.array([11, 12, 13, 14, 15]))
 
     def test_frequency(self, signatures):
-        signatures.dissimilarity_matrix(metric='LCS')
-        rep0 = signatures.frequency(sequences_idx=None)
-        np.testing.assert_allclose(rep0, np.array([6, 7, 8, 12, 11]))
+        diss = signatures.dissimilarity_matrix(metric='LCS')
+        rep0 = signatures.seq_representativeness(diss=diss, method='freq')
+        np.testing.assert_allclose(signatures.sequences.iloc[rep0[0]], np.array([1, 2, 3, 4, 5]))
 
     # def test_cluster_percentage_color(self):
     #     self.clus.diss_matrix(metric='LCS')

@@ -48,7 +48,7 @@ _VALID_METRICS = [
     'sqeuclidean',
     'wminkowski',
     'yule'
-    ]
+]
 
 _VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
@@ -150,7 +150,7 @@ class SeqAnalysis:
         if n_unique_states <= 1022:
             colors = distinct_colors(len(self._unique_states))
         else:
-            n_iterations = int(np.floor(n_unique_states/1022))
+            n_iterations = int(np.floor(n_unique_states / 1022))
             colors = distinct_colors(1022)
             remaining_states = n_unique_states - 1022
             for _ in range(n_iterations):
@@ -242,11 +242,14 @@ class SeqAnalysis:
 
         if num_processors > 1:
             if metric == 'LCS':
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length, num_processors=num_processors)
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length,
+                                                num_processors=num_processors)
             elif metric == 'levenshtein':
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein, num_processors=num_processors)
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein,
+                                                num_processors=num_processors)
             elif callable(metric):
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=metric, num_processors=num_processors)
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=metric,
+                                                num_processors=num_processors)
             else:
                 raise ValueError('Multiprocessing can only be used with `LCS`, `levenshtein` or a provided function')
 
@@ -378,129 +381,102 @@ class SeqAnalysis:
     def states_colors(self):
         return self._states_colors
 
-    _assign = lambda d, k: lambda f: d.setdefault(k, f)
-    representativeness = {}
+    def cluster_representativeness(self, method='frequency', dmax=None, pradius=0.1,
+                                   coverage=0.25, nrep=None):
 
-    @_assign(representativeness, 'neighborhood')
-    def neighborhood_density(self, proportion, sequences_idx=None):
+        clusters = set(self.labels)
+        clus_rep = {}
+        for clus in clusters:
+            clus_seqs = self._sequences.iloc[self.labels == clus]
+            clus_idxs = clus_seqs.index.get_level_values(0).values
+            dist = self.diss[clus_idxs][:, clus_idxs]
+            rep_idxs = self.seq_representativeness(diss=dist, method=method, dmax=dmax, pradius=pradius,
+                                                   coverage=coverage, nrep=nrep)
+            clus_rep[clus] = clus_seqs.iloc[rep_idxs]
+        return clus_rep
+
+    @staticmethod
+    def seq_representativeness(diss, method='frequency', dmax=None, pradius=0.1,
+                               coverage=0.25, nrep=None):
         """
-        Representativeness using neighborhood density method
 
         Parameters
         ----------
-        proportion : float
-            Proportion of the maximal distance between sequences for a sequence to be considered
-            within a neighborhood
-        sequences_idx : list-like
-            Indices of the sequences used to calculate the neighborhood density
+        method: str
+            Method used to obtain the representativess of the sequences in each cluster
+        dmax: float
+            Maximum theoretical distance
 
         Returns
         -------
-        np.ndarray
-            Representative sequence
 
         """
+        n_seq = diss.shape[0]
+        weights = np.repeat(1, n_seq)
+        weights_sum = np.sum(weights)
 
-        seq_len = self._sequences.shape[1]
-        ci = 1  # ci is the indel cost
-        s = 2  # s is the substitution cost
-        # this is the maximal distance between two sequences using the optimal matching metric
-        # with indel cost ci=1 and substitution cost s=2. Gabardinho et al (2011) communications in computer
-        # and information science
-        theo_max_dist = seq_len * min([2 * ci, s])
-        neighbourhood_radius = theo_max_dist * proportion
+        # Max theoretical distance
+        if dmax is None:
+            dmax = np.max(diss)
 
-        def density(seq_dists):
-            seq_density = len(seq_dists[seq_dists < neighbourhood_radius])
-            return seq_density
+        if pradius < 0 or pradius > 1:
+            raise ValueError('pradius must be between 0 and 1')
+        pradius = dmax * pradius
 
-        if sequences_idx is not None:
-            seqs = self._sequences.iloc[sequences_idx]
-            seqs_diss = self._diss[sequences_idx][:, sequences_idx]
+        # Neighbourhood density
+        if method == 'density':
+            neighbors = diss < pradius
+            score = np.matmul(neighbors, weights)
+            decreasing = True
+
+        elif method == 'freq':
+            neighbors = diss == 0
+            score = np.matmul(neighbors, weights)
+            decreasing = True
+
+        elif method == 'dist':
+            score = np.matmul(diss, weights)
+            decreasing = False
+
         else:
-            seqs = self._sequences
-            seqs_diss = self._diss
-        seqs_neighbours = np.apply_along_axis(density, 1, seqs_diss)
-        decreasing_seqs = seqs.iloc[seqs_neighbours.argsort()[::-1]]
-        return decreasing_seqs.iloc[0].values
+            raise ValueError('Unknown method')
 
-    @_assign(representativeness, 'centrality')
-    def centrality(self, sequences_idx=None):
-        """
-        Representativeness using the centrality method
-
-        Parameters
-        ----------
-        sequences_idx : list-like
-            Indices of the sequences used to calculate the neighborhood density
-
-        Returns
-        -------
-        np.ndarray
-            Representative sequence
-        """
-        if sequences_idx is not None:
-            seqs = self._sequences.iloc[sequences_idx]
-            seqs_diss = self._diss[sequences_idx][:, sequences_idx]
+        # Sorting candidates by score
+        if decreasing:
+            sorted_score = np.argsort(score)[::-1]
         else:
-            seqs = self._sequences
-            seqs_diss = self._diss
-        seqs_centrality_idx = seqs_diss.sum(axis=0).argsort()
-        decreasing_seqs = seqs.iloc[seqs_centrality_idx]
-        return decreasing_seqs.iloc[0].name, decreasing_seqs.iloc[0].values
+            sorted_score = np.argsort(score)
+        sorted_dist = diss[sorted_score][:, sorted_score]
 
-    @_assign(representativeness, 'frequency')
-    def frequency(self, sequences_idx=None):
-        """
-        Representativeness using the frequency method
+        # Selecting representatives
+        idx = 0
+        idxrep = []
 
-        Parameters
-        ----------
-        sequences_idx : list-like
-            Indices of the sequences used to calculate the neighborhood density
+        # Coverage fixed
+        if nrep is None and coverage > 0:
+            pctrep = 0
 
-        Returns
-        -------
-        np.ndarray
-            Representative sequence
-        """
-        decreasing_seqs = self.neighborhood_density(proportion=1, sequences_idx=sequences_idx)
-        return decreasing_seqs
+            while pctrep < coverage and idx < n_seq:
+                if idx == 0 or all(sorted_dist[idx, idxrep] > pradius):
+                    idxrep.append(idx)
+                    tempm = sorted_dist[:, idxrep]
+                    nbnear = np.sum((np.sum(tempm < pradius, axis=1) > 0) * weights[sorted_score])
+                    pctrep = nbnear / weights_sum
 
-    def _dispatch(self, k):  # , *args, **kwargs):
-        try:
-            method = self.representativeness[k].__get__(self, type(self))
-        except KeyError:
-            assert k in self.representativeness, "invalid operation: " + repr(k)
-        return method  # (*args, **kwargs)
+                idx += 1
 
-    def seq_representativeness(self, method='frequency', clus_labels=None, **kwargs):
-        """
-
-        Parameters
-        ----------
-        method
-        clus_labels: vector-like
-            Labels must be in the same order of seqdata
-        kwargs
-
-        Returns
-        -------
-
-        """
-        rep_method = self._dispatch(method)
-        if clus_labels is not None:
-            clusters = set(clus_labels)
-            clus_rep = {}
-            for clus in clusters:
-                clus_seqs = self._sequences.iloc[clus_labels == clus]
-                clus_idxs = clus_seqs.index.get_level_values(0).values
-                rep = rep_method(sequences_idx=clus_idxs, **kwargs)
-                clus_rep[clus] = rep
-            return clus_rep
         else:
-            rep = rep_method(**kwargs)
-            return rep
+            repcount = 0
+
+            while repcount < nrep and idx < n_seq:
+                if idx == 0 or all(sorted_dist[idx, idxrep] > pradius):
+                    idxrep.append(idx)
+                    repcount += 1
+                idx += 1
+
+        # TODO: Add quality measures from: https://github.com/cran/TraMineR/blob/master/R/dissrep.R
+
+        return sorted_score[idxrep]
 
     def plot_sequences(self, type_fig='modal', plot_all=False, title='', dir_path='', sort_seq=None):
         """
@@ -782,7 +758,7 @@ def _agg_cluster_score(diss, num_clusters, linkage='average', **kwargs):
     score = metrics.silhouette_score(diss, clusters.labels_, metric='precomputed')
     return score
 
-    #TODO: Develop gap statistics score for sequences. Maybe get elbow plot as well
+    # TODO: Develop gap statistics score for sequences. Maybe get elbow plot as well
 
     # def transition_rate_matrix(self, time_varying=False, lag=1):
     #     # this code comes from seqtrate from the TraMineR package in r
@@ -861,7 +837,6 @@ def _agg_cluster_score(diss, num_clusters, linkage='average', **kwargs):
     #         cluster_inf[clus] = (cluster_percentage, colors[clus], rep)
     #
     #     return cluster_inf
-
 
 # data = np.array([[11, 12, 13, 14, 15], [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [6, 7, 8, 12, 11],
 #                  [11, 12, 13, 14, 15], [1, 2, 3, 4, 5]])

@@ -61,7 +61,8 @@ class VisualizeSimulations(object):
     'plot_sp2_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>)}
     """
 
-    def __init__(self, model, sim_results, clusters, truncate_idx=None, drop_sim_idx=None):
+    def __init__(self, model, sim_results, clusters, truncate_idx=None,
+                 truncate_time=None, drop_sim_idx=None):
 
         self._model = model
         generate_equations(model)
@@ -96,6 +97,9 @@ class VisualizeSimulations(object):
             self._clusters = no_clusters
 
         else:
+            if truncate_time is not None:
+                self._all_simulations = self._all_simulations[:, :truncate_time, :]
+                self._tspan = self._tspan[:truncate_time]
             # Check clusters
             self._clusters = self.check_clusters_arg(clusters, self.nsims)
 
@@ -177,8 +181,8 @@ class VisualizeSimulations(object):
             raise TypeError('cluster data structure not supported')
 
     def plot_cluster_dynamics(self, components, x_data=None, y_data=None, y_error=None, dir_path='',
-                              add_y_histogram=False, fig_name='', plot_format=None, species_ftn_fit=None,
-                              norm=False, norm_value=None, **kwargs):
+                              type_fig='trajectories', add_y_histogram=False, fig_name='', plot_format='png',
+                              species_ftn_fit=None, norm=False, norm_value=None, fit_options={}, figure_options={}):
         """
         Plots the dynamics of species/observables/pysb expressions for each cluster
 
@@ -197,11 +201,14 @@ class VisualizeSimulations(object):
             correspond to the experimental errors (e.g standard deviation)
         dir_path: str
             Path to folder where the figure is going to be saved
+        type_fig: str
+            Type of figure to plot. It can be `trajectories` to plot all the simulated trajectories or `mean_std`
+            to plot the mean and standard deviation
         add_y_histogram: bool
             Whether to add a histogram of the concentrations at the last time point of the simulation
         fig_name: str
             String used to give a name to the cluster figures
-        plot_format: str or None; default None
+        plot_format: str; default `png`
             Format used to save the figures: png, pdf, etc
         species_ftn_fit: dict, optional
             Dictionary of species with their respective function to fit their dynamics
@@ -228,7 +235,7 @@ class VisualizeSimulations(object):
                 x = x_data[comp]
                 y = y_data[comp]
                 for clus in self.clusters:
-                    fig, ax = plt.subplots()
+                    fig, ax = plt.subplots(**figure_options)
                     if y_error is not None:
                         yerr = y_error[comp]
                         ax.errorbar(x, y, yerr, color='r', alpha=1, zorder=10)
@@ -240,7 +247,7 @@ class VisualizeSimulations(object):
             plots_dict = {}
             for comp in components:
                 for clus in self.clusters:
-                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots()
+                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots(**figure_options)
         else:
             raise ValueError('both x_data and y_data must be passed to plot experimental data')
 
@@ -250,7 +257,7 @@ class VisualizeSimulations(object):
                 plot_data = self._plot_dynamics_cluster_types_norm_ftn_species(plots_dict=plots_dict,
                                                                                components=components,
                                                                                species_ftn_fit=species_ftn_fit,
-                                                                               **kwargs)
+                                                                               **fit_options)
 
             else:
                 plot_data = self._plot_dynamics_cluster_types_norm(plots_dict=plots_dict, components=components,
@@ -259,13 +266,14 @@ class VisualizeSimulations(object):
 
         else:
             plot_data = self._plot_dynamics_cluster_types(plots_dict=plots_dict, components=components,
-                                                          add_y_histogram=add_y_histogram)
+                                                          add_y_histogram=add_y_histogram,
+                                                          type_fig=type_fig)
 
         if fig_name:
             fig_name = '_' + fig_name
         for name, plot in plot_data.items():
             final_save_path = os.path.join(dir_path, name + fig_name)
-            plot[0].savefig(final_save_path, dpi=500, format=plot_format)
+            plot[0].savefig(final_save_path + f'.{plot_format}', dpi=500)
 
         return plot_data
 
@@ -303,16 +311,21 @@ class VisualizeSimulations(object):
             raise TypeError('Type of model component not valid for visualization')
         return sp_trajectory, name
 
-    def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram=False):
+    def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram, type_fig):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             for comp in components:
                 # Obtain component values
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
                 fig, ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)]
-                ax.plot(self.tspan, sp_trajectory,
-                        color='blue',
-                        alpha=0.2)
+                if type_fig == 'trajectories':
+                    ax.plot(self.tspan, sp_trajectory,
+                            color='blue',
+                            alpha=0.2)
+                elif type_fig == 'mean_std':
+                    mean = np.mean(sp_trajectory, axis=1)
+                    std = np.std(sp_trajectory, axis=1)
+                    ax.errorbar(self.tspan, mean, yerr=std, color='blue')
 
                 if add_y_histogram:
                     self._add_y_histogram(ax, sp_trajectory)
@@ -324,7 +337,7 @@ class VisualizeSimulations(object):
                 # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
                 ax.set_ylim([sp_min_conc, sp_max_conc])
                 fig.suptitle('{0}, cluster {1}'.
-                            format(name, idx))
+                             format(name, idx))
         return plots_dict
 
     def _plot_dynamics_cluster_types_norm(self, plots_dict, components, norm_value=None, add_y_histogram=False):
@@ -459,7 +472,7 @@ class VisualizeSimulations(object):
         obs_values = np.sum(y[:, :, sps], axis=2)
         return obs_values.T
 
-    def hist_clusters_parameters(self, par_idxs, ylabel='', plot_format=None, dir_path=''):
+    def hist_clusters_parameters(self, par_idxs, ylabel='', plot_format='png', dir_path=''):
         """
         Creates a Figure for each cluster. Each figure contains a histogram for each parameter provided.
         The sum of each parameter histogram is normalized to 1
@@ -472,7 +485,7 @@ class VisualizeSimulations(object):
             y-axis labels for each figure
         dir_path: str
             Path to directory where the file is going to be saved
-        plot_format: str or None; default None
+        plot_format: str; default `png`
             Format used to save the figures: `png`, `pdf`, etc
         Returns
         -------
@@ -689,7 +702,7 @@ class VisualizeSimulations(object):
             raise NotImplementedError('Type of visualization not implemented')
         return
 
-    def __get_avgs(self, y, pars, products_matched, reactants_matched, normalize):
+    def _get_avgs(self, y, pars, products_matched, reactants_matched, normalize):
         """
         This function uses the simulated trajectories from each cluster and obtains the reaction
         rates of the matched product reactions and reactant reactions. After obtaining the
@@ -709,6 +722,8 @@ class VisualizeSimulations(object):
         """
         products_avg = np.zeros((len(products_matched), len(self.tspan)))
         reactants_avg = np.zeros((len(reactants_matched), len(self.tspan)))
+        all_products_std = np.zeros((len(products_matched), len(self.tspan)))
+        all_reactants_std = np.zeros((len(reactants_matched), len(self.tspan)))
         unique_products = list(dict.fromkeys(products_matched))
         unique_reactants = list(dict.fromkeys(reactants_matched))
         all_reactions = unique_products + unique_reactants
@@ -729,18 +744,22 @@ class VisualizeSimulations(object):
 
             # values[values < 0] = 0
             values_avg = np.average(values, axis=0)
+            products_std = np.std(values, axis=0)
 
             if rxn.reversible:
                 if 'rev' in rxn._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
+                    products_std[values_avg > 0] = 0
                 else:
+                    products_std[:, values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
 
+            all_products_std[rxn_idx] = products_std
             products_avg[rxn_idx] = values_avg
 
             # Creating labels
-            plabel = hf.rate_2_interactions(self.model, str(rate))
+            plabel = str(rate)
             rxn_color = reaction_color[rate]
             pcolors.append(rxn_color)
             plabels.append(plabel)
@@ -752,20 +771,26 @@ class VisualizeSimulations(object):
 
         for rct_idx, rct in enumerate(reactants_matched):
             rate = rct.rate
-            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters, self.time_change)
+            values = calculate_reaction_rate(rate, y, pars, self.par_name_idx, self.changed_parameters,
+                                             self.time_change)
+
             values_avg = np.average(values, axis=0)
+            reactants_std = np.std(values, axis=0)
 
             if rct.reversible:
                 if 'rev' in rct._rxn_dict.keys():
                     values_avg[values_avg < 0] = values_avg[values_avg < 0] * (-1)
                     values_avg[values_avg > 0] = 0
+                    reactants_std[values_avg > 0] = 0
                 else:
+                    reactants_std[values_avg < 0] = 0
                     values_avg[values_avg < 0] = 0
 
+            all_reactants_std[rct_idx] = reactants_std
             reactants_avg[rct_idx] = values_avg
 
             # Creating labels
-            rlabel = hf.rate_2_interactions(self.model, str(rate))
+            rlabel = str(rate)
             rxn_color = reaction_color[rate]
             rcolors.append(rxn_color)
             rlabels.append(rlabel)
@@ -775,12 +800,13 @@ class VisualizeSimulations(object):
 
         if normalize:
             rtotals = np.sum(reactants_avg, axis=0)
-            reactants_avg = reactants_avg / (rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
+            reactants_avg = reactants_avg / (
+                        rtotals + np.finfo(float).eps)  # Add small number to avoid division by zero
 
         plegend_info = (pcolors, plabels, plegend_patches)
         rlegend_info = (rcolors, rlabels, rlegend_patches)
 
-        return products_avg, reactants_avg, plegend_info, rlegend_info
+        return products_avg, all_products_std, reactants_avg, all_reactants_std, plegend_info, rlegend_info
 
     def __bar_rxns(self, products_matched, reactants_matched, plots, dir_path, fig_name, normalize):
         for c_idx, clus in self.clusters.items():
@@ -789,10 +815,13 @@ class VisualizeSimulations(object):
             y_poffset = np.zeros(len(self.tspan))
             y_roffset = np.zeros(len(self.tspan))
 
-            products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
-                                                                                      products_matched,
-                                                                                      reactants_matched,
-                                                                                      normalize)
+            products_avg, all_products_ci, reactants_avg, all_reactants_ci, plegend_info, rlegend_info = \
+                self._get_avgs(
+                    y, pars,
+                    products_matched,
+                    reactants_matched,
+                    normalize)
+
             pcolors, plabels, plegend_patches = plegend_info
             rcolors, rlabels, rlegend_patches = rlegend_info
 
@@ -801,19 +830,26 @@ class VisualizeSimulations(object):
 
             for prxn, pcol in zip(range(len(products_matched)), pcolors):
                 sp_pctge = products_avg[prxn]
-                ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2] - self.tspan[1])
-                y_poffset = y_poffset + sp_pctge
+                if not normalize:
+                    ax1.plot(self.tspan, sp_pctge, color=pcol)
+
+                else:
+                    ax1.bar(self.tspan, sp_pctge, color=pcol, bottom=y_poffset, width=self.tspan[2] - self.tspan[1])
+                    y_poffset = y_poffset + sp_pctge
 
             for rrxn, rcol in zip(range(len(reactants_matched)), rcolors):
                 sp_pctge = reactants_avg[rrxn]
-                ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
+                if not normalize:
+                    ax2.plot(self.tspan, sp_pctge, color=rcol)
+                else:
+                    ax2.bar(self.tspan, sp_pctge, color=rcol, bottom=y_roffset, width=self.tspan[2] - self.tspan[1])
                 y_roffset = y_roffset + sp_pctge
 
             ax1.set(title='Producing reactions')
             ax2.set(title='Consuming reactions')
             ax3 = fig.add_subplot(111, frameon=False)
             # hide tick and tick label of the big axes
-            ax3.tick_params(axis='both', which='both',  labelcolor='none', top=False,
+            ax3.tick_params(axis='both', which='both', labelcolor='none', top=False,
                             bottom=False, left=False, right=False)
             ax3.grid(False)
             ax3.set(xlabel="Time", ylabel='Percentage')
@@ -839,10 +875,13 @@ class VisualizeSimulations(object):
         for c_idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
             pars = self.all_parameters[clus]
-            products_avg, reactants_avg, plegend_info, rlegend_info = self.__get_avgs(y, pars,
-                                                                                      products_matched,
-                                                                                      reactants_matched,
-                                                                                      normalize)
+
+            products_avg, all_products_ci, reactants_avg, all_reactants_ci, plegend_info, rlegend_info = \
+                self._get_avgs(
+                    y, pars,
+                    products_matched,
+                    reactants_matched,
+                    normalize)
 
             fig = plots['plot_cluster{0}'.format(c_idx)][0]
             ax1, ax2 = plots['plot_cluster{0}'.format(c_idx)][1]
@@ -937,7 +976,7 @@ class VisualizeSimulations(object):
             _set_axis_style(ax1, clus_labels)
 
             final_save_path = os.path.join(dir_path, 'violin_sp_{0}'.format(self.model.parameters[sp_ic].name))
-            fig.savefig(final_save_path + '.pdf', format='pdf')
+            fig.savefig(final_save_path + '.png', format='png', bbox_inches='tight')
             plt.close(fig)
 
             ### Code to plot violinplots with seaborn
