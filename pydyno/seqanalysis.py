@@ -381,7 +381,7 @@ class SeqAnalysis:
     def states_colors(self):
         return self._states_colors
 
-    def cluster_representativeness(self, method='frequency', dmax=None, pradius=0.1,
+    def cluster_representativeness(self, method='freq', dmax=None, pradius=0.1,
                                    coverage=0.25, nrep=None):
 
         clusters = set(self.labels)
@@ -396,14 +396,14 @@ class SeqAnalysis:
         return clus_rep
 
     @staticmethod
-    def seq_representativeness(diss, method='frequency', dmax=None, pradius=0.1,
+    def seq_representativeness(diss, method='freq', dmax=None, pradius=0.1,
                                coverage=0.25, nrep=None):
         """
 
         Parameters
         ----------
         method: str
-            Method used to obtain the representativess of the sequences in each cluster
+            Method used to obtain the representativeness of the sequences in each cluster
         dmax: float
             Maximum theoretical distance
 
