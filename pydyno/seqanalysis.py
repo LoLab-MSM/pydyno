@@ -381,6 +381,14 @@ class SeqAnalysis:
     def states_colors(self):
         return self._states_colors
 
+    @states_colors.setter
+    def states_colors(self, colors_dict):
+        if len(colors_dict) != len(self.unique_states):
+            raise ValueError('There must be a color for each unique state')
+        else:
+            self._states_colors = colors_dict
+            self.cmap, self.norm = self.cmap_norm()
+
     def cluster_representativeness(self, method='freq', dmax=None, pradius=0.1,
                                    coverage=0.25, nrep=None):
 

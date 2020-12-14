@@ -553,8 +553,8 @@ class VisualizeSimulations(object):
             plots_dict['plot_cluster{0}'.format(clus)] = plt.subplots()
 
         if type_fig == 'bar':
-            self.__bar_sps(sps_matched, colors, plots_dict, dir_path, fig_name)
-
+            sps_avg_clusters = self.__bar_sps(sps_matched, colors, plots_dict, dir_path, fig_name)
+            return sps_avg_clusters
         elif type_fig == 'entropy':
             self.__entropy_sps(sps_matched, plots_dict, dir_path, fig_name)
 
@@ -562,10 +562,11 @@ class VisualizeSimulations(object):
             raise NotImplementedError('Type of visualization not implemented')
 
     def __bar_sps(self, sps_matched, colors, plots, dir_path, fig_name):
+        sps_avg_clusters = []
         for c_idx, clus in self.clusters.items():
             fig = plots['plot_cluster{0}'.format(c_idx)][0]
             ax = plots['plot_cluster{0}'.format(c_idx)][1]
-            y_offset = np.zeros(len(self.tspan))
+            y_offset = np.zeros(len(self.tspan) - 1)  # ignore first time point. Concentrations of zero cause issues
             y = self.all_simulations[clus]
             sps_total = np.sum(y[:, :, sps_matched], axis=(0, 2)) / (len(clus))
             sps_avg = np.zeros((len(sps_matched), len(self.tspan)))
@@ -574,18 +575,20 @@ class VisualizeSimulations(object):
                 sps_avg[idx] = sp_pctge
 
             for sps, col in enumerate(colors):
-                sp_pctge = sps_avg[sps]
-                ax.bar(self.tspan, sp_pctge, color=col, bottom=y_offset, width=self.tspan[2] - self.tspan[1])
+                sp_pctge = sps_avg[sps][1:]  # ignore first time point. Concentrations of zero cause issues
+                ax.bar(self.tspan[1:], sp_pctge, color=col, bottom=y_offset, width=self.tspan[2] - self.tspan[1])
                 y_offset = y_offset + sp_pctge
 
-            ax.set(xlabel='Time', ylabel='Percentage')
+            sps_avg_clusters.append(sps_avg)
+
+            ax.set(xlabel='Time', ylabel='Percentage', ylim=(0, 1))
             fig.suptitle('Cluster {0}'.format(c_idx))
             ax.legend(sps_matched, loc='lower center', bbox_to_anchor=(0.50, -0.4), ncol=5,
                       title='Species indices')
             final_save_path = os.path.join(dir_path, 'hist_avg_clus{0}_{1}'.format(c_idx, fig_name))
-            fig.savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            fig.savefig(final_save_path + '.png', format='png', bbox_inches='tight')
             plt.close(fig)
-        return
+        return sps_avg_clusters
 
     def __entropy_sps(self, sps_matched, plots, dir_path, fig_name):
         max_entropy = 0
@@ -612,7 +615,7 @@ class VisualizeSimulations(object):
         for c in self.clusters:
             plots['plot_cluster{0}'.format(c)][1].set(ylim=(0, max_entropy))
             final_save_path = os.path.join(dir_path, 'hist_avg_clus{0}_{1}'.format(c, fig_name))
-            plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.pdf', format='pdf', bbox_inches='tight')
+            plots['plot_cluster{0}'.format(c)][0].savefig(final_save_path + '.png', format='png', bbox_inches='tight')
             plt.close(plots['plot_cluster{0}'.format(c)][0])
         return
 
