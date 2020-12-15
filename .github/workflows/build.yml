@@ -22,12 +22,23 @@ jobs:
       shell: bash -l {0}
       run: |
         conda install --yes -c alubbock -c conda-forge numpy scipy matplotlib pytest h5py pydot pandas scikit-learn coveralls cython editdistance pathos hdbscan networkx coverage
-        pip install 'tellurium==2.1.5'
+    - name: Install tellurium
+      if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
+      shell: bash -l {0}
+      run: pip install tellurium
     - name: Install Pydyno
-      if: (matrix.os == 'windows-latest' && matrix.python-version == 3.6) != true
       shell: bash -l {0}
       run: |
         python -m pip install .
+    - name: Test with pytest in macos
+      if: matrix.os == 'macos-latest'
+      shell: bash -l {0}
+      run: |
+        pytest pydyno --deselect=item=pydyno/tests/test_discretization.py::TestPathSbmlSingle
+    - name: Test with pytest in ubuntu and windows
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest'
+      shell: bash -l {0}
+      run: |
         pytest pydyno
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
