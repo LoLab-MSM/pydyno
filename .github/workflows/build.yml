@@ -30,17 +30,17 @@ jobs:
     - name: Install Pydyno
       shell: bash -l {0}
       run: |
-        python -m pip install .
+        python setup.py build --build-lib=build/lib
     - name: Test with pytest in macos
       if: matrix.os == 'macos-latest'
       shell: bash -l {0}
       run: |
-        pytest pydyno --ignore=pydyno/tests/test_discretization_sbml.py
+        pytest build/lib --ignore=build/lib/pydyno/tests/test_discretization_sbml.py
     - name: Test with pytest in ubuntu and windows
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest'
       shell: bash -l {0}
       run: |
-        pytest pydyno
+        pytest pydyno build/lib
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
       shell: bash -l {0}
