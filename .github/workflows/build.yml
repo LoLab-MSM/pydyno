@@ -40,7 +40,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest'
       shell: bash -l {0}
       run: |
-        pytest pydyno build/lib
+        pytest build/lib
     - name: Create distribution
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'macOS-latest' && matrix.python-version == 3.7
       shell: bash -l {0}
