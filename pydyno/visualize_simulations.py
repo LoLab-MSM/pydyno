@@ -56,9 +56,9 @@ class VisualizeSimulations(object):
     >>> vs = VisualizeSimulations(model, sim, clusters=None)
     >>> vs.plot_cluster_dynamics([0, 1, 2]) \
         #doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-    {'plot_sp0_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>),
-    'plot_sp1_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>),
-    'plot_sp2_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>)}
+    {'comp0_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>),
+    'comp1_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>),
+    'comp2_cluster0': (<Figure size 640x480 with 1 Axes>, <matplotlib.axes._subplots.AxesSubplot object at ...>)}
     """
 
     def __init__(self, model, sim_results, clusters, truncate_idx=None,
@@ -211,7 +211,7 @@ class VisualizeSimulations(object):
         plot_format: str; default `png`
             Format used to save the figures: png, pdf, etc
         species_ftn_fit: dict, optional
-            Dictionary of species with their respective function to fit their dynamics
+            Dictionary of species with their respective function to fit their dynamics.
         norm: boolean, optional
             Normalizes species by max value in simulation
         norm_value: array-like or str
@@ -230,7 +230,7 @@ class VisualizeSimulations(object):
         if x_data is not None and y_data is not None:
             # creates a dictionary to store the different figures by cluster
             plots_dict = {}
-            for comp in components:
+            for comp_idx, comp in enumerate(components):
                 # access experimental data
                 x = x_data[comp]
                 y = y_data[comp]
@@ -241,13 +241,13 @@ class VisualizeSimulations(object):
                         ax.errorbar(x, y, yerr, color='r', alpha=1, zorder=10)
                     else:
                         ax.plot(x, y, color='r', alpha=1, zorder=10)
-                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = (fig, ax)
+                    plots_dict['comp{0}_cluster{1}'.format(comp_idx, clus)] = (fig, ax)
         elif x_data is None and y_data is None:
             # creates a dictionary to store the different figures by cluster
             plots_dict = {}
-            for comp in components:
+            for comp_idx, comp in enumerate(components):
                 for clus in self.clusters:
-                    plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)] = plt.subplots(**figure_options)
+                    plots_dict['comp{0}_cluster{1}'.format(comp_idx, clus)] = plt.subplots(**figure_options)
         else:
             raise ValueError('both x_data and y_data must be passed to plot experimental data')
 
@@ -314,10 +314,10 @@ class VisualizeSimulations(object):
     def _plot_dynamics_cluster_types(self, plots_dict, components, add_y_histogram, type_fig):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
-            for comp in components:
+            for comp_idx, comp in enumerate(components):
                 # Obtain component values
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
-                fig, ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)]
+                fig, ax = plots_dict['comp{0}_cluster{1}'.format(comp_idx, idx)]
                 if type_fig == 'trajectories':
                     ax.plot(self.tspan, sp_trajectory,
                             color='blue',
@@ -343,7 +343,7 @@ class VisualizeSimulations(object):
     def _plot_dynamics_cluster_types_norm(self, plots_dict, components, norm_value=None, add_y_histogram=False):
         for idx, clus in self.clusters.items():
             y = self.all_simulations[clus]
-            for n, comp in enumerate(components):
+            for comp_idx, comp in enumerate(components):
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
                 if isinstance(norm_value, list):
@@ -354,7 +354,7 @@ class VisualizeSimulations(object):
                 else:
                     norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
 
-                fig, ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)]
+                fig, ax = plots_dict['comp{0}_cluster{1}'.format(comp_idx, idx)]
                 ax.plot(self.tspan,
                         norm_trajectories,
                         color='blue',
@@ -371,35 +371,30 @@ class VisualizeSimulations(object):
         return plots_dict
 
     def _plot_dynamics_cluster_types_norm_ftn_species(self, plots_dict, components, species_ftn_fit, **kwargs):
-        sp_overlap = [ii for ii in species_ftn_fit if ii in components]
-        if not sp_overlap:
-            raise ValueError('components must be in species list')
-
+        comps_idx_fit = [components.index(comp_fit) for comp_fit in species_ftn_fit]
         for idx, clus in self.clusters.items():
             ftn_result = {}
             y = self.all_simulations[clus]
-            for comp in components:
+            for comp_idx, comp in enumerate(components):
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
                 norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
-                ax = plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1]
+                fig, ax = plots_dict['comp{0}_cluster{1}'.format(comp_idx, idx)][1]
+                # setting plot information
+                ax.set_xlabel('Time')
+                ax.set_ylabel('Concentration')
+                ax.set_ylim([0, 1])
+                fig.suptitle('{0}, cluster {1}'.format(name, idx))
                 ax.plot(self.tspan,
                         norm_trajectories,
                         color='blue',
                         alpha=0.2)
-                if comp in sp_overlap:
-                    result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[comp], xdata=self.tspan,
+                if comp_idx in comps_idx_fit:
+                    result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[comp_idx], xdata=self.tspan,
                                                   ydata=sp_trajectory.T, **kwargs)
                     ftn_result[comp] = result_fit
-            self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=sp_overlap, ftn_result=ftn_result)
+            self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=comps_idx_fit, ftn_result=ftn_result)
 
-            for comp in components:
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_xlabel('Time')
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_ylabel('Concentration')
-                # plots_dict['plot_sp{0}_cluster{1}'.format(comp, clus)][1].set_xlim([0, 8])
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][1].set_ylim([0, 1])
-                plots_dict['plot_sp{0}_cluster{1}'.format(comp, idx)][0].suptitle('{0}, cluster {1}'.
-                                                                                  format(name, idx))
         return plots_dict
 
     @staticmethod
@@ -421,7 +416,7 @@ class VisualizeSimulations(object):
 
     def _add_function_hist(self, plots_dict, idx, sp_overlap, ftn_result):
         for sp_dist in sp_overlap:
-            ax = plots_dict['plot_sp{0}_cluster{1}'.format(sp_dist, idx)][1]
+            ax = plots_dict['comp{0}_cluster{1}'.format(sp_dist, idx)][1]
             divider = make_axes_locatable(ax)
             axHistx = divider.append_axes("top", 1.2, pad=0.3, sharex=ax)
             # axHisty = divider.append_axes("right", 1.2, pad=0.3, sharey=ax)
