@@ -1,0 +1,10 @@
+pysb
+matplotlib
+anytree
+scikit-learn
+pydot
+editdistance
+pandas
+networkx
+numpy
+sympy==1.5 # pyup: ignore
