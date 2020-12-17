@@ -10,12 +10,12 @@ pin: True
 
 # set the default branch
 # default: empty, the default branch on GitHub
-branch:
+#branch:
 
 # update schedule
 # default: empty
 # allowed: "every day", "every week", ..
-schedule: "every week"
+schedule: every week
 
 # search for requirement files
 # default: True
@@ -26,28 +26,30 @@ search: False
 # default: empty
 # allowed: list
 requirements:
-  - requirements.txt:
-      # update all dependencies and pin them
-      update: all
-      pin: True
+# Add extra deps lookup location
+- requirements.txt:
+    # update all dependencies and pin them
+    update: all
+    pin: True
 
 # add a label to pull requests, default is not set
 # requires private repo permissions, even on public repos
 # default: empty
-label_prs:
+label_prs: deps-update
 
 # assign users to pull requests, default is not set
 # requires private repo permissions, even on public repos
 # default: empty
 assignees:
+- ortega2247
 
 # configure the branch prefix the bot is using
 # default: pyup-
-branch_prefix: pyup-
+branch_prefix: pyup/
 
 # set a global prefix for PRs
 # default: empty
-pr_prefix:
+#pr_prefix:
 
 # allow to close stale PRs
 # default: True
