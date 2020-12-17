@@ -101,9 +101,9 @@ class PlotSequences:
 
         plt.setp([a.get_xticklabels() for a in f.axes[:-3]], visible=False)
         plt.suptitle(title)
-        f.text(0.5, 0.04, 'Time (h)', ha='center')
-        final_path = os.path.join(dir_path, type_fig + '.pdf')
-        plt.savefig(final_path, bbox_inches='tight', format='pdf')
+        f.text(0.5, 0.04, 'Time', ha='center')
+        final_path = os.path.join(dir_path, type_fig + '.png')
+        plt.savefig(final_path, bbox_inches='tight', format='png')
         # plt.close('all')
 
         return
@@ -124,7 +124,7 @@ class PlotSequences:
             color_label_map.update({self.seq_analysis.states_colors[c]:c for c in set(modal_states[0])})
             axs[clus].set_ylim(0, 1)
             axs[clus].bar(self.seq_analysis.sequences.columns.tolist(), mc_norm, color=colors, width=width_bar)
-            axs[clus].set_ylabel('Freq (n={0})'.format(total_seqs), fontsize=N_ROW_FONTSIZE[nrows])  # Frequency
+            axs[clus].set_ylabel('subnetwork freq (n={0})'.format(total_seqs), fontsize=N_ROW_FONTSIZE[nrows])  # Frequency
             axs[clus].set_title('Cluster {0}'.format(clus), fontsize=N_ROW_FONTSIZE[nrows])
 
         return
