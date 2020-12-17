@@ -8,3 +8,6 @@ pandas
 networkx
 numpy
 sympy==1.5 # pyup: ignore
+pytest
+pathos
+hdbscan'
