@@ -72,7 +72,7 @@ else:
                               libraries=math_lib,
                               include_dirs=py_inc)]
 
-install_requires = ['pysb', 'matplotlib', 'anytree', 'scikit-learn', 'pydot',
+install_requires = ['pysb', 'matplotlib', 'anytree', 'scikit-learn', 'pydot', 'tqdm',
                     'editdistance', 'pandas', 'networkx', 'numpy', 'sympy==1.5']
 
 this_directory = os.path.abspath(os.path.dirname(__file__))

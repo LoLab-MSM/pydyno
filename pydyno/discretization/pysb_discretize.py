@@ -11,6 +11,7 @@ import pandas as pd
 import sympy
 import pydyno.util as hf
 from pydyno.seqanalysis import SeqAnalysis
+from tqdm import tqdm
 
 
 class PysbDomPath(DomPath):
@@ -157,15 +158,24 @@ class PysbDomPath(DomPath):
 
         network = self.create_bipartite_graph()
 
+        dom_path_partial = partial(dominant_paths_pysb, param_idx_dict=self.par_name_idx,
+                                   reactions_bidirectional=self.model.reactions_bidirectional, tspan=self.tspan,
+                                   network=network, target=target, type_analysis=type_analysis,
+                                   depth=depth, dom_om=dom_om)
+
+        pbar = tqdm(total=len(self.parameters))
+
+        def update(*a):
+            pbar.update()
+
         with SerialExecutor() if num_processors == 1 else \
                 ProcessPoolExecutor(max_workers=num_processors) as executor:
-            dom_path_partial = partial(dominant_paths_pysb, param_idx_dict=self.par_name_idx,
-                                       reactions_bidirectional=self.model.reactions_bidirectional, tspan=self.tspan,
-                                       network=network, target=target, type_analysis=type_analysis,
-                                       depth=depth, dom_om=dom_om)
+            results = []
+            for args in zip(self.trajectories, self.parameters):
+                f = executor.submit(dom_path_partial, *args)
+                f.add_done_callback(update)
+                results.append(f)
 
-            results = [executor.submit(dom_path_partial, *args)
-                       for args in zip(self.trajectories, self.parameters)]
             try:
                 signatures_labels = [r.result() for r in results]
             finally:
@@ -257,7 +267,7 @@ def calculate_reaction_rate(rate_react, trajectories, parameters, param_idx_dict
     return react_rate
 
 
-def pysb_reaction_flux_df(reactions_bidirectional, trajectories, parameters, param_idx_dict,  tspan):
+def pysb_reaction_flux_df(reactions_bidirectional, trajectories, parameters, param_idx_dict, tspan):
     """
     Create a pandas DataFrame with the reaction rates values at each time point
 
@@ -288,7 +298,7 @@ def pysb_reaction_flux_df(reactions_bidirectional, trajectories, parameters, par
     return rxns_df
 
 
-def dominant_paths_pysb(trajectories, parameters,  param_idx_dict, reactions_bidirectional, tspan,
+def dominant_paths_pysb(trajectories, parameters, param_idx_dict, reactions_bidirectional, tspan,
                         type_analysis, network, target, depth, dom_om):
     rxns_df = pysb_reaction_flux_df(reactions_bidirectional, trajectories[np.newaxis, :, :], parameters[np.newaxis, :],
                                     param_idx_dict, tspan)
