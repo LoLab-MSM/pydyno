@@ -6,7 +6,6 @@ from math import log10
 from collections import OrderedDict, ChainMap
 import numpy as np
 import pandas as pd
-from anytree import Node, findall
 from anytree.exporter import DictExporter
 
 # Types of analysis that have been implemented. For `production` the analysis consists in
@@ -182,8 +181,7 @@ def _dominant_paths(reaction_flux_df, network, tspan,
 
         dom_path_label = hashlib.sha1(json.dumps(t_paths, sort_keys=True).encode()).hexdigest()
         # This is to create a tree with the information of the dominant species
-        root = _create_tree(target, t_paths)
-        path_rlabels[dom_path_label] = DictExporter().export(root)
+        path_rlabels[dom_path_label] = t_paths
         signature[t_idx] = dom_path_label
         # path_sp_labels[rdom_label] = t_paths
     return signature, path_rlabels
@@ -271,19 +269,6 @@ def _flip_network_edges(network, neg_rr, prev_neg_rr):
         network.remove_edges_from(edges_to_remove)
         edges_to_add = [edge[::-1] for edge in edges_to_remove]
         network.add_edges_from(edges_to_add)
-
-
-def _create_tree(target, t_paths):
-    # This is to create a tree with the information of the dominant species
-    root = Node(target, order=0)
-    for idx, ds in enumerate(t_paths):
-        for pa, v in ds.items():
-            sps = np.concatenate(v)
-            for sp in sps:
-                p = findall(root, filter_=lambda n: n.name == pa and n.order == idx)
-                for m in p:
-                    Node(sp, parent=m, order=idx + 1)
-    return root
 
 
 def _species_connected_to_node(network, r, type_edge, idx_r):
