@@ -21,10 +21,8 @@ jobs:
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-        conda install -c anaconda graphviz
-        conda install -c conda-forge numpy scipy matplotlib pytest h5py pydot pandas "sympy=1.5" \
-        scikit-learn coveralls cython editdistance pathos hdbscan networkx coverage anytree
-        conda install -c alubbock pysb
+        conda install --yes -c conda-forge -c alubbock numpy scipy matplotlib pytest h5py pydot pandas \
+        scikit-learn coveralls cython editdistance pathos hdbscan networkx coverage pysb anytree
     - name: Install tellurium
       if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
       shell: bash -l {0}
