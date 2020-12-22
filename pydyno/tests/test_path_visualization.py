@@ -20,6 +20,6 @@ class TestVisualizationPysbSingle:
     def test_path_visualization(self, pysb_dom_path, data_files_dir):
         signatures, paths = pysb_dom_path.get_path_signatures(type_analysis='consumption',
                                                               dom_om=1, target='s0', depth=2)
-        path_filename = os.path.join(data_files_dir, 'test_path_visualization.png')
+        path_filename = os.path.join(data_files_dir, 'test_path_visualization.eps')
         visualization_path(model=enzyme_model, path=paths[0], target_node='s0',
                            type_analysis='consumption', filename=path_filename)
