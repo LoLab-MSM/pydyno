@@ -53,6 +53,29 @@ _VALID_METRICS = [
 _VALID_CLUSTERING = ['hdbscan', 'kmedoids', 'agglomerative', 'spectral']
 
 
+def lcs_dist_same_length_mp(seqs):
+    """
+    Longest common subsequence metric as defined by CESS H. ELZINGA in
+    'Sequence analysis: metric representations of categorical time series'
+
+    Parameters
+    ----------
+    seq1 : array-like
+        Sequence 1
+    seq2 : array-like
+        Sequence 2
+
+    Returns
+    -------
+
+    """
+    seq1 = seqs[0]
+    seq2 = seqs[1]
+    seq_len = len(seq1)
+    d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
+    return d_1_2
+
+
 def lcs_dist_same_length(seq1, seq2):
     """
     Longest common subsequence metric as defined by CESS H. ELZINGA in
@@ -88,12 +111,12 @@ def levenshtein(seq1, seq2):
 
 
 def multiprocessing_distance(data, metric_function, num_processors):
-    import multiprocessing as mp
     N, _ = data.shape
     upper_triangle = [(i, j) for i in range(N) for j in range(i + 1, N)]
-    with mp.Pool(processes=num_processors) as pool:
-        result = pool.starmap(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle])
-    dist_mat = squareform([item for item in result])
+    chunksize = N // num_processors
+    with ProcessPoolExecutor(max_workers=num_processors) as executor:
+        results = executor.map(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle], chunksize=chunksize)
+    dist_mat = squareform([item for item in results])
     return dist_mat.astype('float64')
 
 
@@ -242,10 +265,7 @@ class SeqAnalysis:
 
         if num_processors > 1:
             if metric == 'LCS':
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length,
-                                                num_processors=num_processors)
-            elif metric == 'levenshtein':
-                diss = multiprocessing_distance(unique_sequences.values, metric_function=levenshtein,
+                diss = multiprocessing_distance(unique_sequences.values, metric_function=lcs_dist_same_length_mp,
                                                 num_processors=num_processors)
             elif callable(metric):
                 diss = multiprocessing_distance(unique_sequences.values, metric_function=metric,
