@@ -110,12 +110,15 @@ def levenshtein(seq1, seq2):
     return d_1_2
 
 
-def multiprocessing_distance(data, metric_function, num_processors):
+def multiprocessing_distance3(data, metric_function, num_processors):
+    def data_generator(ut, d):
+        for (i, j) in ut:
+            yield d[i], d[j]
     N, _ = data.shape
     upper_triangle = [(i, j) for i in range(N) for j in range(i + 1, N)]
     chunksize = N // num_processors
     with ProcessPoolExecutor(max_workers=num_processors) as executor:
-        results = executor.map(metric_function, [(data[i], data[j]) for (i, j) in upper_triangle], chunksize=chunksize)
+        results = executor.map(metric_function, data_generator(upper_triangle, data), chunksize=chunksize)
     dist_mat = squareform([item for item in results])
     return dist_mat.astype('float64')
 
