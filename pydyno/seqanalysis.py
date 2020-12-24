@@ -110,7 +110,7 @@ def levenshtein(seq1, seq2):
     return d_1_2
 
 
-def multiprocessing_distance3(data, metric_function, num_processors):
+def multiprocessing_distance(data, metric_function, num_processors):
     def data_generator(ut, d):
         for (i, j) in ut:
             yield d[i], d[j]
