@@ -136,7 +136,7 @@ class PlotSequences:
         else:
             sort_values = np.random.rand(len(cluster_labels))
 
-        for clus in clusters:  # if we start from 1 it won't plot the sets not clustered
+        for clus_idx, clus in enumerate(clusters):  # if we start from 1 it won't plot the sets not clustered
             clus_seqs = self.seq_analysis.sequences.iloc[cluster_labels == clus]
             total_seqs = 0
             for seq in clus_seqs.index.values:
@@ -155,11 +155,11 @@ class PlotSequences:
                 lc = LineCollection(segments, cmap=self.seq_analysis.cmap, norm=self.seq_analysis.norm)
                 lc.set_array(np.array(seq))
                 lc.set_linewidth(10)
-                axs[clus].add_collection(lc)
-                axs[clus].set_ylabel('Seq (n={0})'.format(total_seqs), fontsize=N_ROW_FONTSIZE[nrows])  # Sequences
-                axs[clus].set_ylim(0, len(clus_seqs))
-                axs[clus].set_xlim(xx.min(), xx.max())
-                axs[clus].set_title('Cluster {0}'.format(clus), fontsize=N_ROW_FONTSIZE[nrows])
+                axs[clus_idx].add_collection(lc)
+                axs[clus_idx].set_ylabel('Seq (n={0})'.format(total_seqs), fontsize=N_ROW_FONTSIZE[nrows])  # Sequences
+                axs[clus_idx].set_ylim(0, len(clus_seqs))
+                axs[clus_idx].set_xlim(xx.min(), xx.max())
+                axs[clus_idx].set_title('Cluster {0}'.format(clus), fontsize=N_ROW_FONTSIZE[nrows])
                 count_seqs += 1
         return
 
