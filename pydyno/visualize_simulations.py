@@ -379,7 +379,7 @@ class VisualizeSimulations(object):
                 # Calculate reaction rate expression
                 sp_trajectory, name = self._calculate_expr_values(y, comp, clus)
                 norm_trajectories = np.divide(sp_trajectory, np.amax(sp_trajectory, axis=0))
-                fig, ax = plots_dict['comp{0}_cluster{1}'.format(comp_idx, idx)][1]
+                fig, ax = plots_dict['comp{0}_cluster{1}'.format(comp_idx, idx)]
                 # setting plot information
                 ax.set_xlabel('Time')
                 ax.set_ylabel('Concentration')
@@ -390,10 +390,10 @@ class VisualizeSimulations(object):
                         color='blue',
                         alpha=0.2)
                 if comp_idx in comps_idx_fit:
-                    result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[comp_idx], xdata=self.tspan,
+                    result_fit = hf.curve_fit_ftn(fn=species_ftn_fit[components[comp_idx]], xdata=self.tspan,
                                                   ydata=sp_trajectory.T, **kwargs)
                     ftn_result[comp] = result_fit
-            self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=comps_idx_fit, ftn_result=ftn_result)
+            self._add_function_hist(plots_dict=plots_dict, idx=idx, sp_overlap=comps_idx_fit, components=components, ftn_result=ftn_result)
 
         return plots_dict
 
@@ -414,7 +414,7 @@ class VisualizeSimulations(object):
         axHisty.add_artist(anchored_text)
         axHisty.ticklabel_format(axis='x', style='sci', scilimits=(-2, 2))
 
-    def _add_function_hist(self, plots_dict, idx, sp_overlap, ftn_result):
+    def _add_function_hist(self, plots_dict, idx, sp_overlap, components, ftn_result):
         for sp_dist in sp_overlap:
             ax = plots_dict['comp{0}_cluster{1}'.format(sp_dist, idx)][1]
             divider = make_axes_locatable(ax)
@@ -424,7 +424,7 @@ class VisualizeSimulations(object):
                      visible=False)  # + axHisty.get_yticklabels(), visible=False)
 
             # This is specific for the time of death fitting in apoptosis
-            hist_data = hf.column(ftn_result[sp_dist], 1)
+            hist_data = hf.column(ftn_result[components[sp_dist]], 1)
             # TODO I should look deeper into how many trajectories have different dynamics
             hist_data_filt = hist_data[(hist_data > 0) & (hist_data < self.tspan[-1])]
             # shape, loc, scale = lognorm.fit(hist_data_filt, floc=0)
