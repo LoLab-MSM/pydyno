@@ -1,4 +1,4 @@
-import os
+import sys
 from pydyno.examples.double_enzymatic.mm_two_paths_model import model as enzyme_model
 from pysb.simulator import ScipyOdeSimulator
 import pytest
@@ -16,7 +16,7 @@ def pysb_dom_path():
 
 
 class TestVisualizationPysbSingle:
-
+    @pytest.mark.skipif(sys.platform == 'win32', reason="Graphviz has troubles on windows")
     def test_path_visualization(self, pysb_dom_path, data_files_dir):
         signatures, paths = pysb_dom_path.get_path_signatures(type_analysis='consumption',
                                                               dom_om=1, target='s0', depth=2)
