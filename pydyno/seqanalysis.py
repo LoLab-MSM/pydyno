@@ -398,9 +398,16 @@ class SeqAnalysis:
             clus_seqs = self._sequences.iloc[self.labels == clus]
             clus_idxs = clus_seqs.index.get_level_values(0).values
             dist = self.diss[clus_idxs][:, clus_idxs]
-            rep_idxs = self.seq_representativeness(diss=dist, method=method, dmax=dmax, pradius=pradius,
-                                                   coverage=coverage, nrep=nrep)
-            clus_rep[clus] = clus_seqs.iloc[rep_idxs]
+            if nrep is None and coverage > 0:
+                rep_idxs, rep_pct = self.seq_representativeness(diss=dist, method=method, dmax=dmax, pradius=pradius,
+                                                                coverage=coverage, nrep=nrep)
+                clus_rep_seqs = clus_seqs.iloc[rep_idxs].copy()
+                clus_rep_seqs['rep_pctge'] = rep_pct
+                clus_rep[clus] = clus_rep_seqs
+            else:
+                rep_idxs = self.seq_representativeness(diss=dist, method=method, dmax=dmax, pradius=pradius,
+                                                                coverage=coverage, nrep=nrep)
+                clus_rep[clus] = clus_seqs.iloc[rep_idxs].copy()
         return clus_rep
 
     @staticmethod
@@ -462,6 +469,7 @@ class SeqAnalysis:
 
         # Coverage fixed
         if nrep is None and coverage > 0:
+            idx_pct = []
             pctrep = 0
 
             while pctrep < coverage and idx < n_seq:
@@ -470,9 +478,11 @@ class SeqAnalysis:
                     tempm = sorted_dist[:, idxrep]
                     nbnear = np.sum((np.sum(tempm < pradius, axis=1) > 0) * weights[sorted_score])
                     pctrep = nbnear / weights_sum
-
+                    pctg_seq = np.sum((np.sum(sorted_dist[:, [idx]] < pradius, axis=1) > 0) * weights[sorted_score]) / \
+                               weights_sum
+                    idx_pct.append(pctg_seq)
                 idx += 1
-
+            return sorted_score[idxrep], idx_pct
         else:
             repcount = 0
 
@@ -481,10 +491,9 @@ class SeqAnalysis:
                     idxrep.append(idx)
                     repcount += 1
                 idx += 1
+            return sorted_score[idxrep]
 
         # TODO: Add quality measures from: https://github.com/cran/TraMineR/blob/master/R/dissrep.R
-
-        return sorted_score[idxrep]
 
     def plot_sequences(self, type_fig='modal', plot_all=False, title='', dir_path='', sort_seq=None):
         """
