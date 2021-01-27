@@ -16,22 +16,3 @@ identify signaling drivers and characterize dynamic signal processes within a ne
 combines physical chemistry, statistical clustering, and tropical algebra formalisms to identify interactions 
 that drive time-dependent behavior in signaling pathways. 
 
-## Running PyDyNo
-
-PyDyNo depends on PySB so the easiest  way to use it is to have a PySB model and you can simply do:
-```python
-# Import libraries
-import numpy as np
-from pydyno.discretize import Discretize
-from pydyno.examples.double_enzymatic.mm_two_paths_model import model
-from pysb.simulator.scipyode import ScipyOdeSimulator
-
-# Run the model simulation to obtain the dynmics of the molecular species
-tspan = np.linspace(0, 50, 101)
-sim = ScipyOdeSimulator(model, tspan=tspan).run()
-
-tro = Discretize(model=model, simulations=sim, diff_par=1)
-tro.get_signatures()
-
-```
-![discretization](https://github.com/LoLab-VU/pydyno/blob/master/pydyno/examples/double_enzymatic/figures/s0.png)
