@@ -4,11 +4,15 @@
 
 # PyDyNo
 
-Python Dynamic analysis of Biochemical Networks (PyDyNo) is an open source python library for the analysis of 
+Python Dynamic analysis of iochemical NetwOrks (PyDyNo) is an open source python library for the analysis of 
 signal execution in network-driven biological processes. PyDyNo supports the analysis of [PySB](http://pysb.org/)
 and [SBML](http://sbml.org/Main_Page) models.
 
-## [Jupyter notebooks to reproduce paper figures](https://github.com/LoLab-VU/pydyno/tree/master/pydyno/examples/paper1)
+## Paper figures
+
+[Jupyter notebooks to reproduce paper figures](https://github.com/LoLab-VU/pydyno/tree/master/pydyno/examples/paper1)
+
+The preprint paper can be found on [here](https://www.biorxiv.org/content/10.1101/2021.01.26.428266v1.full)
 
 ## Installation
 
@@ -124,7 +128,7 @@ visualization_path(model,
                    target_node='s5', 
                    type_analysis='production', 
                    filename='path_0.png')
-# Visualization is saved to local directory wit the filename path0.png
+# Visualization is saved to local directory with the filename path0.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/path_0.png)
@@ -135,7 +139,7 @@ visualization_path(model,
                    target_node='s5', 
                    type_analysis='production', 
                    filename='path_1.png')
-# Visualization is saved to local directory wit the filename path1.png
+# Visualization is saved to local directory with the filename path1.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/path_1.png)
@@ -146,7 +150,7 @@ visualization_path(model,
                    target_node='s5', 
                    type_analysis='production', 
                    filename='path_2.png')
-# Visualization is saved to local directory wit the filename path2.png
+# Visualization is saved to local directory with the filename path2.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/path_2.png)
