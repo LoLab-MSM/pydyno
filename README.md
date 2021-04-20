@@ -8,6 +8,8 @@ Python Dynamic analysis of Biochemical Networks (PyDyNo) is an open source pytho
 signal execution in network-driven biological processes. PyDyNo supports the analysis of [PySB](http://pysb.org/)
 and [SBML](http://sbml.org/Main_Page) models.
 
+## [Jupyter notebooks to reproduce paper figures](https://github.com/LoLab-VU/pydyno/tree/master/pydyno/examples/paper1)
+
 ## Installation
 
 ### From PyPI
