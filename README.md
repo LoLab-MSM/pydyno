@@ -8,11 +8,18 @@ Python Dynamic analysis of iochemical NetwOrks (PyDyNo) is an open source python
 signal execution in network-driven biological processes. PyDyNo supports the analysis of [PySB](http://pysb.org/)
 and [SBML](http://sbml.org/Main_Page) models.
 
-## Paper figures
+## Publications
 
-[Jupyter notebooks to reproduce paper figures](https://github.com/LoLab-VU/pydyno/tree/master/pydyno/examples/paper1)
+ Probability-based mechanisms in biological networks with parameter uncertainty
 
-The preprint paper can be found on [here](https://www.biorxiv.org/content/10.1101/2021.01.26.428266v1.full)
+Oscar O. Ortega, Blake A. Wilson, James C. Pino, Michael W. Irvin, Geena V. Ildefonso, Shawn P. Garbett, Carlos F. Lopez
+
+bioRxiv 2021.01.26.428266; doi: https://doi.org/10.1101/2021.01.26.428266 
+
+The preprint paper can be found [here](https://www.biorxiv.org/content/10.1101/2021.01.26.428266v1.full)
+
+Jupyter notebooks with the code to reproduce the paper figures can be found [here](https://github.com/LoLab-VU/pydyno/tree/master/pydyno/examples/paper1)
+
 
 ## Installation
 
