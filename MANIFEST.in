@@ -1,4 +1,5 @@
 recursive-include pydyno/lcs *.c *.h *.pxd *.pyx
 include pydyno/examples/sbml_example/double_enzymatic_sbml.xml
+include pydyno/examples/double_enzymatic/calibrated_pars.npy
 include versioneer.py
 include pydyno/_version.py
