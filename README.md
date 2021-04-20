@@ -72,7 +72,7 @@ sim = ScipyOdeSimulator(model, tspan=tspan).run(param_values=pars[:100])
 ```python
 vt = VisualizeSimulations(model, sim, clusters=None)
 vt.plot_cluster_dynamics(components=[5])
-# This saves the figure in the local folder where this command is run
+# This saves the figure in the local folder with the filename comp0_cluster0.png
 ```
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/double_enzymatic_reaction_6_1.png)
 
@@ -102,6 +102,7 @@ signatures.agglomerative_clustering(2)
 ```python
 # Plot signatures
 signatures.plot_sequences()
+# File is saved to the local directory with the filename modal.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/double_enzymatic_reaction_13_0.png)
@@ -109,7 +110,6 @@ signatures.plot_sequences()
 ```python
 paths
 ```
-
     {2: [OrderedDict([('s5', [['s3'], ['s4']])]),
       OrderedDict([('s3', [['s0', 's1']]), ('s4', [['s0', 's2']])])],
      1: [OrderedDict([('s5', [['s4']])]), OrderedDict([('s4', [['s0', 's2']])])],
@@ -123,6 +123,7 @@ visualization_path(model,
                    target_node='s5', 
                    type_analysis='production', 
                    filename='path_0.png')
+# Visualization is saved to local directory wit the filename path0.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/path_0.png)
@@ -133,6 +134,7 @@ visualization_path(model,
                    target_node='s5', 
                    type_analysis='production', 
                    filename='path_1.png')
+# Visualization is saved to local directory wit the filename path1.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/path_1.png)
@@ -143,6 +145,7 @@ visualization_path(model,
                    target_node='s5', 
                    type_analysis='production', 
                    filename='path_2.png')
+# Visualization is saved to local directory wit the filename path2.png
 ```
 
 ![png](pydyno/examples/double_enzymatic/double_enzymatic_reaction_files/path_2.png)
