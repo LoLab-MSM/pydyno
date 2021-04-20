@@ -49,7 +49,6 @@ from pydyno.visualize_simulations import VisualizeSimulations
 from pydyno.discretization import PysbDomPath
 from pydyno.visualize_discretization import visualization_path
 from pysb.simulator import ScipyOdeSimulator
-%matplotlib inline
 ```
 
 # Load the calibrated parameters and simulate the model with 100 different parameter sets
