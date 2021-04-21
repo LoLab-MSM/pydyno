@@ -10,8 +10,7 @@ and [SBML](http://sbml.org/Main_Page) models.
 
 ## Publications
 
- Probability-based mechanisms in biological networks with parameter uncertainty
-
+PrePrint: Probability-based mechanisms in biological networks with parameter uncertainty  
 Oscar O. Ortega, Blake A. Wilson, James C. Pino, Michael W. Irvin, Geena V. Ildefonso, Shawn P. Garbett, Carlos F. Lopez
 
 bioRxiv 2021.01.26.428266; doi: https://doi.org/10.1101/2021.01.26.428266 
@@ -128,7 +127,7 @@ paths
      0: [OrderedDict([('s5', [['s3']])]), OrderedDict([('s3', [['s0', 's1']])])]}
 
 # Visualize execution modes
-
+[Graphviz](https://graphviz.org/download/) is necessary to obtain these visualizations
 ```python
 visualization_path(model, 
                    path=paths[0], 
