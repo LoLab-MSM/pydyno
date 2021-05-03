@@ -67,7 +67,8 @@ def lcs_dist_same_length(seq1, seq2):
 
     Returns
     -------
-
+    int
+        Longest common subsequence distance between seq1 and seq2
     """
     seq_len = len(seq1)
     d_1_2 = 2 * seq_len - 2 * lcs.lcs_std(seq1, seq2)[0]
@@ -99,11 +100,11 @@ def multiprocessing_distance(data, metric_function, num_processors):
 
 class SeqAnalysis:
     """
-    Analyze and visualize discretized trajectories
+    Analyze and visualize discretized simulations
 
     Parameters
     ----------
-    sequences : str, pd.DataFrame, np.ndarray, list
+    sequences : str or pd.DataFrame or np.ndarray or list
         Sequence data from the discretization of a PySB model. If str it must be a csv file
         with the sequences as rows and the first row must have the time points of the simulation.
     target : str
@@ -188,7 +189,8 @@ class SeqAnalysis:
 
         Returns
         -------
-        pd.DataFrame with the unique sequences
+        pd.DataFrame
+            Pandas dataframe with unique sequences
 
         """
         data_seqs = self._sequences.groupby(self._sequences.columns.tolist(),
@@ -209,7 +211,8 @@ class SeqAnalysis:
 
         Returns
         -------
-        Sequences truncated at the idx indicated
+        pydyno.seqanalysis.SeqAnalysis
+            Sequences truncated at the idx indicated
         """
         data_seqs = self._sequences[self._sequences.columns.tolist()[:idx]]
         return SeqAnalysis(data_seqs, self.target)
@@ -227,7 +230,8 @@ class SeqAnalysis:
 
         Returns
         -------
-        dissimilarity matrix: np.ndarray
+        np.ndarray
+            dissimilarrity matrix
         """
 
         # Sort sequences
@@ -289,7 +293,7 @@ class SeqAnalysis:
 
         Returns
         -------
-        seqAnalysis
+        pydyno.seqanalysis.seqAnalysis
             a new object with the selected sequences
         """
         if isinstance(group, int):
@@ -391,6 +395,29 @@ class SeqAnalysis:
 
     def cluster_representativeness(self, method='freq', dmax=None, pradius=0.1,
                                    coverage=0.25, nrep=None):
+        """
+        Obtain Representative sequences from each cluster
+
+        Parameters
+        ----------
+        method: str
+            Name of the method used to calculate cluster representatives. Supported methods:
+            `freq`, `density`, `dist`
+        dmax: float
+            Maximum theoretical distance
+        pradius: float
+            neighborhood radius as a percentage of the maximum ditance dmax. Default is 0.1
+        coverage: float
+            Size of the representative set, i.e the proportion of objects having a
+            representative in their neighborhood
+        nrep: int
+            Number of representatives. If None, coverage argument is used
+
+        Returns
+        -------
+        dict
+            Dictionary where keys are the cluster labels and values are the representative sequences
+        """
 
         clusters = set(self.labels)
         clus_rep = {}
@@ -411,12 +438,22 @@ class SeqAnalysis:
         Parameters
         ----------
         method: str
-            Method used to obtain the representativeness of the sequences in each cluster
+            Name of the method used to calculate cluster representatives. Supported methods:
+            `freq`, `density`, `dist`
         dmax: float
             Maximum theoretical distance
+        pradius: float
+            neighborhood radius as a percentage of the maximum ditance dmax. Default is 0.1
+        coverage: float
+            Size of the representative set, i.e the proportion of objects having a
+            representative in their neighborhood
+        nrep: int
+            Number of representatives. If None, coverage argument is used
 
         Returns
         -------
+        np.ndarray
+            Indices of the representative sequences
 
         """
         n_seq = diss.shape[0]
@@ -488,9 +525,11 @@ class SeqAnalysis:
 
     def plot_sequences(self, type_fig='modal', plot_all=False, title='', dir_path='', sort_seq=None):
         """
-        Function to plot three different figures of the sequences.
-        The modal figure takes the mode state at each time and plots
-        the percentage of that state compated to all the other states.
+        Plot sequences. A subplot is generated for each cluster.
+
+        Three types of plots can be generated: `modal`, `trajectories`, and `entropy`.
+        The modal figure takes the mode state at each time point and plots
+        the percentage of that state relative to all the other states.
 
         The trajectories figure plots each of the sequences.
 
@@ -525,14 +564,21 @@ class SeqAnalysis:
     def hdbscan_clustering(self, min_cluster_size=50, min_samples=5,
                            alpha=1.0, cluster_selection_method='eom', **kwargs):
         """
+        Perform HDBSCAN clustering. For more information see `HDBSCAN <https://hdbscan.readthedocs.io/en/latest/index.html>`_
 
         Parameters
         ----------
-        min_cluster_size
-        min_samples
-        alpha
-        cluster_selection_method
-        kwargs
+        min_cluster_size : int, optional(default=5)
+            The minimum size of clusters
+        min_samples : int, optional(default=None)
+            The number of samples in a neighborhood for a point to
+            be considered a core point
+        alpha : float, optional(default=1.0)
+            A distance scaling parameter as used in robust single linkage
+        cluster_selection_method : str, optional (default='eom')
+            The method used to select clusters from the condensed tree
+        kwargs : dict
+            Extra arguments passed to the hdbscan clustering function
 
         Returns
         -------
@@ -552,6 +598,7 @@ class SeqAnalysis:
 
     def Kmedoids(self, n_clusters):
         """
+        Perform kmedoids clustering.
 
         Parameters
         ----------
@@ -573,6 +620,22 @@ class SeqAnalysis:
         return
 
     def agglomerative_clustering(self, n_clusters, linkage='average', **kwargs):
+        """
+        Perform agglomerative clustering. For more information see `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html>`_
+
+        Parameters
+        ----------
+        n_clusters : int
+            The number of clusters to find
+        linkage : {‘ward’, ‘complete’, ‘average’, ‘single’}, default=’ward’
+            Linkage criterion to use
+        kwargs : dict
+            Other arguments to pass to the agglomerative clustering function
+
+        Returns
+        -------
+
+        """
         ac = cluster.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed',
                                              linkage=linkage, **kwargs).fit(self.diss)
         self._labels = ac.labels_
@@ -580,15 +643,37 @@ class SeqAnalysis:
         return
 
     def spectral_clustering(self, n_clusters, random_state=None, num_processors=1, **kwargs):
+        """
+        Perform spectral clustering. For more information see `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.SpectralClustering.html>`_
+
+        Parameters
+        ----------
+        n_clusters :
+            The dimension of the projection subspace
+        random_state : int, RandomState instance, default=None
+            A pseudo random number generator used for the initialization of the
+            lobpcg eigen vectors decomposition when eigen_solver='amg' and by the
+            K-Means initialization
+        num_processors : int, default=1
+            The number of parallel jobs to run
+        kwargs : dict
+            Other arguments to pass to the spectral clustering function
+
+        Returns
+        -------
+
+        """
         gamma = 1. / len(self.diss[0])
         kernel = np.exp(-self.diss * gamma)
         sc = cluster.SpectralClustering(n_clusters=n_clusters, random_state=random_state,
                                         affinity='precomputed', n_jobs=num_processors, **kwargs).fit(kernel)
         self._labels = sc.labels_
         self._cluster_method = 'spectral'
+        return
 
     def silhouette_score(self):
         """
+        Compute the mean Silhouette Coefficient of all samples. For more information see `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html>`_
 
         Returns
         -------
@@ -610,6 +695,26 @@ class SeqAnalysis:
             return score
 
     def silhouette_score_spectral_range(self, cluster_range, num_processors=1, random_state=None, **kwargs):
+        """
+        Calculate silhouette score for a range of cluster numbers using spectral clustering.
+        For more information see `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html>`_
+
+        Parameters
+        ----------
+        cluster_range: int or array-like
+            Range of cluster numbers
+        num_processors : int, default=1
+            The number of parallel jobs to run
+        random_state : int, RandomState instance or None, default=None
+            Determines random number generation for selecting a subset of samples.
+        kwargs : dict
+            Other parameters passed to the silhouette score function
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe with the silhouette score for each cluster number
+        """
         if isinstance(cluster_range, int):
             cluster_range = list(range(2, cluster_range + 1))  # +1 to cluster up to cluster_range
         elif hasattr(cluster_range, "__len__") and not isinstance(cluster_range, str):
@@ -631,20 +736,24 @@ class SeqAnalysis:
     def silhouette_score_agglomerative_range(self, cluster_range, linkage='average',
                                              num_processors=1, **kwargs):
         """
+        Calculate silhouette score for a range of cluster numbers using agglomerative clustering.
+        For more information see `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html>`_
 
         Parameters
         ----------
         cluster_range : list-like or int
-            Range of the number of clusterings to obtain the silhouette score
+            Range of cluster numbers
         linkage : str
             Type of agglomerative linkage
         num_processors : int
-            Number of cores to use
-        kwargs : key arguments to pass to the aggomerative clustering function
+            The number of parallel jobs to run
+        kwargs : dict
+            Other arguments to pass to the aggomerative clustering function
 
         Returns
         -------
-
+        pd.DataFrame
+            Dataframe with the silhouette score for each cluster number
         """
 
         if isinstance(cluster_range, int):
@@ -669,6 +778,15 @@ class SeqAnalysis:
         return clusters_df
 
     def calinski_harabaz_score(self):
+        """
+        Compute the Calinski and Harabasz score. Fore more information see `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.calinski_harabasz_score.html>`_
+
+        Returns
+        -------
+        float
+            Calinski harabasz score to measure quality of the clustering
+
+        """
         if self._labels is None:
             raise Exception('you must cluster the signatures first')
         score = metrics.calinski_harabasz_score(self.sequences, self._labels)

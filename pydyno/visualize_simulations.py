@@ -24,7 +24,7 @@ plt.ioff()
 
 class VisualizeSimulations(object):
     """
-    Visualize PySB simulations and parameter distributions in different clusters
+    Visualize PySB simulations and parameter distributions in different execution modes
 
     Parameters
     ----------
@@ -33,10 +33,8 @@ class VisualizeSimulations(object):
     sim_results: SimulationResult or h5 file from PySB simulation
         SimulationResult object or h5 file with the dynamic solutions of the model for all the parameter sets
     clusters: vector-like or str or None
-        Indices of the parameters that belong to an specific cluster. It can be a list of files that contain
-        the indices of each cluster, a list of lists where each list has the parameter indices of a cluster or
-        a file that contains the cluster labels to which each parameter belongs to, or None if the user want to
-        analyse the sim_results as a single cluster.
+        Cluster labels for each simulation. It can be a files that contain the cluster labelso, or None
+        if the user want to analyse the sim_results as a single cluster.
     truncate_idx: int
         Index at which the simulation is truncated. Only works when clusters is None. It cannot be used at the same
          time with truncate_idx.
@@ -144,7 +142,7 @@ class VisualizeSimulations(object):
         return self._time_change
 
     @staticmethod
-    def check_clusters_arg(clusters, nsims):  # check clusters
+    def check_clusters_arg(clusters, nsims):  # check cluster labels
         def _clusters_to_dict(cluster_labels, n):
             # Takes a list of cluster labels and create a dictionary where the keys are the labels, and
             # the values are the indices in the original list
@@ -184,7 +182,7 @@ class VisualizeSimulations(object):
                               type_fig='trajectories', add_y_histogram=False, fig_name='', plot_format='png',
                               species_ftn_fit=None, norm=False, norm_value=None, fit_options={}, figure_options={}):
         """
-        Plots the dynamics of species/observables/pysb expressions for each cluster
+        Plots the dynamics of species/observables/pysb-expressions for each execution mode
 
         Parameters
         ----------
@@ -217,8 +215,10 @@ class VisualizeSimulations(object):
         norm_value: array-like or str
             Array of values used to normalized species concentrations. Must have same order
             as species
-        kwargs: dict
+        fit_options: dict
             Arguments to pass to the fitting function
+        figure_options: dict
+            Arguments to pass to the Matplotlib subplots
 
         Returns
         -------
