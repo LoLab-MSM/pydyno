@@ -4,7 +4,7 @@
 
 # PyDyNo
 
-Python Dynamic analysis of iochemical NetwOrks (PyDyNo) is an open source python library for the analysis of 
+Python Dynamic analysis of biochemical NetwOrks (PyDyNo) is an open source python library for the analysis of 
 signal execution in network-driven biological processes. PyDyNo supports the analysis of [PySB](http://pysb.org/)
 and [SBML](http://sbml.org/Main_Page) models.
 
