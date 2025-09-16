@@ -10,12 +10,12 @@ and [SBML](http://sbml.org/Main_Page) models.
 
 ## Publications
 
-PrePrint: Probability-based mechanisms in biological networks with parameter uncertainty  
-Oscar O. Ortega, Blake A. Wilson, James C. Pino, Michael W. Irvin, Geena V. Ildefonso, Shawn P. Garbett, Carlos F. Lopez
+Signal execution modes emerge in biochemical reaction networks calibrated to experimental data  
+Oscar O. Ortega*, Mustafa Ozen*, Blake A. Wilson, James C. Pino, Michael W. Irvin, Geena V. Ildefonso, Shawn P. Garbett, Carlos F. Lopez
 
-bioRxiv 2021.01.26.428266; doi: https://doi.org/10.1101/2021.01.26.428266 
+iScience 2024; doi: 10.1016/j.isci.2024.109989
 
-The preprint paper can be found [here](https://www.biorxiv.org/content/10.1101/2021.01.26.428266v1.full)
+The paper can be accessed [here](https://doi.org/10.1016/j.isci.2024.109989)
 
 Jupyter notebooks with the code to reproduce the paper figures can be found [here](https://github.com/LoLab-VU/pydyno/tree/master/pydyno/examples/paper1)
 
